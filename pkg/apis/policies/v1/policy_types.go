@@ -39,10 +39,17 @@ type PolicySpec struct {
 	PolicyTemplates   []*PolicyTemplate `json:"policy-templates,omitempty"`
 }
 
+// PlacementDecision defines the decision made by controller
+type PlacementDecision struct {
+	ClusterName      string `json:"clusterName,omitempty"`
+	ClusterNamespace string `json:"clusterNamespace,omitempty"`
+}
+
 // Placement defines the placement results
 type Placement struct {
-	PlacementBinding string `json:"placementBinding,omitempty"`
-	PlacementRule    string `json:"placementRule,omitempty"`
+	PlacementBinding string              `json:"placementBinding,omitempty"`
+	PlacementRule    string              `json:"placementRule,omitempty"`
+	Decisions        []PlacementDecision `json:"decisions,omitempty"`
 }
 
 // CompliancePerClusterStatus defines compliance per cluster status

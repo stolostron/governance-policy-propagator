@@ -82,6 +82,17 @@ spec:
               items:
                 description: Placement defines the placement results
                 properties:
+                  decisions:
+                    items:
+                      description: PlacementDecision defines the decision made by
+                        controller
+                      properties:
+                        clusterName:
+                          type: string
+                        clusterNamespace:
+                          type: string
+                      type: object
+                    type: array
                   placementBinding:
                     type: string
                   placementRule:

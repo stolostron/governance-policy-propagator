@@ -87,12 +87,35 @@ spec:
           description: PolicyStatus defines the observed state of Policy
           properties:
             compliant:
-              description: ComplianceState shows the state of enforcement
+              description: used by replicated policy
               enum:
               - Compliant
               - NonCompliant
               type: string
+            details:
+              items:
+                description: DetailsPerTemplate defines compliance details and history
+                properties:
+                  compliant:
+                    description: ComplianceState shows the state of enforcement
+                    type: string
+                  history:
+                    items:
+                      description: ComplianceHistory defines compliance details history
+                      properties:
+                        lastTimestamp:
+                          format: date-time
+                          type: string
+                        message:
+                          type: string
+                      type: object
+                    type: array
+                  templateMeta:
+                    type: object
+                type: object
+              type: array
             placement:
+              description: used by root policy
               items:
                 description: Placement defines the placement results
                 properties:

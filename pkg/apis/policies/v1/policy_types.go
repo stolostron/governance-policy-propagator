@@ -67,13 +67,12 @@ type ComplianceHistory struct {
 
 // PolicyStatus defines the observed state of Policy
 type PolicyStatus struct {
-	// used by root policy
-	Placement []*Placement                  `json:"placement,omitempty"`
-	Status    []*CompliancePerClusterStatus `json:"status,omitempty"`
-	// used by replicated policy
+	Placement []*Placement                  `json:"placement,omitempty"` // used by root policy
+	Status    []*CompliancePerClusterStatus `json:"status,omitempty"`    // used by root policy
+
 	// +kubebuilder:validation:Enum=Compliant;NonCompliant
-	ComplianceState ComplianceState       `json:"compliant,omitempty"`
-	Details         []*DetailsPerTemplate `json:"details,omitempty"`
+	ComplianceState ComplianceState       `json:"compliant,omitempty"` // used by replicated policy
+	Details         []*DetailsPerTemplate `json:"details,omitempty"`   // used by replicated policy
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

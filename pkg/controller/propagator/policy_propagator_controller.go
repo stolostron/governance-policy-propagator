@@ -101,7 +101,7 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
-			reqLogger.Info("Policy has been deleted, reconciliation completed.")
+			reqLogger.Info("Policy not found, may have been deleted, reconciliation completed.")
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.

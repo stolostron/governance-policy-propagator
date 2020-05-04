@@ -37,10 +37,15 @@ func CompareSpecAndAnnotation(plc1 *policiesv1.Policy, plc2 *policiesv1.Policy) 
 
 // IsPbForPoicy compares group and kind with policy group and kind for given pb
 func IsPbForPoicy(pb *policiesv1.PlacementBinding) bool {
-	if pb.Spec.Subject.Kind == policiesv1.Kind && pb.Spec.Subject.APIGroup == policiesv1.SchemeGroupVersion.Group {
-		return true
+	subjects := pb.Spec.Subjects
+	found := false
+	for _, subject := range subjects {
+		if subject.Kind == policiesv1.Kind && subject.APIGroup == policiesv1.SchemeGroupVersion.Group {
+			found = true
+			break
+		}
 	}
-	return false
+	return found
 }
 
 // // GenerateLabelsForReplicatedPolicy generates labels needed for replicated policy

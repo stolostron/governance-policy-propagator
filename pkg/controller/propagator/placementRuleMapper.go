@@ -5,7 +5,6 @@ import (
 
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
-	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -32,12 +31,13 @@ func (mapper *placementRuleMapper) Map(obj handler.MapObject) []reconcile.Reques
 		// found matching placement rule in pb
 		if pb.Spec.PlacementRef.APIGroup == appsv1.SchemeGroupVersion.Group && pb.Spec.PlacementRef.Kind == appsv1.Kind && pb.Spec.PlacementRef.Name == object.GetName() {
 			// check if it is for policy
-			if common.IsPbForPoicy(&pb) {
-				if result == nil {
-					log.Info("Found reconciliation request from placmenet rule...", "Namespace", object.GetNamespace(), "Name", object.GetName())
+			subjects := pb.Spec.Subjects
+			for _, subject := range subjects {
+				if subject.APIGroup == policiesv1.SchemeGroupVersion.Group && subject.Kind == policiesv1.Kind {
+					log.Info("Found reconciliation request from placmenet rule...", "Namespace", object.GetNamespace(), "Name", object.GetName(), "Policy-Name", subject.Name)
 					// generate reconcile request for policy referenced by pb
 					request := reconcile.Request{NamespacedName: types.NamespacedName{
-						Name:      pb.Spec.Subject.Name,
+						Name:      subject.Name,
 						Namespace: object.GetNamespace(),
 					}}
 					result = append(result, request)

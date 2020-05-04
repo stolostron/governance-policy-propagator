@@ -31,8 +31,9 @@ func FullNameForPolicy(plc *policiesv1.Policy) string {
 // CompareSpecAndAnnotation compares annotation and spec for given policies
 // true if matches, false if doesn't match
 func CompareSpecAndAnnotation(plc1 *policiesv1.Policy, plc2 *policiesv1.Policy) bool {
-	return equality.Semantic.DeepEqual(plc1.GetAnnotations(), plc2.GetAnnotations()) &&
-		equality.Semantic.DeepEqual(plc1.Spec, plc1.Spec)
+	annotationMatch := equality.Semantic.DeepEqual(plc1.GetAnnotations(), plc2.GetAnnotations())
+	specMatch := equality.Semantic.DeepEqual(plc1.Spec, plc2.Spec)
+	return annotationMatch && specMatch
 }
 
 // IsPbForPoicy compares group and kind with policy group and kind for given pb

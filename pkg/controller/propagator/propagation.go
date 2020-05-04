@@ -116,6 +116,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 					// compare annotation
 					if !common.CompareSpecAndAnnotation(instance, replicatedPlc) {
 						// update needed
+						reqLogger.Info("Root policy and Replicated policy mismatch, updating replicated policy...", "Namespace", replicatedPlc.GetNamespace(), "Name", replicatedPlc.GetName())
 						replicatedPlc.SetAnnotations(instance.GetAnnotations())
 						replicatedPlc.Spec = instance.Spec
 						err = r.client.Update(context.TODO(), replicatedPlc)

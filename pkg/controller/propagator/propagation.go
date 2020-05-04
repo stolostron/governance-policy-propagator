@@ -44,19 +44,14 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 		reqLogger.Info("Policy was disabled. Reconciliation complete.")
 		return nil
 	}
-	// 1. get binding
+	// get binding
 	pbList := &policiesv1.PlacementBindingList{}
 	err := r.client.List(context.TODO(), pbList, &client.ListOptions{Namespace: instance.GetNamespace()})
 	if err != nil {
 		reqLogger.Error(err, "Failed to list pb...")
 		return err
 	}
-	// 1.1 if doesn't exist -> skip
-	// if pbList == nil {
-	// 	// TODO: shouldn't skip. need testing
-	// 	return nil
-	// }
-	// 1.2 if exists -> step 2
+	// get placement
 	placement := []*policiesv1.Placement{}
 	allDecisions := []appsv1.PlacementDecision{}
 	for _, pb := range pbList.Items {

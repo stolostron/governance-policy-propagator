@@ -23,7 +23,6 @@ func (mapper *policyMapper) Map(obj handler.MapObject) []reconcile.Request {
 // getOwnerReconcileRequest looks at object and returns a slice of reconcile.Request to reconcile
 // owners of object that match e.OwnerType.
 func getOwnerReconcileRequest(object metav1.Object) []reconcile.Request {
-	// log.Info("Reconcile Request for Policy %s in namespace %s", object.GetName(), object.GetNamespace())
 	// Iterate through the OwnerReferences looking for a match on Group and Kind against what was requested
 	// by the user
 	var result []reconcile.Request

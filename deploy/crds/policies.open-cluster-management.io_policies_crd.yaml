@@ -9,6 +9,8 @@ spec:
     listKind: PolicyList
     plural: policies
     singular: policy
+    shortNames:
+    - plc
   scope: Namespaced
   subresources:
     status: {}

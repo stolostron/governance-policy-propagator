@@ -35,6 +35,14 @@ func CompareSpecAndAnnotation(plc1 *policiesv1.Policy, plc2 *policiesv1.Policy) 
 		equality.Semantic.DeepEqual(plc1.Spec, plc1.Spec)
 }
 
+// IsPbForPoicy compares group and kind with policy group and kind for given pb
+func IsPbForPoicy(pb *policiesv1.PlacementBinding) bool {
+	if pb.Spec.Subject.Kind == policiesv1.Kind && pb.Spec.Subject.APIGroup == policiesv1.SchemeGroupVersion.Group {
+		return true
+	}
+	return false
+}
+
 // // GenerateLabelsForReplicatedPolicy generates labels needed for replicated policy
 // func GenerateLabelsForReplicatedPolicy(plc *policiesv1.Policy) {
 // 	labels := plc.GetLabels()

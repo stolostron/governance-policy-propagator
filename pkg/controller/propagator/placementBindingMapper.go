@@ -14,16 +14,13 @@ type placementBindingMapper struct {
 
 func (mapper *placementBindingMapper) Map(obj handler.MapObject) []reconcile.Request {
 	object := obj.Object.(*policiesv1.PlacementBinding)
-	log.Info("Reconcile Request for PlacementBinding %s in namespace %s", object.GetName(), object.GetNamespace())
+	log.Info("Found reconciliation request from placmenet binding...", "Namespace", object.GetNamespace(), "Name", object.GetName())
 
 	var result []reconcile.Request
-	// check if pb is for policy
-	if object.Spec.Subject.APIGroup == policiesv1.SchemeGroupVersion.Group && object.Spec.Subject.Kind == policiesv1.Kind {
-		request := reconcile.Request{NamespacedName: types.NamespacedName{
-			Name:      object.Spec.Subject.Name,
-			Namespace: object.GetNamespace(),
-		}}
-		result = append(result, request)
-	}
+	request := reconcile.Request{NamespacedName: types.NamespacedName{
+		Name:      object.Spec.Subject.Name,
+		Namespace: object.GetNamespace(),
+	}}
+	result = append(result, request)
 	return result
 }

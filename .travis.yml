@@ -45,9 +45,11 @@ jobs:
       name: "Build the image and push it"
       script:
         - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then export COMPONENT_TAG_EXTENSION="-PR${TRAVIS_PULL_REQUEST}-${TRAVIS_COMMIT}"; fi;
-        - make component/build
-        - make component/push
-        - if [ "$IMAGE_SCAN" != "false" ]; then make security/scans; fi;
+        - |
+          make
+          make component/build
+          make component/push
+          if [ "$IMAGE_SCAN" != "false" ]; then make security/scans; fi;
     - stage: unit-test
       name: "Run unit test"
       script:
@@ -55,9 +57,11 @@ jobs:
         - if [ "$TRAVIS_PULL_REQUEST" != "false" ]; then export COMPONENT_TAG_EXTENSION="-PR${TRAVIS_PULL_REQUEST}-${TRAVIS_COMMIT}"; fi;
         - make copyright-check TRAVIS_BRANCH=${TRAVIS_BRANCH}
         # Bootstrap the build harness, pull test image, and run unit tests.
-        - make component/pull
-        - make component/test/unit
-        - make sonar/go
+        - |
+          make
+          make component/pull
+          make component/test/unit
+          make sonar/go
     - stage: test-e2e
       name: "Deploy the image to a cluster and run e2e tests"
       if: type = pull_request

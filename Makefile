@@ -147,4 +147,4 @@ clean::
 # check copyright section
 ############################################################
 copyright-check:
-	./build-tools/copyright-check.sh $(TRAVIS_BRANCH)
+	./build/copyright-check.sh $(TRAVIS_BRANCH)

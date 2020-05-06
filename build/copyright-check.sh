@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 ###############################################################################
 # (c) Copyright IBM Corporation 2019, 2020. All Rights Reserved.
 # Note to U.S. Government Users Restricted Rights:

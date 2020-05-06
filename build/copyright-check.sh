@@ -7,7 +7,6 @@
 # Licensed Materials - Property of IBM
 # Copyright (c) 2020 Red Hat, Inc.
 ###############################################################################
-set -e
 
 #Project start year
 origin_year=2016
@@ -98,14 +97,14 @@ for f in $FILES_TO_SCAN; do
     printf " ---> Added since 01/03/2020\n"
     must_have_redhat_license=true
     flag_ibm_license=true
-  elif [[ "${MODIFIED_SINCE_1_MAR_2020}" == *"$f"* ]]; then
-    printf " ---> Modified since 01/03/2020\n"
-    must_have_redhat_license=true
-    must_have_ibm_license=true
-  elif [[ "${OLDER_GIT_FILES}" == *"$f"* ]]; then
-    printf " ---> File older than 01/03/2020\n"
-    must_have_ibm_license=true
-    flag_redhat_license=true
+  # elif [[ "${MODIFIED_SINCE_1_MAR_2020}" == *"$f"* ]]; then
+  #   printf " ---> Modified since 01/03/2020\n"
+  #   must_have_redhat_license=true
+  #   must_have_ibm_license=true
+  # elif [[ "${OLDER_GIT_FILES}" == *"$f"* ]]; then
+  #   printf " ---> File older than 01/03/2020\n"
+  #   must_have_ibm_license=true
+  #   flag_redhat_license=true
   else
     # Default case, could be new file not yet in git(?) - only expect Red Hat license
     must_have_redhat_license=true

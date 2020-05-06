@@ -1,5 +1,4 @@
 #!/bin/bash
-set -e
 ###############################################################################
 # (c) Copyright IBM Corporation 2019, 2020. All Rights Reserved.
 # Note to U.S. Government Users Restricted Rights:
@@ -8,6 +7,7 @@ set -e
 # Licensed Materials - Property of IBM
 # Copyright (c) 2020 Red Hat, Inc.
 ###############################################################################
+set -e
 
 #Project start year
 origin_year=2016

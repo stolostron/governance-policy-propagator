@@ -36,9 +36,6 @@ echo "install cluster"
 # setup cluster
 make kind-cluster-setup
 
-echo "install imagePullSecret"
-kubectl create secret -n open-cluster-management docker-registry multiclusterhub-operator-pull-secret --docker-server=quay.io --docker-username=${DOCKER_USER} --docker-password=${DOCKER_PASS}
-
 echo "install policy-propagator"
 make deploy
 sleep 10

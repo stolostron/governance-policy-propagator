@@ -26,23 +26,24 @@ if ! which ginkgo > /dev/null; then
 fi
 
 
-echo "creating cluster"
+
 make kind-create-cluster 
 
 # setup kubeconfig
 kind get kubeconfig --name functional-test > ${KIND_KUBECONFIG}
 
-echo "install cluster"
-# setup cluster
-make kind-cluster-setup
+make install-crds 
 
-echo "install policy-propagator"
-make deploy
+make kind-deploy-controller 
+
+echo "patch image"
+kubectl patch deployment governance-policy-propagator -n governance -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"governance-policy-propagator\",\"image\":\"${DOCKER_IMAGE_AND_TAG}\"}]}}}}"
+kubectl rollout status -n governance deployment governance-policy-propagator --timeout=90s
 sleep 10
-  
-echo "run functional test..."
-make e2e-test
-  
+
+
+make install-resources
+
 echo "delete cluster"
 make kind-delete-cluster 
 

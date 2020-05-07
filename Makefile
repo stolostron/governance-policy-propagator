@@ -149,25 +149,34 @@ clean::
 copyright-check:
 	./build/copyright-check.sh $(TRAVIS_BRANCH)
 
+
 ############################################################
-# deploy section
+# e2e test section
 ############################################################
-.PHONY: deploy
-deploy:
+.PHONY: kind-cluster-bootstrap
+kind-cluster-bootstrap: kind-create-cluster install-crds kind-deploy-controller install-resources
+
+check-env:
+ifndef DOCKER_USER
+	$(error DOCKER_USER is undefined)
+endif
+ifndef DOCKER_PASS
+	$(error DOCKER_PASS is undefined)
+endif
+
+kind-deploy-controller: check-env
 	@echo installing policy-propagator
 	kubectl create ns governance
 	kubectl create secret -n governance docker-registry multiclusterhub-operator-pull-secret --docker-server=quay.io --docker-username=${DOCKER_USER} --docker-password=${DOCKER_PASS}
 	kubectl apply -f deploy/ -n governance
 
-.PHONY: kind-create-cluster
 kind-create-cluster:
+	@echo "creating cluster"
 	kind create cluster --name hub
 
-.PHONY: kind-delete-cluster
 kind-delete-cluster:
 	kind delete cluster --name hub
 
-.PHONY: install-crds
 install-crds:
 	@echo installing crds
 	kubectl apply -f deploy/crds/apps.open-cluster-management.io_placementrules_crd.yaml
@@ -176,15 +185,14 @@ install-crds:
 	kubectl apply -f test/resources/cluster-registry-crd.yaml
 	@sleep 10 
 
-.PHONY: kind-cluster-setup
-kind-cluster-setup: install-crds
-	@echo create namespaces
+install-resources:
+	@echo creating namespaces
 	kubectl create ns policy-propagator-test
 	kubectl create ns managed1
 	kubectl create ns managed2
+	@echo creating cluster resources
 	kubectl apply -f test/resources/managed1-cluster.yaml
 	kubectl apply -f test/resources/managed2-cluster.yaml
-
-.PHONY: e2e-test
+ 
 e2e-test:
-	ginkgo -tags functional -v --slowSpecThreshold=10 test/e2e
+	ginkgo -v --slowSpecThreshold=10 test/e2e

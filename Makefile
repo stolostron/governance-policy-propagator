@@ -186,7 +186,6 @@ install-crds:
 	kubectl apply -f deploy/crds/policies.open-cluster-management.io_placementbindings_crd.yaml
 	kubectl apply -f deploy/crds/policies.open-cluster-management.io_policies_crd.yaml
 	kubectl apply -f test/resources/cluster-registry-crd.yaml
-	@sleep 10 
 
 install-resources:
 	@echo creating namespaces
@@ -198,4 +197,4 @@ install-resources:
 	kubectl apply -f test/resources/managed2-cluster.yaml
  
 e2e-test:
-	ginkgo -v --slowSpecThreshold=10 test/e2e
+	ginkgo -tags integration -v --slowSpecThreshold=10 test/e2e

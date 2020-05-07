@@ -157,7 +157,7 @@ copyright-check:
 kind-cluster-bootstrap: kind-create-cluster install-crds kind-deploy-controller install-resources
 
 .PHONY: kind-cluster-bootstrap-dev
-kind-cluster-bootstrap: kind-create-cluster install-crds install-resources
+kind-cluster-bootstrap-dev: kind-create-cluster install-crds install-resources
 
 check-env:
 ifndef DOCKER_USER

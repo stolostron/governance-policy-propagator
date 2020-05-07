@@ -18,11 +18,9 @@ if ! which kind > /dev/null; then
     chmod +x ./kind
     sudo mv ./kind /usr/local/bin/kind
 fi
-if ! which ginkgo > /dev/null; then
-    echo "Installing ginkgo ..."
-    go get github.com/onsi/ginkgo/ginkgo
-    go get github.com/onsi/gomega/...
-fi
+echo "Installing ginkgo ..."
+go get github.com/onsi/ginkgo/ginkgo
+go get github.com/onsi/gomega/...
 
 make kind-create-cluster 
 

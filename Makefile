@@ -156,6 +156,9 @@ copyright-check:
 .PHONY: kind-cluster-bootstrap
 kind-cluster-bootstrap: kind-create-cluster install-crds kind-deploy-controller install-resources
 
+.PHONY: kind-cluster-bootstrap-dev
+kind-cluster-bootstrap: kind-create-cluster install-crds install-resources
+
 check-env:
 ifndef DOCKER_USER
 	$(error DOCKER_USER is undefined)

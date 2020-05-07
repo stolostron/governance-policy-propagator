@@ -172,10 +172,10 @@ kind-deploy-controller: check-env
 
 kind-create-cluster:
 	@echo "creating cluster"
-	kind create cluster --name hub
+	kind create cluster --name test-hub
 
 kind-delete-cluster:
-	kind delete cluster --name hub
+	kind delete cluster --name test-hub
 
 install-crds:
 	@echo installing crds

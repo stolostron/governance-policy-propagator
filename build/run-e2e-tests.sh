@@ -30,7 +30,7 @@ fi
 make kind-create-cluster 
 
 # setup kubeconfig
-kind get kubeconfig --name functional-test > ${KIND_KUBECONFIG}
+kind get kubeconfig --name test-hub > ${KIND_KUBECONFIG}
 
 make install-crds 
 

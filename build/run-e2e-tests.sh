@@ -41,8 +41,9 @@ kubectl patch deployment governance-policy-propagator -n governance -p "{\"spec\
 kubectl rollout status -n governance deployment governance-policy-propagator --timeout=90s
 sleep 10
 
-
 make install-resources
+
+make e2e-test
 
 echo "delete cluster"
 make kind-delete-cluster 

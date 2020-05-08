@@ -182,7 +182,7 @@ var _ = Describe("Test policy propagation", func() {
 			Eventually(func() interface{} {
 				replicatedPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
 				return replicatedPlc.Object["spec"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(rootPlc.Object["spec"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(rootPlc.Object["spec"]))
 		})
 		It("should remove replicated policy in ns managed1", func() {
 			By("Patch test-policy with spec.disabled = true")
@@ -226,7 +226,7 @@ var _ = Describe("Test policy propagation", func() {
 			Eventually(func() interface{} {
 				replicatedPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
 				return replicatedPlc.Object["spec"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["spec"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["spec"]))
 		})
 		It("should clean up", func() {
 			Kubectl("delete",

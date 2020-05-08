@@ -38,7 +38,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["status"]))
 		})
 		It("should contain status.placement with both managed1 and managed2", func() {
 			By("Patch test-policy-plr with decision of cluster managed1 and managed2")
@@ -55,7 +55,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["status"]))
 		})
 		It("should contain status.placement with managed2", func() {
 			By("Patch test-policy-plr with decision of cluster managed2")
@@ -72,7 +72,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["status"]))
 		})
 		It("should contain status.placement with two pb/plr", func() {
 			By("Creating pb-plr-2 to binding second set of placement")
@@ -84,7 +84,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["status"]))
 		})
 		It("should contain status.placement with two pb/plr and both status", func() {
 			By("Creating pb-plr-2 to binding second set of placement")
@@ -97,7 +97,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["status"]))
 		})
 		It("should still contain status.placement with two pb/plr and both status", func() {
 			By("Patch" + case2PolicyName + "-plr2 with both managed1 and managed2")
@@ -110,7 +110,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["status"]))
 		})
 		It("should still contain status.placement with two pb, one plr and both status", func() {
 			By("Remove" + case2PolicyName + "-plr")
@@ -122,7 +122,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["status"]))
 		})
 		It("should clear out status.status", func() {
 			By("Remove" + case2PolicyName + "-plr2")
@@ -134,7 +134,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["status"]))
 		})
 		It("should clear out status", func() {
 			By("Remove" + case2PolicyName + "-pb and " + case2PolicyName + "-pb2")
@@ -149,7 +149,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(emptyStatus))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(emptyStatus))
 		})
 		It("should clean up", func() {
 			Kubectl("delete",
@@ -191,7 +191,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["status"]))
 			By("Patch both replicated policy status to noncompliant")
 			replicatedPlcList = ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 			for _, replicatedPlc := range replicatedPlcList.Items {
@@ -206,7 +206,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Eventually(func() interface{} {
 				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 				return rootPlc.Object["status"]
-			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
+			}, defaultTimeoutSeconds, 1).Should(SemanticEqual(yamlPlc.Object["status"]))
 		})
 		It("should clean up", func() {
 			Kubectl("delete",

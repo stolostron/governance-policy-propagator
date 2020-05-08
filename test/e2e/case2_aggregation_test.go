@@ -6,7 +6,6 @@ package e2e
 import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -92,14 +91,7 @@ var _ = Describe("Test policy status aggregation", func() {
 		It("should contain status.placement with two pb/plr and both status", func() {
 			By("Creating pb-plr-2 to binding second set of placement")
 			plr := GetWithTimeout(clientHubDynamic, gvrPlacementRule, case2PolicyName+"-plr2", testNamespace, true, defaultTimeoutSeconds)
-			plr.Object["status"] = &appsv1.PlacementRuleStatus{
-				Decisions: []appsv1.PlacementDecision{
-					{
-						ClusterName:      "managed1",
-						ClusterNamespace: "managed1",
-					},
-				},
-			}
+			plr.Object["status"] = GeneratePlrStatus("managed1")
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
 			By("Patch checking the status of root policy")
@@ -112,18 +104,7 @@ var _ = Describe("Test policy status aggregation", func() {
 		It("should still contain status.placement with two pb/plr and both status", func() {
 			By("Patch" + case2PolicyName + "-plr2 with both managed1 and managed2")
 			plr := GetWithTimeout(clientHubDynamic, gvrPlacementRule, case2PolicyName+"-plr2", testNamespace, true, defaultTimeoutSeconds)
-			plr.Object["status"] = &appsv1.PlacementRuleStatus{
-				Decisions: []appsv1.PlacementDecision{
-					{
-						ClusterName:      "managed1",
-						ClusterNamespace: "managed1",
-					},
-					{
-						ClusterName:      "managed2",
-						ClusterNamespace: "managed2",
-					},
-				},
-			}
+			plr.Object["status"] = GeneratePlrStatus("managed1", "managed2")
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
 			By("Patch checking the status of root policy")

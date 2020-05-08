@@ -10,7 +10,6 @@ import (
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	// . "github.com/open-cluster-management/governance-policy-propagator/test/e2e"
 )
 
 const case3PolicyName string = "case3-test-policy"

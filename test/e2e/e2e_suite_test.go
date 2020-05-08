@@ -23,17 +23,18 @@ import (
 )
 
 var (
-	testNamespace       string
-	clientHub           kubernetes.Interface
-	clientHubDynamic    dynamic.Interface
-	gvrPolicy           schema.GroupVersionResource
-	gvrPlacementBinding schema.GroupVersionResource
-	gvrPlacementRule    schema.GroupVersionResource
-	optionsFile         string
-	baseDomain          string
-	kubeadminUser       string
-	kubeadminCredential string
-	kubeconfig          string
+	testNamespace         string
+	clientHub             kubernetes.Interface
+	clientHubDynamic      dynamic.Interface
+	gvrPolicy             schema.GroupVersionResource
+	gvrPlacementBinding   schema.GroupVersionResource
+	gvrPlacementRule      schema.GroupVersionResource
+	optionsFile           string
+	baseDomain            string
+	kubeadminUser         string
+	kubeadminCredential   string
+	kubeconfig            string
+	defaultTimeoutSeconds int
 
 	defaultImageRegistry       string
 	defaultImagePullSecretName string
@@ -68,6 +69,7 @@ var _ = BeforeSuite(func() {
 	defaultImageRegistry = "quay.io/open-cluster-management"
 	defaultImagePullSecretName = "multiclusterhub-operator-pull-secret"
 	testNamespace = "policy-propagator-test"
+	defaultTimeoutSeconds = 30
 	By("Create Namesapce if needed")
 	namespaces := clientHub.CoreV1().Namespaces()
 	if _, err := namespaces.Get(testNamespace, metav1.GetOptions{}); err != nil && errors.IsNotFound(err) {

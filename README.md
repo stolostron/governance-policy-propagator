@@ -28,7 +28,7 @@ operator-sdk run --local
 ## Run e2e test
 Make sure you have [kind](https://github.com/kubernetes-sigs/kind) and [ginkgo](https://github.com/onsi/ginkgo) installed. 
 ```
-make kind-cluster-bootstrap
+make kind-bootstrap-cluster
 make e2e-test
 ```
 To cleanup

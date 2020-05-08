@@ -17,5 +17,4 @@ export PATH=$PATH:/usr/local/kubebuilder/bin
 
 # Run unit test
 export IMAGE_NAME_AND_VERSION=${1}
-export SONAR_GO_TEST_ARGS="\`go list ./... | grep -v test/e2e\`"
 make test

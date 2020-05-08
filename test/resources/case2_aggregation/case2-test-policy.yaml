@@ -1,44 +1,41 @@
 apiVersion: policies.open-cluster-management.io/v1
 kind: Policy
 metadata:
-  name: test-policy
+  name: case2-test-policy
 spec:
   remediationAction: inform
   disabled: false
   policy-templates:
     - objectDefinition:
-        apiVersion: iam.policies.ibm.com/v1alpha1
-        kind: IamPolicy
+        apiVersion: policies.ibm.com/v1alpha1
+        kind: TrustedContainerPolicy
         metadata:
-          name: iampolicy-test-policy
+          name: case2-test-policy-trustedcontainerpolicy
         spec:
-          maxClusterRoleBindingUsers: 5
+          severity: low
           namespaceSelector:
-            exclude:
-              - kube-*
-              - openshift-*
-            include:
-              - '*'
+            include: ["default"]
+            exclude: ["kube-system"]
           remediationAction: inform
-          severity: medium
+          imageRegistry: quay.io
 ---
 apiVersion: policies.open-cluster-management.io/v1
 kind: PlacementBinding
 metadata:
-  name: test-policy-pb
+  name: case2-test-policy-pb
 placementRef:
   apiGroup: apps.open-cluster-management.io
   kind: PlacementRule
-  name: test-policy-plr
+  name: case2-test-policy-plr
 subjects:
 - apiGroup: policies.open-cluster-management.io
   kind: Policy
-  name: test-policy
+  name: case2-test-policy
 ---
 apiVersion: apps.open-cluster-management.io/v1
 kind: PlacementRule
 metadata:
-  name: test-policy-plr
+  name: case2-test-policy-plr
 spec:
   clusterConditions:
   - type: OK

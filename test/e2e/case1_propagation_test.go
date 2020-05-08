@@ -1,4 +1,5 @@
 // Copyright (c) 2020 Red Hat, Inc.
+// +build dd
 
 package e2e
 
@@ -21,7 +22,7 @@ var _ = Describe("Test policy propagation", func() {
 		It("should be created in user ns", func() {
 			By("Creating " + case1PolicyYaml)
 			Kubectl("apply",
-				"-f", ""+case1PolicyYaml,
+				"-f", case1PolicyYaml,
 				"-n", testNamespace)
 			plc := GetWithTimeout(clientHubDynamic, gvrPolicy, case1PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			Expect(plc).NotTo(BeNil())
@@ -146,7 +147,7 @@ var _ = Describe("Test policy propagation", func() {
 		})
 		It("should clean up", func() {
 			Kubectl("delete",
-				"-f", ""+case1PolicyYaml,
+				"-f", case1PolicyYaml,
 				"-n", testNamespace)
 			opt := metav1.ListOptions{}
 			ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, false, 1)
@@ -157,7 +158,7 @@ var _ = Describe("Test policy propagation", func() {
 		It("should be created in user ns", func() {
 			By("Creating " + case1PolicyYaml)
 			Kubectl("apply",
-				"-f", ""+case1PolicyYaml,
+				"-f", case1PolicyYaml,
 				"-n", testNamespace)
 			plc := GetWithTimeout(clientHubDynamic, gvrPolicy, case1PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			Expect(plc).NotTo(BeNil())
@@ -202,7 +203,7 @@ var _ = Describe("Test policy propagation", func() {
 		It("should be created in user ns", func() {
 			By("Creating " + case1PolicyYaml)
 			Kubectl("apply",
-				"-f", ""+case1PolicyYaml,
+				"-f", case1PolicyYaml,
 				"-n", testNamespace)
 			plc := GetWithTimeout(clientHubDynamic, gvrPolicy, case1PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			Expect(plc).NotTo(BeNil())

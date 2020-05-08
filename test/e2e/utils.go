@@ -104,7 +104,7 @@ func ListWithTimeout(
 			return err
 		} else {
 			if len(list.Items) != size {
-				return fmt.Errorf("list size doesn't match")
+				return fmt.Errorf("list size doesn't match, expected %d actual %d", size, len(list.Items))
 			} else {
 				return nil
 			}

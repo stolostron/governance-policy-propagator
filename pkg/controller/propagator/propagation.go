@@ -179,6 +179,9 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	})
 	instance.Status.Status = status
 	// looped through all pb, update status.placement
+	sort.Slice(placement, func(i, j int) bool {
+		return placement[i].PlacementBinding < placement[j].PlacementBinding
+	})
 	instance.Status.Placement = placement
 	err = r.client.Status().Update(context.TODO(), instance)
 	if err != nil && !errors.IsNotFound(err) {

@@ -110,7 +110,7 @@ lint: lint-all
 ############################################################
 
 test:
-	@go test ${TESTARGS} ./...
+	@go test ${TESTARGS} `go list ./... | grep -v test/e2e\`
 
 ############################################################
 # coverage section
@@ -153,11 +153,11 @@ copyright-check:
 ############################################################
 # e2e test section
 ############################################################
-.PHONY: kind-cluster-bootstrap
-kind-cluster-bootstrap: kind-create-cluster install-crds kind-deploy-controller install-resources
+.PHONY: kind-bootstrap-cluster
+kind-bootstrap-cluster: kind-create-cluster install-crds kind-deploy-controller install-resources
 
-.PHONY: kind-cluster-bootstrap-dev
-kind-cluster-bootstrap-dev: kind-create-cluster install-crds install-resources
+.PHONY: kind-bootstrap-cluster-dev
+kind-bootstrap-cluster-dev: kind-create-cluster install-crds install-resources
 
 check-env:
 ifndef DOCKER_USER

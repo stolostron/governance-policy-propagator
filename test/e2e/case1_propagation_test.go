@@ -3,10 +3,6 @@
 package e2e
 
 import (
-	"io/ioutil"
-	"time"
-
-	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
@@ -15,7 +11,6 @@ import (
 	// . "github.com/open-cluster-management/governance-policy-propagator/test/e2e"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 const case1PolicyName string = "case1-test-policy"
@@ -218,7 +213,7 @@ var _ = Describe("Test policy propagation", func() {
 			rootPlc.Object["spec"].(map[string]interface{})["remediationAction"] = "enforce"
 			rootPlc, err := clientHubDynamic.Resource(gvrPolicy).Namespace(testNamespace).Update(rootPlc, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			replicatedPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
 			Expect(replicatedPlc).ToNot(BeNil())
 			equal := equality.Semantic.DeepEqual(rootPlc.Object["spec"], replicatedPlc.Object["spec"])
@@ -269,14 +264,15 @@ var _ = Describe("Test policy propagation", func() {
 				"-n", testNamespace)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case1PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			Expect(rootPlc).NotTo(BeNil())
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			replicatedPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
 			Expect(replicatedPlc).ToNot(BeNil())
-			yamlFile, err := ioutil.ReadFile("../resources/case1_propagation/case1-test-policy2.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc := &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			// yamlFile, err := ioutil.ReadFile("../resources/case1_propagation/case1-test-policy2.yaml")
+			// Expect(err).To(BeNil())
+			// yamlPlc := &unstructured.Unstructured{}
+			// err = yaml.Unmarshal(yamlFile, yamlPlc)
+			// Expect(err).To(BeNil())
+			yamlPlc := ParseYaml("../resources/case1_propagation/case1-test-policy2.yaml")
 			equal := equality.Semantic.DeepEqual(yamlPlc.Object["spec"], replicatedPlc.Object["spec"])
 			Expect(equal).To(Equal(true))
 		})

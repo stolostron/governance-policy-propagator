@@ -3,8 +3,11 @@ package e2e
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os/exec"
+	"time"
 
+	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -13,6 +16,24 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 )
+
+// Pause sleep for given seconds
+func Pause(s uint) {
+	if s < 1 {
+		s = 1
+	}
+	time.Sleep(time.Duration(float64(s)) * time.Second)
+}
+
+// ParseYaml read given yaml file and unmarshal it to &unstructured.Unstructured{}
+func ParseYaml(file string) *unstructured.Unstructured {
+	yamlFile, err := ioutil.ReadFile(file)
+	Expect(err).To(BeNil())
+	yamlPlc := &unstructured.Unstructured{}
+	err = yaml.Unmarshal(yamlFile, yamlPlc)
+	Expect(err).To(BeNil())
+	return yamlPlc
+}
 
 // getWithTimeout keeps polling to get the object for timeout seconds until wantFound is met (true for found, false for not found)
 func GetWithTimeout(

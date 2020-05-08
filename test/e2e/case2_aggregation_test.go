@@ -3,17 +3,12 @@
 package e2e
 
 import (
-	"io/ioutil"
-	"time"
-
-	"github.com/ghodss/yaml"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 const case2PolicyName string = "case2-test-policy"
@@ -48,13 +43,14 @@ var _ = Describe("Test policy status aggregation", func() {
 			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case2PolicyName}
 			ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 			By("Checking the status.placement of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
-			yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed1-status.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc := &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			// yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed1-status.yaml")
+			// Expect(err).To(BeNil())
+			// yamlPlc := &unstructured.Unstructured{}
+			// err = yaml.Unmarshal(yamlFile, yamlPlc)
+			// Expect(err).To(BeNil())
+			yamlPlc := ParseYaml("../resources/case2_aggregation/managed1-status.yaml")
 			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
 			Expect(equal).To(Equal(true))
 		})
@@ -80,13 +76,9 @@ var _ = Describe("Test policy status aggregation", func() {
 			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case2PolicyName}
 			ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 			By("Patch checking the status.placement of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
-			yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-status.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc := &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-status.yaml")
 			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
 			Expect(equal).To(Equal(true))
 		})
@@ -108,13 +100,14 @@ var _ = Describe("Test policy status aggregation", func() {
 			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case2PolicyName}
 			ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 			By("Checking the status.placement of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
-			yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed2-status.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc := &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			// yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed2-status.yaml")
+			// Expect(err).To(BeNil())
+			// yamlPlc := &unstructured.Unstructured{}
+			// err = yaml.Unmarshal(yamlFile, yamlPlc)
+			// Expect(err).To(BeNil())
+			yamlPlc := ParseYaml("../resources/case2_aggregation/managed2-status.yaml")
 			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
 			Expect(equal).To(Equal(true))
 		})
@@ -124,13 +117,14 @@ var _ = Describe("Test policy status aggregation", func() {
 				"-f", "../resources/case2_aggregation/pb-plr-2.yaml",
 				"-n", testNamespace)
 			By("Patch checking the status of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
-			yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-placement-single-status.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc := &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			// yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-placement-single-status.yaml")
+			// Expect(err).To(BeNil())
+			// yamlPlc := &unstructured.Unstructured{}
+			// err = yaml.Unmarshal(yamlFile, yamlPlc)
+			// Expect(err).To(BeNil())
+			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-placement-single-status.yaml")
 			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
 			Expect(equal).To(Equal(true))
 		})
@@ -148,13 +142,14 @@ var _ = Describe("Test policy status aggregation", func() {
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
 			By("Patch checking the status of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
-			yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-placement-status.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc := &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			// yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-placement-status.yaml")
+			// Expect(err).To(BeNil())
+			// yamlPlc := &unstructured.Unstructured{}
+			// err = yaml.Unmarshal(yamlFile, yamlPlc)
+			// Expect(err).To(BeNil())
+			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-placement-status.yaml")
 			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
 			Expect(equal).To(Equal(true))
 		})
@@ -176,13 +171,14 @@ var _ = Describe("Test policy status aggregation", func() {
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
 			By("Patch checking the status of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
-			yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-placement-status.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc := &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			// yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-placement-status.yaml")
+			// Expect(err).To(BeNil())
+			// yamlPlc := &unstructured.Unstructured{}
+			// err = yaml.Unmarshal(yamlFile, yamlPlc)
+			// Expect(err).To(BeNil())
+			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-placement-status.yaml")
 			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
 			Expect(equal).To(Equal(true))
 		})
@@ -192,13 +188,14 @@ var _ = Describe("Test policy status aggregation", func() {
 				"placementrule", case2PolicyName+"-plr",
 				"-n", testNamespace)
 			By("Patch checking the status of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
-			yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-placement-status-missing-plr.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc := &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			// yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-placement-status-missing-plr.yaml")
+			// Expect(err).To(BeNil())
+			// yamlPlc := &unstructured.Unstructured{}
+			// err = yaml.Unmarshal(yamlFile, yamlPlc)
+			// Expect(err).To(BeNil())
+			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-placement-status-missing-plr.yaml")
 			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
 			Expect(equal).To(Equal(true))
 		})
@@ -208,13 +205,14 @@ var _ = Describe("Test policy status aggregation", func() {
 				"placementrule", case2PolicyName+"-plr2",
 				"-n", testNamespace)
 			By("Patch checking the status of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
-			yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-placementbinding.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc := &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			// yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-placementbinding.yaml")
+			// Expect(err).To(BeNil())
+			// yamlPlc := &unstructured.Unstructured{}
+			// err = yaml.Unmarshal(yamlFile, yamlPlc)
+			// Expect(err).To(BeNil())
+			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-placementbinding.yaml")
 			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
 			Expect(equal).To(Equal(true))
 		})
@@ -227,7 +225,7 @@ var _ = Describe("Test policy status aggregation", func() {
 				"placementbinding", case2PolicyName+"-pb2",
 				"-n", testNamespace)
 			By("Patch checking the status of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			emptyStatus := map[string]interface{}{}
 			Expect(rootPlc.Object["status"]).To(Equal(emptyStatus))
@@ -279,13 +277,14 @@ var _ = Describe("Test policy status aggregation", func() {
 				Expect(err).To(BeNil())
 			}
 			By("Checking the status of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
-			yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-status-compliant.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc := &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			// yamlFile, err := ioutil.ReadFile("../resources/case2_aggregation/managed-both-status-compliant.yaml")
+			// Expect(err).To(BeNil())
+			// yamlPlc := &unstructured.Unstructured{}
+			// err = yaml.Unmarshal(yamlFile, yamlPlc)
+			// Expect(err).To(BeNil())
+			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-status-compliant.yaml")
 			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
 			Expect(equal).To(Equal(true))
 			By("Patch both replicated policy status to noncompliant")
@@ -298,13 +297,14 @@ var _ = Describe("Test policy status aggregation", func() {
 				Expect(err).To(BeNil())
 			}
 			By("Checking the status of root policy")
-			time.Sleep(2 * time.Second)
+			Pause(2)
 			rootPlc = GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
-			yamlFile, err = ioutil.ReadFile("../resources/case2_aggregation/managed-both-status-noncompliant.yaml")
-			Expect(err).To(BeNil())
-			yamlPlc = &unstructured.Unstructured{}
-			err = yaml.Unmarshal(yamlFile, yamlPlc)
-			Expect(err).To(BeNil())
+			// yamlFile, err = ioutil.ReadFile("../resources/case2_aggregation/managed-both-status-noncompliant.yaml")
+			// Expect(err).To(BeNil())
+			// yamlPlc = &unstructured.Unstructured{}
+			// err = yaml.Unmarshal(yamlFile, yamlPlc)
+			// Expect(err).To(BeNil())
+			yamlPlc = ParseYaml("../resources/case2_aggregation/managed-both-status-noncompliant.yaml")
 			equal = equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
 			Expect(equal).To(Equal(true))
 		})

@@ -3,6 +3,7 @@ package propagator
 
 import (
 	"context"
+	"sort"
 
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
@@ -173,6 +174,9 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 			}
 		}
 	}
+	sort.Slice(status, func(i, j int) bool {
+		return status[i].ClusterName < status[j].ClusterName
+	})
 	instance.Status.Status = status
 	// looped through all pb, update status.placement
 	instance.Status.Placement = placement

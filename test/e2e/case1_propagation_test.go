@@ -1,5 +1,4 @@
 // Copyright (c) 2020 Red Hat, Inc.
-// +build integration
 
 package e2e
 

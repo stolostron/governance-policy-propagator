@@ -197,4 +197,4 @@ install-resources:
 	kubectl apply -f test/resources/managed2-cluster.yaml
  
 e2e-test:
-	ginkgo -tags integration -v --slowSpecThreshold=10 test/e2e
+	ginkgo -v --slowSpecThreshold=10 test/e2e

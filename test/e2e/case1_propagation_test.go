@@ -8,7 +8,6 @@ import (
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
 
-	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -180,11 +179,10 @@ var _ = Describe("Test policy propagation", func() {
 			rootPlc.Object["spec"].(map[string]interface{})["remediationAction"] = "enforce"
 			rootPlc, err := clientHubDynamic.Resource(gvrPolicy).Namespace(testNamespace).Update(rootPlc, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
-			Pause(2)
-			replicatedPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
-			Expect(replicatedPlc).ToNot(BeNil())
-			equal := equality.Semantic.DeepEqual(rootPlc.Object["spec"], replicatedPlc.Object["spec"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				replicatedPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
+				return replicatedPlc.Object["spec"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(rootPlc.Object["spec"]))
 		})
 		It("should remove replicated policy in ns managed1", func() {
 			By("Patch test-policy with spec.disabled = true")
@@ -224,12 +222,11 @@ var _ = Describe("Test policy propagation", func() {
 				"-n", testNamespace)
 			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case1PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			Expect(rootPlc).NotTo(BeNil())
-			Pause(2)
-			replicatedPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
-			Expect(replicatedPlc).ToNot(BeNil())
 			yamlPlc := ParseYaml("../resources/case1_propagation/case1-test-policy2.yaml")
-			equal := equality.Semantic.DeepEqual(yamlPlc.Object["spec"], replicatedPlc.Object["spec"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				replicatedPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
+				return replicatedPlc.Object["spec"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["spec"]))
 		})
 		It("should clean up", func() {
 			Kubectl("delete",

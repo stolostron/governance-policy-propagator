@@ -3,12 +3,9 @@
 package e2e
 
 import (
-	"time"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -39,11 +36,11 @@ var _ = Describe("Test unexpected policy mutation", func() {
 			Expect(err).To(BeNil())
 		}
 		By("Checking the status of root policy")
-		time.Sleep(2 * time.Second)
-		rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case3PolicyName, testNamespace, true, defaultTimeoutSeconds)
 		yamlPlc := ParseYaml("../resources/case3_mutation_recovery/managed-both-status-compliant.yaml")
-		equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-		Expect(equal).To(Equal(true))
+		Eventually(func() interface{} {
+			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case3PolicyName, testNamespace, true, defaultTimeoutSeconds)
+			return rootPlc.Object["status"]
+		}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 	})
 	AfterEach(func() {
 		Kubectl("delete",
@@ -69,10 +66,10 @@ var _ = Describe("Test unexpected policy mutation", func() {
 		Expect(err).To(BeNil())
 		Expect(plc.Object["spec"].(map[string]interface{})["disabled"]).To(Equal(true))
 		By("Get policy in cluster ns managed2 again")
-		Pause(2)
-		plc = GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case3PolicyName, "managed2", true, defaultTimeoutSeconds)
-		Expect(err).To(BeNil())
-		Expect(plc.Object["spec"].(map[string]interface{})["disabled"]).To(Equal(false))
+		Eventually(func() interface{} {
+			plc = GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case3PolicyName, "managed2", true, defaultTimeoutSeconds)
+			return plc.Object["spec"].(map[string]interface{})["disabled"]
+		}, defaultTimeoutSeconds, 1).Should(Equal(false))
 	})
 	It("Should recover replicated policy when modified field remediationAction", func() {
 		By("Modifiying policy in cluster ns managed2")
@@ -83,10 +80,10 @@ var _ = Describe("Test unexpected policy mutation", func() {
 		Expect(err).To(BeNil())
 		Expect(plc.Object["spec"].(map[string]interface{})["remediationAction"]).To(Equal("enforce"))
 		By("Getting policy in cluster ns managed2 again")
-		Pause(2)
-		plc = GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case3PolicyName, "managed2", true, defaultTimeoutSeconds)
-		Expect(err).To(BeNil())
-		Expect(plc.Object["spec"].(map[string]interface{})["remediationAction"]).To(Equal("inform"))
+		Eventually(func() interface{} {
+			plc = GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case3PolicyName, "managed2", true, defaultTimeoutSeconds)
+			return plc.Object["spec"].(map[string]interface{})["remediationAction"]
+		}, defaultTimeoutSeconds, 1).Should(Equal("enforce"))
 	})
 	It("Should recover replicated policy when modified field policy-templates", func() {
 		By("Modifiying policy in cluster ns managed2")
@@ -96,12 +93,11 @@ var _ = Describe("Test unexpected policy mutation", func() {
 		plc, err := clientHubDynamic.Resource(gvrPolicy).Namespace("managed2").Update(plc, metav1.UpdateOptions{})
 		Expect(err).To(BeNil())
 		By("Getting policy in cluster ns managed2 again")
-		Pause(2)
-		plc = GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case3PolicyName, "managed2", true, defaultTimeoutSeconds)
-		Expect(err).To(BeNil())
-		rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case3PolicyName, "managed2", true, defaultTimeoutSeconds)
-		equal := equality.Semantic.DeepEqual(rootPlc.Object["spec"], plc.Object["spec"])
-		Expect(equal).To(Equal(true))
+		rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case3PolicyName, testNamespace, true, defaultTimeoutSeconds)
+		Eventually(func() interface{} {
+			plc = GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case3PolicyName, "managed2", true, defaultTimeoutSeconds)
+			return plc.Object["spec"]
+		}, defaultTimeoutSeconds, 1).Should(Equal(rootPlc.Object["spec"]))
 	})
 	It("Should recover root policy status if modified", func() {
 		By("Modifiying policy in cluster ns managed2")
@@ -111,12 +107,11 @@ var _ = Describe("Test unexpected policy mutation", func() {
 		rootPlc, err := clientHubDynamic.Resource(gvrPolicy).Namespace(testNamespace).UpdateStatus(rootPlc, metav1.UpdateOptions{})
 		Expect(err).To(BeNil())
 		By("Getting root policy again")
-		Pause(2)
-		rootPlc = GetWithTimeout(clientHubDynamic, gvrPolicy, case3PolicyName, testNamespace, true, defaultTimeoutSeconds)
 		yamlPlc := ParseYaml("../resources/case3_mutation_recovery/managed-both-status-compliant.yaml")
-		equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-		Expect(equal).To(Equal(true))
-
+		Eventually(func() interface{} {
+			rootPlc = GetWithTimeout(clientHubDynamic, gvrPolicy, case3PolicyName, testNamespace, true, defaultTimeoutSeconds)
+			return rootPlc.Object["status"]
+		}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 	})
 	It("Should ignore root policy created in cluster ns", func() {
 		By("Creating a policy in cluster ns managed1")

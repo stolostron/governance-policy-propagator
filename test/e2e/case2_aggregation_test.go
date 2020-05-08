@@ -6,7 +6,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
-	"k8s.io/apimachinery/pkg/api/equality"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -35,11 +34,11 @@ var _ = Describe("Test policy status aggregation", func() {
 			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case2PolicyName}
 			ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 			By("Checking the status.placement of root policy")
-			Pause(2)
-			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			yamlPlc := ParseYaml("../resources/case2_aggregation/managed1-status.yaml")
-			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 		})
 		It("should contain status.placement with both managed1 and managed2", func() {
 			By("Patch test-policy-plr with decision of cluster managed1 and managed2")
@@ -51,12 +50,12 @@ var _ = Describe("Test policy status aggregation", func() {
 			Expect(plc).ToNot(BeNil())
 			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case2PolicyName}
 			ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
-			By("Patch checking the status.placement of root policy")
-			Pause(2)
-			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+			By("Checking the status.placement of root policy")
 			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-status.yaml")
-			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 		})
 		It("should contain status.placement with managed2", func() {
 			By("Patch test-policy-plr with decision of cluster managed2")
@@ -69,11 +68,11 @@ var _ = Describe("Test policy status aggregation", func() {
 			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case2PolicyName}
 			ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 			By("Checking the status.placement of root policy")
-			Pause(2)
-			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			yamlPlc := ParseYaml("../resources/case2_aggregation/managed2-status.yaml")
-			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 		})
 		It("should contain status.placement with two pb/plr", func() {
 			By("Creating pb-plr-2 to binding second set of placement")
@@ -81,11 +80,11 @@ var _ = Describe("Test policy status aggregation", func() {
 				"-f", "../resources/case2_aggregation/pb-plr-2.yaml",
 				"-n", testNamespace)
 			By("Patch checking the status of root policy")
-			Pause(2)
-			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-placement-single-status.yaml")
-			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 		})
 		It("should contain status.placement with two pb/plr and both status", func() {
 			By("Creating pb-plr-2 to binding second set of placement")
@@ -94,11 +93,11 @@ var _ = Describe("Test policy status aggregation", func() {
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
 			By("Patch checking the status of root policy")
-			Pause(2)
-			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-placement-status.yaml")
-			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 		})
 		It("should still contain status.placement with two pb/plr and both status", func() {
 			By("Patch" + case2PolicyName + "-plr2 with both managed1 and managed2")
@@ -107,11 +106,11 @@ var _ = Describe("Test policy status aggregation", func() {
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
 			By("Patch checking the status of root policy")
-			Pause(2)
-			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-placement-status.yaml")
-			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 		})
 		It("should still contain status.placement with two pb, one plr and both status", func() {
 			By("Remove" + case2PolicyName + "-plr")
@@ -119,11 +118,11 @@ var _ = Describe("Test policy status aggregation", func() {
 				"placementrule", case2PolicyName+"-plr",
 				"-n", testNamespace)
 			By("Patch checking the status of root policy")
-			Pause(2)
-			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-placement-status-missing-plr.yaml")
-			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 		})
 		It("should clear out status.status", func() {
 			By("Remove" + case2PolicyName + "-plr2")
@@ -131,11 +130,11 @@ var _ = Describe("Test policy status aggregation", func() {
 				"placementrule", case2PolicyName+"-plr2",
 				"-n", testNamespace)
 			By("Patch checking the status of root policy")
-			Pause(2)
-			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-placementbinding.yaml")
-			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 		})
 		It("should clear out status", func() {
 			By("Remove" + case2PolicyName + "-pb and " + case2PolicyName + "-pb2")
@@ -146,10 +145,11 @@ var _ = Describe("Test policy status aggregation", func() {
 				"placementbinding", case2PolicyName+"-pb2",
 				"-n", testNamespace)
 			By("Patch checking the status of root policy")
-			Pause(2)
-			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			emptyStatus := map[string]interface{}{}
-			Expect(rootPlc.Object["status"]).To(Equal(emptyStatus))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(emptyStatus))
 		})
 		It("should clean up", func() {
 			Kubectl("delete",
@@ -187,11 +187,11 @@ var _ = Describe("Test policy status aggregation", func() {
 				Expect(err).To(BeNil())
 			}
 			By("Checking the status of root policy")
-			Pause(2)
-			rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			yamlPlc := ParseYaml("../resources/case2_aggregation/managed-both-status-compliant.yaml")
-			equal := equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 			By("Patch both replicated policy status to noncompliant")
 			replicatedPlcList = ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 			for _, replicatedPlc := range replicatedPlcList.Items {
@@ -202,11 +202,11 @@ var _ = Describe("Test policy status aggregation", func() {
 				Expect(err).To(BeNil())
 			}
 			By("Checking the status of root policy")
-			Pause(2)
-			rootPlc = GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			yamlPlc = ParseYaml("../resources/case2_aggregation/managed-both-status-noncompliant.yaml")
-			equal = equality.Semantic.DeepEqual(rootPlc.Object["status"], yamlPlc.Object["status"])
-			Expect(equal).To(Equal(true))
+			Eventually(func() interface{} {
+				rootPlc := GetWithTimeout(clientHubDynamic, gvrPolicy, case2PolicyName, testNamespace, true, defaultTimeoutSeconds)
+				return rootPlc.Object["status"]
+			}, defaultTimeoutSeconds, 1).Should(Equal(yamlPlc.Object["status"]))
 		})
 		It("should clean up", func() {
 			Kubectl("delete",

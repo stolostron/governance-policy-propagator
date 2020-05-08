@@ -1,6 +1,5 @@
 // Copyright (c) 2020 Red Hat, Inc.
 // +build integration
-
 package e2e_test
 
 import (
@@ -42,7 +41,7 @@ var (
 
 func TestE2e(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "E2e Suite")
+	RunSpecs(t, "Policy Propagator e2e Suite")
 }
 
 func init() {

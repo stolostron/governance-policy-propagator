@@ -26,7 +26,7 @@ var _ = Describe("Test policy propagation", func() {
 			Expect(plc).NotTo(BeNil())
 		})
 		It("should propagate to cluster ns managed1", func() {
-			By("Patch test-policy-plr with decision of cluster managed1")
+			By("Patching test-policy-plr with decision of cluster managed1")
 			plr := utils.GetWithTimeout(clientHubDynamic, gvrPlacementRule, case1PolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds)
 			plr.Object["status"] = utils.GeneratePlrStatus("managed1")
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
@@ -37,7 +37,7 @@ var _ = Describe("Test policy propagation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 		})
 		It("should propagate to cluster ns managed2", func() {
-			By("Patch test-policy-plr with decision of cluster managed2")
+			By("Patching test-policy-plr with decision of cluster managed2")
 			plr := utils.GetWithTimeout(clientHubDynamic, gvrPlacementRule, case1PolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds)
 			plr.Object["status"] = utils.GeneratePlrStatus("managed2")
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
@@ -48,7 +48,7 @@ var _ = Describe("Test policy propagation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 		})
 		It("should propagate to cluster ns managed1 and managed2", func() {
-			By("Patch test-policy-plr with decision of both managed1 and managed2")
+			By("Patching test-policy-plr with decision of both managed1 and managed2")
 			plr := utils.GetWithTimeout(clientHubDynamic, gvrPlacementRule, case1PolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds)
 			plr.Object["status"] = utils.GeneratePlrStatus("managed1", "managed2")
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
@@ -57,7 +57,7 @@ var _ = Describe("Test policy propagation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 		})
 		It("should remove policy from ns managed1 and managed2", func() {
-			By("Patch test-policy-pb with a plc with wrong name")
+			By("Patching test-policy-pb with a plc with wrong name")
 			pb := utils.GetWithTimeout(clientHubDynamic, gvrPlacementBinding, case1PolicyName+"-pb", testNamespace, true, defaultTimeoutSeconds)
 			pb.Object["placementRef"] = &policiesv1.Subject{
 				APIGroup: "apps.open-cluster-management.io",
@@ -70,7 +70,7 @@ var _ = Describe("Test policy propagation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should propagate to cluster ns managed1 and managed2", func() {
-			By("Patch test-policy-pb with correct plc")
+			By("Patching test-policy-pb with correct plc")
 			pb := utils.GetWithTimeout(clientHubDynamic, gvrPlacementBinding, case1PolicyName+"-pb", testNamespace, true, defaultTimeoutSeconds)
 			pb.Object["placementRef"] = &policiesv1.Subject{
 				APIGroup: "apps.open-cluster-management.io",
@@ -83,7 +83,7 @@ var _ = Describe("Test policy propagation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should remove policy from ns managed1 and managed2", func() {
-			By("Patch test-policy-pb with a plc with wrong apigroup")
+			By("Patching test-policy-pb with a plc with wrong apigroup")
 			pb := utils.GetWithTimeout(clientHubDynamic, gvrPlacementBinding, case1PolicyName+"-pb", testNamespace, true, defaultTimeoutSeconds)
 			pb.Object["placementRef"] = &policiesv1.Subject{
 				APIGroup: "apps.open-cluster-management.io1",
@@ -96,7 +96,7 @@ var _ = Describe("Test policy propagation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should propagate to cluster ns managed1 and managed2", func() {
-			By("Patch test-policy-pb with correct plc")
+			By("Patching test-policy-pb with correct plc")
 			pb := utils.GetWithTimeout(clientHubDynamic, gvrPlacementBinding, case1PolicyName+"-pb", testNamespace, true, defaultTimeoutSeconds)
 			pb.Object["placementRef"] = &policiesv1.Subject{
 				APIGroup: "apps.open-cluster-management.io",
@@ -109,7 +109,7 @@ var _ = Describe("Test policy propagation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should remove policy from ns managed1 and managed2", func() {
-			By("Patch test-policy-pb with a plc with wrong kind")
+			By("Patching test-policy-pb with a plc with wrong kind")
 			pb := utils.GetWithTimeout(clientHubDynamic, gvrPlacementBinding, case1PolicyName+"-pb", testNamespace, true, defaultTimeoutSeconds)
 			pb.Object["placementRef"] = &policiesv1.Subject{
 				APIGroup: "apps.open-cluster-management.io",
@@ -122,7 +122,7 @@ var _ = Describe("Test policy propagation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should propagate to cluster ns managed1 and managed2", func() {
-			By("Patch test-policy-pb with correct plc")
+			By("Patching test-policy-pb with correct plc")
 			pb := utils.GetWithTimeout(clientHubDynamic, gvrPlacementBinding, case1PolicyName+"-pb", testNamespace, true, defaultTimeoutSeconds)
 			pb.Object["placementRef"] = &policiesv1.Subject{
 				APIGroup: "apps.open-cluster-management.io",
@@ -135,7 +135,7 @@ var _ = Describe("Test policy propagation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should remove policy from ns managed1 and managed2", func() {
-			By("Patch test-policy-plr with no decision")
+			By("Patching test-policy-plr with no decision")
 			plr := utils.GetWithTimeout(clientHubDynamic, gvrPlacementRule, case1PolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds)
 			plr.Object["status"] = &appsv1.PlacementRuleStatus{}
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
@@ -162,7 +162,7 @@ var _ = Describe("Test policy propagation", func() {
 			Expect(plc).NotTo(BeNil())
 		})
 		It("should propagate to cluster ns managed1", func() {
-			By("Patch test-policy-plr with decision of cluster managed1")
+			By("Patching test-policy-plr with decision of cluster managed1")
 			plr := utils.GetWithTimeout(clientHubDynamic, gvrPlacementRule, case1PolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds)
 			plr.Object["status"] = utils.GeneratePlrStatus("managed1")
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
@@ -173,7 +173,7 @@ var _ = Describe("Test policy propagation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 		})
 		It("should update replicated policy in ns managed1", func() {
-			By("Patch test-policy with spec.remediationAction = enforce")
+			By("Patching test-policy with spec.remediationAction = enforce")
 			rootPlc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, case1PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			Expect(rootPlc).NotTo(BeNil())
 			Expect(rootPlc.Object["spec"].(map[string]interface{})["remediationAction"]).To(Equal("inform"))
@@ -186,7 +186,7 @@ var _ = Describe("Test policy propagation", func() {
 			}, defaultTimeoutSeconds, 1).Should(utils.SemanticEqual(rootPlc.Object["spec"]))
 		})
 		It("should remove replicated policy in ns managed1", func() {
-			By("Patch test-policy with spec.disabled = true")
+			By("Patching test-policy with spec.disabled = true")
 			rootPlc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, case1PolicyName, testNamespace, true, defaultTimeoutSeconds)
 			Expect(rootPlc).NotTo(BeNil())
 			Expect(rootPlc.Object["spec"].(map[string]interface{})["disabled"]).To(Equal(false))
@@ -206,7 +206,7 @@ var _ = Describe("Test policy propagation", func() {
 			Expect(plc).NotTo(BeNil())
 		})
 		It("should propagate to cluster ns managed1", func() {
-			By("Patch test-policy-plr with decision of cluster managed1")
+			By("Patching test-policy-plr with decision of cluster managed1")
 			plr := utils.GetWithTimeout(clientHubDynamic, gvrPlacementRule, case1PolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds)
 			plr.Object["status"] = utils.GeneratePlrStatus("managed1")
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})

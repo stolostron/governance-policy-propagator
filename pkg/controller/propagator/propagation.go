@@ -152,7 +152,8 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	}
 
 	// remove stale replicated policy based on allDecisions and status.status
-	// if cluster exists in status.status but doesn't exist in allDecisions, then it's stale cluster, we need to remove this replicated policy
+	// if cluster exists in status.status but doesn't exist in allDecisions, then it's stale cluster.
+	// we need to remove this replicated policy
 	for _, cluster := range instance.Status.Status {
 		found := false
 		for _, decision := range allDecisions {

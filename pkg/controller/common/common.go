@@ -24,7 +24,7 @@ func IsInClusterNamespace(ns string, allClusters []v1alpha1.Cluster) bool {
 
 // LabelsForRootPolicy returns the labels for given policy
 func LabelsForRootPolicy(plc *policiesv1.Policy) map[string]string {
-	return map[string]string{common.RootPolicyLabel: FullNameForPolicy(plc)}
+	return map[string]string{RootPolicyLabel: FullNameForPolicy(plc)}
 }
 
 // FullNameForPolicy returns the fully qualified name for given policy

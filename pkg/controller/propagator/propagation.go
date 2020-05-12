@@ -30,7 +30,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 			return err
 		}
 		for _, plc := range replicatedPlcList.Items {
-			err = r.client.Delete(context.TODO(), &plc)
+			err := r.client.Delete(context.TODO(), &plc)
 			if err != nil && !errors.IsNotFound(err) {
 				reqLogger.Error(err, "Failed to delete replicated policy...", "Namespace", plc.GetNamespace(),
 					"Name", plc.GetName())
@@ -78,64 +78,13 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 				})
 				// plr found, checking decision
 				decisions := plr.Status.Decisions
+
 				for _, decision := range decisions {
 					allDecisions = append(allDecisions, decision)
-					// retrieve replicated policy in cluster namespace
-					replicatedPlc := &policiesv1.Policy{}
-					err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: decision.ClusterNamespace,
-						Name: common.FullNameForPolicy(instance)}, replicatedPlc)
+					// create/update replicated policy for each decision
+					err := r.handleDecision(instance, decision)
 					if err != nil {
-						if errors.IsNotFound(err) {
-							// not replicated, need to create
-							replicatedPlc = instance.DeepCopy()
-							replicatedPlc.SetName(common.FullNameForPolicy(instance))
-							replicatedPlc.SetNamespace(decision.ClusterNamespace)
-							replicatedPlc.SetResourceVersion("")
-							ownerReferences := []metav1.OwnerReference{
-								*metav1.NewControllerRef(instance, schema.GroupVersionKind{
-									Group:   policiesv1.SchemeGroupVersion.Group,
-									Version: policiesv1.SchemeGroupVersion.Version,
-									Kind:    policiesv1.Kind,
-								}),
-							}
-							replicatedPlc.SetOwnerReferences(ownerReferences)
-							labels := replicatedPlc.GetLabels()
-							if labels == nil {
-								labels = map[string]string{}
-							}
-							labels[common.ClusterNameLabel] = decision.ClusterName
-							labels[common.ClusterNamespaceLabel] = decision.ClusterNamespace
-							labels[common.RootPolicyLabel] = common.FullNameForPolicy(instance)
-							replicatedPlc.SetLabels(labels)
-							err = r.client.Create(context.TODO(), replicatedPlc)
-							if err != nil {
-								// failed to create replicated object, requeue
-								reqLogger.Error(err, "Failed to create replicated policy...", "Namespace", decision.ClusterNamespace,
-									"Name", common.FullNameForPolicy(instance))
-								return err
-							}
-						} else {
-							// failed to get replicated object, requeue
-							reqLogger.Error(err, "Failed to get replicated policy...", "Namespace", decision.ClusterNamespace,
-								"Name", common.FullNameForPolicy(instance))
-							return err
-						}
-
-					}
-					// replicated policy already created, need to compare and patch
-					// compare annotation
-					if !common.CompareSpecAndAnnotation(instance, replicatedPlc) {
-						// update needed
-						reqLogger.Info("Root policy and Replicated policy mismatch, updating replicated policy...",
-							"Namespace", replicatedPlc.GetNamespace(), "Name", replicatedPlc.GetName())
-						replicatedPlc.SetAnnotations(instance.GetAnnotations())
-						replicatedPlc.Spec = instance.Spec
-						err = r.client.Update(context.TODO(), replicatedPlc)
-						if err != nil {
-							reqLogger.Error(err, "Failed to update replicated policy...",
-								"Namespace", replicatedPlc.GetNamespace(), "Name", replicatedPlc.GetName())
-							return err
-						}
+						return err
 					}
 				}
 				// only handle first match in pb.spec.subjects
@@ -203,7 +152,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	}
 
 	// remove stale replicated policy based on allDecisions and status.status
-	// if cluster exists in status.status but doesn't exist in allDecistion, then it's stale cluster, we need to remove this replicated policy
+	// if cluster exists in status.status but doesn't exist in allDecisions, then it's stale cluster, we need to remove this replicated policy
 	for _, cluster := range instance.Status.Status {
 		found := false
 		for _, decision := range allDecisions {
@@ -232,5 +181,67 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 		}
 	}
 	reqLogger.Info("Reconciliation complete.")
+	return nil
+}
+
+func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision appsv1.PlacementDecision) error {
+	reqLogger := log.WithValues("Policy-Namespace", instance.GetNamespace(), "Policy-Name", instance.GetName())
+	// retrieve replicated policy in cluster namespace
+	replicatedPlc := &policiesv1.Policy{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: decision.ClusterNamespace,
+		Name: common.FullNameForPolicy(instance)}, replicatedPlc)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// not replicated, need to create
+			replicatedPlc = instance.DeepCopy()
+			replicatedPlc.SetName(common.FullNameForPolicy(instance))
+			replicatedPlc.SetNamespace(decision.ClusterNamespace)
+			replicatedPlc.SetResourceVersion("")
+			ownerReferences := []metav1.OwnerReference{
+				*metav1.NewControllerRef(instance, schema.GroupVersionKind{
+					Group:   policiesv1.SchemeGroupVersion.Group,
+					Version: policiesv1.SchemeGroupVersion.Version,
+					Kind:    policiesv1.Kind,
+				}),
+			}
+			replicatedPlc.SetOwnerReferences(ownerReferences)
+			labels := replicatedPlc.GetLabels()
+			if labels == nil {
+				labels = map[string]string{}
+			}
+			labels[common.ClusterNameLabel] = decision.ClusterName
+			labels[common.ClusterNamespaceLabel] = decision.ClusterNamespace
+			labels[common.RootPolicyLabel] = common.FullNameForPolicy(instance)
+			replicatedPlc.SetLabels(labels)
+			err = r.client.Create(context.TODO(), replicatedPlc)
+			if err != nil {
+				// failed to create replicated object, requeue
+				reqLogger.Error(err, "Failed to create replicated policy...", "Namespace", decision.ClusterNamespace,
+					"Name", common.FullNameForPolicy(instance))
+				return err
+			}
+		} else {
+			// failed to get replicated object, requeue
+			reqLogger.Error(err, "Failed to get replicated policy...", "Namespace", decision.ClusterNamespace,
+				"Name", common.FullNameForPolicy(instance))
+			return err
+		}
+
+	}
+	// replicated policy already created, need to compare and patch
+	// compare annotation
+	if !common.CompareSpecAndAnnotation(instance, replicatedPlc) {
+		// update needed
+		reqLogger.Info("Root policy and Replicated policy mismatch, updating replicated policy...",
+			"Namespace", replicatedPlc.GetNamespace(), "Name", replicatedPlc.GetName())
+		replicatedPlc.SetAnnotations(instance.GetAnnotations())
+		replicatedPlc.Spec = instance.Spec
+		err = r.client.Update(context.TODO(), replicatedPlc)
+		if err != nil {
+			reqLogger.Error(err, "Failed to update replicated policy...",
+				"Namespace", replicatedPlc.GetNamespace(), "Name", replicatedPlc.GetName())
+			return err
+		}
+	}
 	return nil
 }

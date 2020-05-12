@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
+	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
 	"github.com/open-cluster-management/governance-policy-propagator/test/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -26,7 +27,7 @@ var _ = Describe("Test unexpected policy mutation", func() {
 		plr.Object["status"] = utils.GeneratePlrStatus("managed1", "managed2")
 		plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
 		Expect(err).To(BeNil())
-		opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case3PolicyName}
+		opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case3PolicyName}
 		By("Patch both replicated policy status to compliant")
 		replicatedPlcList := utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 		for _, replicatedPlc := range replicatedPlcList.Items {

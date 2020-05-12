@@ -6,6 +6,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
+	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
 	"github.com/open-cluster-management/governance-policy-propagator/test/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -32,7 +33,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Expect(err).To(BeNil())
 			plc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case2PolicyName, "managed1", true, defaultTimeoutSeconds)
 			Expect(plc).ToNot(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case2PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case2PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 			By("Checking the status.placement of root policy")
 			yamlPlc := utils.ParseYaml("../resources/case2_aggregation/managed1-status.yaml")
@@ -49,7 +50,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Expect(err).To(BeNil())
 			plc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case2PolicyName, "managed2", true, defaultTimeoutSeconds)
 			Expect(plc).ToNot(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case2PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case2PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 			By("Checking the status.placement of root policy")
 			yamlPlc := utils.ParseYaml("../resources/case2_aggregation/managed-both-status.yaml")
@@ -66,7 +67,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Expect(err).To(BeNil())
 			plc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case2PolicyName, "managed2", true, defaultTimeoutSeconds)
 			Expect(plc).ToNot(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case2PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case2PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 			By("Checking the status.placement of root policy")
 			yamlPlc := utils.ParseYaml("../resources/case2_aggregation/managed2-status.yaml")
@@ -177,7 +178,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			Expect(err).To(BeNil())
 			plc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case2PolicyName, "managed2", true, defaultTimeoutSeconds)
 			Expect(plc).ToNot(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case2PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case2PolicyName}
 			By("Patch both replicated policy status to compliant")
 			replicatedPlcList := utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 			for _, replicatedPlc := range replicatedPlcList.Items {

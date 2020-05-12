@@ -74,6 +74,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 				placement = append(placement, &policiesv1.Placement{
 					PlacementBinding: pb.GetName(),
 					PlacementRule:    plr.GetName(),
+					// Decisions:        plr.Status.Decisions,
 				})
 				// plr found, checking decision
 				decisions := plr.Status.Decisions

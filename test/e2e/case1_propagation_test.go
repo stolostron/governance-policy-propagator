@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
+	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
 	"github.com/open-cluster-management/governance-policy-propagator/test/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -32,7 +33,7 @@ var _ = Describe("Test policy propagation", func() {
 			Expect(err).To(BeNil())
 			plc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
 			Expect(plc).ToNot(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 		})
 		It("should propagate to cluster ns managed2", func() {
@@ -43,7 +44,7 @@ var _ = Describe("Test policy propagation", func() {
 			Expect(err).To(BeNil())
 			plc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed2", true, defaultTimeoutSeconds)
 			Expect(plc).ToNot(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 		})
 		It("should propagate to cluster ns managed1 and managed2", func() {
@@ -52,7 +53,7 @@ var _ = Describe("Test policy propagation", func() {
 			plr.Object["status"] = utils.GeneratePlrStatus("managed1", "managed2")
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 		})
 		It("should remove policy from ns managed1 and managed2", func() {
@@ -65,7 +66,7 @@ var _ = Describe("Test policy propagation", func() {
 			}
 			pb, err := clientHubDynamic.Resource(gvrPlacementBinding).Namespace(testNamespace).Update(pb, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should propagate to cluster ns managed1 and managed2", func() {
@@ -78,7 +79,7 @@ var _ = Describe("Test policy propagation", func() {
 			}
 			pb, err := clientHubDynamic.Resource(gvrPlacementBinding).Namespace(testNamespace).Update(pb, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should remove policy from ns managed1 and managed2", func() {
@@ -91,7 +92,7 @@ var _ = Describe("Test policy propagation", func() {
 			}
 			pb, err := clientHubDynamic.Resource(gvrPlacementBinding).Namespace(testNamespace).Update(pb, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should propagate to cluster ns managed1 and managed2", func() {
@@ -104,7 +105,7 @@ var _ = Describe("Test policy propagation", func() {
 			}
 			pb, err := clientHubDynamic.Resource(gvrPlacementBinding).Namespace(testNamespace).Update(pb, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should remove policy from ns managed1 and managed2", func() {
@@ -117,7 +118,7 @@ var _ = Describe("Test policy propagation", func() {
 			}
 			pb, err := clientHubDynamic.Resource(gvrPlacementBinding).Namespace(testNamespace).Update(pb, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should propagate to cluster ns managed1 and managed2", func() {
@@ -130,7 +131,7 @@ var _ = Describe("Test policy propagation", func() {
 			}
 			pb, err := clientHubDynamic.Resource(gvrPlacementBinding).Namespace(testNamespace).Update(pb, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should remove policy from ns managed1 and managed2", func() {
@@ -139,7 +140,7 @@ var _ = Describe("Test policy propagation", func() {
 			plr.Object["status"] = &appsv1.PlacementRuleStatus{}
 			plr, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(plr, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should clean up", func() {
@@ -168,7 +169,7 @@ var _ = Describe("Test policy propagation", func() {
 			Expect(err).To(BeNil())
 			plc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
 			Expect(plc).ToNot(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 		})
 		It("should update replicated policy in ns managed1", func() {
@@ -193,7 +194,7 @@ var _ = Describe("Test policy propagation", func() {
 			rootPlc, err := clientHubDynamic.Resource(gvrPolicy).Namespace(testNamespace).Update(rootPlc, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
 			Expect(rootPlc.Object["spec"].(map[string]interface{})["disabled"]).To(Equal(true))
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, true, defaultTimeoutSeconds)
 		})
 		It("should be created in user ns", func() {
@@ -212,7 +213,7 @@ var _ = Describe("Test policy propagation", func() {
 			Expect(err).To(BeNil())
 			plc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case1PolicyName, "managed1", true, defaultTimeoutSeconds)
 			Expect(plc).ToNot(BeNil())
-			opt := metav1.ListOptions{LabelSelector: "root-policy=" + testNamespace + "." + case1PolicyName}
+			opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case1PolicyName}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 		})
 		It("should update test-policy to a different policy template", func() {

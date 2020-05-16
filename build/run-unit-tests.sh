@@ -34,6 +34,8 @@ make build-instrumented-profile
 make kind-bootstrap-cluster-dev
 make run-instrumented-profile
 # sleep 5
-go test -json ./... > report.json
+make e2e-test
 make stop-instrumented-profile
+sleep 10
+echo "Checking  coverage.out ..."
 cat coverage.out

@@ -69,6 +69,8 @@ jobs:
           make component/test/unit
           make go/gosec-install
           cat coverage.out
+          go test `go list ./... | grep -v test/e2e` > report.json
+          cat report.json
           gosec -fmt sonarqube -out gosec.json -no-fail ./...
           make sonar/js
     - stage: test-e2e

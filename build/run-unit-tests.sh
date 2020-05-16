@@ -35,7 +35,7 @@ make kind-bootstrap-cluster-dev
 make run-instrumented-profile
 # sleep 5
 make e2e-test
-make stop-instrumented-profile
+make stop-instrumented-profile || true
 sleep 10
 echo "Checking coverage.out ..."
 cat coverage.out

@@ -202,12 +202,11 @@ e2e-test:
 ############################################################
 # e2e test coverage
 ############################################################
-build-profile:
-	go test -covermode=atomic -coverpkg=github.com/open-cluster-management/governance-policy-propagator/pkg... -c ./cmd/manager -o build/_output/bin/governance-policy-propagator-profile
+build-instrumented-profile:
+	go test -covermode=atomic -coverpkg=github.com/open-cluster-management/governance-policy-propagator/pkg... -c ./cmd/manager -o build/_output/bin/$(IMG)-instrumented
 
-run-profile:
-	./build/_output/bin/governance-policy-propagator-profile -test.coverprofile=coverage.out &
+run-instrumented-profile:
+	./build/_output/bin/$(IMG)-instrumented -test.coverprofile=coverage.out &
 
-stop-profile:
-	# pkill -f governance-policy-propagator-profile
-	ps -ef | grep 'governance-policy-propagator-profile' | grep -v grep | awk '{print $2}' | xargs kill -9
+stop-instrumented-profile:
+	ps -ef | grep '$(IMG)r-instrumented' | grep -v grep | awk '{print $2}' | xargs kill -9

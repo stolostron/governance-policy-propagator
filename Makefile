@@ -209,4 +209,4 @@ run-instrumented:
 	WATCH_NAMESPACE="" ./build/_output/bin/$(IMG)-instrumented -test.run "^TestRunMain$$" -test.coverprofile=coverage.out &>/dev/null &
 
 stop-instrumented:
-	ps -ef | grep 'govern' | grep -v grep | awk '{print $$2}' | xargs kill
+	ps -ef | grep 'govern' | grep -v grep | awk '{print $$2}' | xargs kill || true

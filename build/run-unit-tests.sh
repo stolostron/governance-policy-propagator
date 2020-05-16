@@ -34,7 +34,8 @@ make build-instrumented
 make kind-bootstrap-cluster-dev
 make run-instrumented
 make e2e-test
-make stop-instrumented || true
+# go test `go list ./... | grep -v test/e2e` > report.json
+make stop-instrumented
 # sleep 10
 # echo "Checking coverage.out ..."
 # cat coverage.out

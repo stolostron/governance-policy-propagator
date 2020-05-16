@@ -37,6 +37,3 @@ make run-instrumented-profile
 make e2e-test
 make stop-instrumented-profile
 cat coverage.out
-gosec -fmt sonarqube -out gosec.json -no-fail ./...
-unset SONARQUBE_SCANNER_PARAMS
-sonar-scanner --debug

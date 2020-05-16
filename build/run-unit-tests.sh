@@ -21,6 +21,7 @@ export IMAGE_NAME_AND_VERSION=${1}
 make kind-bootstrap-cluster-dev
 make build-profile
 make run-profile
+make e2e-test
 make stop-profile
 cat coverage.out
 gosec -fmt sonarqube -out gosec.json -no-fail ./...

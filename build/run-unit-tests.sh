@@ -30,12 +30,12 @@ go get github.com/onsi/gomega/...
 # Run unit test
 export IMAGE_NAME_AND_VERSION=${1}
 # make test
-make build-instrumented-profile
+go test -json `go list ./... | grep -v test/e2e` > report.json
+make build-instrumented
 make kind-bootstrap-cluster-dev
-make run-instrumented-profile
-# sleep 5
-go test -json ./... > report.json
-make stop-instrumented-profile || true
+make run-instrumented
+make e2e-test
+make stop-instrumented || true
 # sleep 10
 # echo "Checking coverage.out ..."
 # cat coverage.out

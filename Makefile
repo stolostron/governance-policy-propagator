@@ -206,7 +206,7 @@ build-instrumented-profile:
 	go test -covermode=atomic -coverpkg=github.com/open-cluster-management/governance-policy-propagator/pkg... -c ./cmd/manager -o build/_output/bin/$(IMG)-instrumented
 
 run-instrumented-profile:
-	WATCH_NAMESPACE="" ./build/_output/bin/$(IMG)-instrumented -test.run "^TestRunMain$$" -test.coverprofile=coverage.out &
+	WATCH_NAMESPACE="" ./build/_output/bin/$(IMG)-instrumented -test.run "^TestRunMain$$" -test.coverprofile=coverage.out &>/dev/null &
 
 stop-instrumented-profile:
-	ps -ef | grep 'govern' | grep -v grep | awk '{print $$2}' | xargs kill
+	ps -ef | grep 'govern' | grep -v grep | awk '{print $$2}' | xargs kill || true

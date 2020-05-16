@@ -37,5 +37,5 @@ make run-instrumented-profile
 make e2e-test
 make stop-instrumented-profile
 sleep 10
-echo "Checking  coverage.out ..."
+echo "Checking coverage.out ..."
 cat coverage.out

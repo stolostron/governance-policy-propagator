@@ -3,6 +3,7 @@ package propagator
 
 import (
 	"context"
+	"fmt"
 	"sort"
 
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
@@ -30,6 +31,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 			return err
 		}
 		for _, plc := range replicatedPlcList.Items {
+			// #nosec G601 -- no memory addresses are stored in collections
 			err := r.client.Delete(context.TODO(), &plc)
 			if err != nil && !errors.IsNotFound(err) {
 				reqLogger.Error(err, "Failed to delete replicated policy...", "Namespace", plc.GetNamespace(),
@@ -44,6 +46,8 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 			reqLogger.Error(err, "Failed to clean up policy status...")
 			return err
 		}
+		r.recorder.Event(instance, "Normal", "PolicyPropagation",
+			fmt.Sprintf("Policy %s/%s was disabled", instance.GetNamespace(), instance.GetName()))
 		reqLogger.Info("Policy was disabled. Reconciliation complete.")
 		return nil
 	}
@@ -214,6 +218,8 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 			labels[common.ClusterNamespaceLabel] = decision.ClusterNamespace
 			labels[common.RootPolicyLabel] = common.FullNameForPolicy(instance)
 			replicatedPlc.SetLabels(labels)
+			reqLogger.Info("Creating replicated policy...", "Namespace", decision.ClusterNamespace,
+				"Name", common.FullNameForPolicy(instance))
 			err = r.client.Create(context.TODO(), replicatedPlc)
 			if err != nil {
 				// failed to create replicated object, requeue
@@ -221,6 +227,9 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 					"Name", common.FullNameForPolicy(instance))
 				return err
 			}
+			r.recorder.Event(instance, "Normal", "PolicyPropagation",
+				fmt.Sprintf("Policy %s/%s was propagated to cluster %s/%s", instance.GetNamespace(),
+					instance.GetName(), decision.ClusterNamespace, decision.ClusterName))
 		} else {
 			// failed to get replicated object, requeue
 			reqLogger.Error(err, "Failed to get replicated policy...", "Namespace", decision.ClusterNamespace,
@@ -243,6 +252,9 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 				"Namespace", replicatedPlc.GetNamespace(), "Name", replicatedPlc.GetName())
 			return err
 		}
+		r.recorder.Event(instance, "Normal", "PolicyPropagation",
+			fmt.Sprintf("Policy %s/%s was updated for cluster %s/%s", instance.GetNamespace(),
+				instance.GetName(), decision.ClusterNamespace, decision.ClusterName))
 	}
 	return nil
 }

@@ -18,8 +18,8 @@ export PATH=$PATH:/usr/local/kubebuilder/bin
 # Run unit test
 export IMAGE_NAME_AND_VERSION=${1}
 # make test
-make kind-bootstrap-cluster-dev
 make build-profile
+make kind-bootstrap-cluster-dev
 make run-profile
 make e2e-test
 make stop-profile

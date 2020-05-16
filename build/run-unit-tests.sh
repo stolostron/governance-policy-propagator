@@ -17,4 +17,12 @@ export PATH=$PATH:/usr/local/kubebuilder/bin
 
 # Run unit test
 export IMAGE_NAME_AND_VERSION=${1}
-make test
+# make test
+make kind-bootstrap-cluster-dev
+make build-profile
+make run-profile
+make stop-profile
+cat coverage.out
+gosec -fmt sonarqube -out gosec.json -no-fail ./...
+unset SONARQUBE_SCANNER_PARAMS
+sonar-scanner --debug

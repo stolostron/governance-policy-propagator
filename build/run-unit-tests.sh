@@ -1,8 +1,5 @@
 #!/bin/bash
 set -e
-echo "UNIT TESTS GO HERE!"
-
-echo "Install Kubebuilder components for test framework usage!"
 
 _OS=$(go env GOOS)
 _ARCH=$(go env GOARCH)
@@ -17,7 +14,11 @@ if ! which kind > /dev/null; then
     chmod +x ./kind
     sudo mv ./kind /usr/local/bin/kind
 fi
+echo "Installing ginkgo ..."
+go get github.com/onsi/ginkgo/ginkgo
+go get github.com/onsi/gomega/...
 
+# echo "Install Kubebuilder components for test framework usage!"
 # download kubebuilder and extract it to tmp
 # curl -L https://go.kubebuilder.io/dl/2.2.0/"${_OS}"/"${_ARCH}" | tar -xz -C /tmp/
 
@@ -31,8 +32,8 @@ export IMAGE_NAME_AND_VERSION=${1}
 # make test
 make build-instrumented-profile
 make kind-bootstrap-cluster-dev
-export WATCH_NAMESPACE=""
 make run-instrumented-profile
+# sleep 5
 make e2e-test
 make stop-instrumented-profile
 cat coverage.out

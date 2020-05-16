@@ -27,6 +27,7 @@ export IMAGE_NAME_AND_VERSION=${1}
 # make test
 make build-instrumented-profile
 make kind-bootstrap-cluster-dev
+export WATCH_NAMESPACE=""
 make run-instrumented-profile
 make e2e-test
 make stop-instrumented-profile

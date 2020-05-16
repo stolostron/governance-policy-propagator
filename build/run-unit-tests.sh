@@ -7,6 +7,10 @@ echo "Install Kubebuilder components for test framework usage!"
 _OS=$(go env GOOS)
 _ARCH=$(go env GOARCH)
 
+if ! which kubectl > /dev/null; then
+    echo "installing kubectl"
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl && chmod +x kubectl && sudo mv kubectl /usr/local/bin/
+fi
 if ! which kind > /dev/null; then
     echo "installing kind"
     curl -Lo ./kind https://github.com/kubernetes-sigs/kind/releases/download/v0.8.1/kind-$(uname)-amd64

@@ -24,21 +24,18 @@ func (mapper *policyMapper) Map(obj handler.MapObject) []reconcile.Request {
 // getOwnerReconcileRequest looks at object and returns a slice of reconcile.Request to reconcile
 // owners of object from label: policy.open-cluster-management.io/root-policy
 func getOwnerReconcileRequest(object metav1.Object) []reconcile.Request {
-	// Iterate through the OwnerReferences looking for a match on Group and Kind against what was requested
-	// by the user
 	var result []reconcile.Request
 	rootPlcName := object.GetLabels()[common.RootPolicyLabel]
 	var name string
 	var namespace string
 	if rootPlcName != "" {
-		// policy.open-cluster-management.io/root-policy exists, should be replicated policy
+		// policy.open-cluster-management.io/root-policy exists, should be a replicated policy
 		log.Info("Found reconciliation request from replicated policy...", "Namespace", object.GetNamespace(),
 			"Name", object.GetName())
 		name = strings.Split(rootPlcName, ".")[1]
 		namespace = strings.Split(rootPlcName, ".")[0]
-
 	} else {
-		// policy.open-cluster-management.io/root-policy doesn't exist, should be root policy
+		// policy.open-cluster-management.io/root-policy doesn't exist, should be a root policy
 		log.Info("Found reconciliation request from root policy...", "Namespace", object.GetNamespace(),
 			"Name", object.GetName())
 		name = object.GetName()

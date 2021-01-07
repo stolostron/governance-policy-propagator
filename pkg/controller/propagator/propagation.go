@@ -11,7 +11,6 @@ import (
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -202,14 +201,6 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 			replicatedPlc.SetName(common.FullNameForPolicy(instance))
 			replicatedPlc.SetNamespace(decision.ClusterNamespace)
 			replicatedPlc.SetResourceVersion("")
-			ownerReferences := []metav1.OwnerReference{
-				*metav1.NewControllerRef(instance, schema.GroupVersionKind{
-					Group:   policiesv1.SchemeGroupVersion.Group,
-					Version: policiesv1.SchemeGroupVersion.Version,
-					Kind:    policiesv1.Kind,
-				}),
-			}
-			replicatedPlc.SetOwnerReferences(ownerReferences)
 			labels := replicatedPlc.GetLabels()
 			if labels == nil {
 				labels = map[string]string{}

@@ -48,17 +48,3 @@ func getOwnerReconcileRequest(object metav1.Object) []reconcile.Request {
 	result = append(result, request)
 	return result
 }
-
-// getOwnersReferences returns the OwnerReferences for an object as specified by the EnqueueRequestForOwner
-func getOwnersReferences(object metav1.Object) []metav1.OwnerReference {
-	if object == nil {
-		return nil
-	}
-
-	// If filtered to a Controller, only take the Controller OwnerReference
-	if ownerRef := metav1.GetControllerOf(object); ownerRef != nil {
-		return []metav1.OwnerReference{*ownerRef}
-	}
-	// No Controller OwnerReference found
-	return nil
-}

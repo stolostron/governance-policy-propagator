@@ -1,4 +1,4 @@
-// Copyright (c) 2020 Red Hat, Inc.
+// Copyright (c) 2021 Red Hat, Inc.
 package utils
 
 import (
@@ -118,10 +118,17 @@ func ListWithTimeout(
 
 }
 
+// Kubectl execute kubectl cli
 func Kubectl(args ...string) {
 	cmd := exec.Command("kubectl", args...)
 	err := cmd.Start()
 	if err != nil {
 		Fail(fmt.Sprintf("Error: %v", err))
 	}
+}
+
+// KubectlWithOutput execute kubectl cli and return output and error
+func KubectlWithOutput(args ...string) (string, error) {
+	output, err := exec.Command("kubectl", args...).CombinedOutput()
+	return string(output), err
 }

@@ -152,6 +152,13 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, r.handleRootPolicy(instance)
 	}
 
-	reqLogger.Info("Policy was in cluster namespace but has no ownerReferences, ignoring it...")
+	reqLogger.Info("Policy was found in cluster namespace but doesn't belong to any root policy, deleting it...",
+		instance.GetNamespace(), "Name", instance.GetName())
+	err = r.client.Delete(context.TODO(), instance)
+	if err != nil && !errors.IsNotFound(err) {
+		reqLogger.Error(err, "Failed to delete policy...", "Namespace", instance.GetNamespace(),
+			"Name", instance.GetName())
+		return reconcile.Result{}, err
+	}
 	return reconcile.Result{}, nil
 }

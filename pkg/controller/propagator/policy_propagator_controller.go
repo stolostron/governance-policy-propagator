@@ -15,6 +15,7 @@ import (
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -61,7 +62,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to placementbinding
 	err = c.Watch(
 		&source.Kind{Type: &policiesv1.PlacementBinding{}},
-		&common.EnqueueRequestsFromMapFunc{ToRequests: &placementBindingMapper{mgr.GetClient()}}, pbPredicateFuncs)
+		&handler.EnqueueRequestsFromMapFunc{ToRequests: &placementBindingMapper{mgr.GetClient()}}, pbPredicateFuncs)
 	if err != nil {
 		return err
 	}
@@ -69,7 +70,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to placementrule
 	err = c.Watch(
 		&source.Kind{Type: &appsv1.PlacementRule{}},
-		&common.EnqueueRequestsFromMapFunc{ToRequests: &placementRuleMapper{mgr.GetClient()}})
+		&handler.EnqueueRequestsFromMapFunc{ToRequests: &placementRuleMapper{mgr.GetClient()}})
 	if err != nil {
 		return err
 	}

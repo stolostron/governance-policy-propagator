@@ -5,7 +5,6 @@ package automation
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/ghodss/yaml"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
@@ -122,6 +121,12 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 		if cfgMap.Data["policyRef"] == request.Name {
 			log.Info("Excuting automation from configmap ...",
 				"Namespace", cfgMap.GetNamespace(), "Name", cfgMap.GetName(), "Policy-Name", request.Name)
+			if cfgMap.Annotations["policy.open-cluster-management.io/run-immediately"] == "true" {
+				log.Info("Triggering single run from configmap ...",
+					"Namespace", cfgMap.GetNamespace(), "Name", cfgMap.GetName(), "Policy-Name", request.Name)
+			}
+			delete(cfgMap.Annotations, "policy.open-cluster-management.io/run-immediately")
+			r.client.Update(context.TODO(), &cfgMap, &client.UpdateOptions{})
 			ansibleJob := &unstructured.Unstructured{}
 			err := yaml.Unmarshal([]byte(cfgMap.Data["ansible.yaml"]), ansibleJob)
 			if err != nil {
@@ -138,6 +143,6 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 	r.counter++
 	reqLogger.Info(fmt.Sprintf("%d", r.counter))
 	reqLogger.Info("Policy reconciliation completed.")
-	requeueAfter, _ := time.ParseDuration("60s")
-	return reconcile.Result{RequeueAfter: requeueAfter}, nil
+	// requeueAfter, _ := time.ParseDuration("60s")
+	return reconcile.Result{RequeueAfter: 0}, nil
 }

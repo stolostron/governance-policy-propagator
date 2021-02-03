@@ -17,7 +17,7 @@ var configMapPredicateFuncs = predicate.Funcs{
 		if cfgObjNew.Data["policyRef"] == "" {
 			return false
 		}
-		if cfgObjNew.ObjectMeta.Annotations["run"] == "" {
+		if cfgObjNew.ObjectMeta.Annotations["policy.open-cluster-management.io/run-immediately"] == "true" {
 			return true
 		}
 		return !equality.Semantic.DeepEqual(cfgObjNew.Data, cfgObjOld.Data)

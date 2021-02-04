@@ -5,21 +5,17 @@ package automation
 import (
 	"context"
 	"fmt"
+	"time"
 
-	"github.com/ghodss/yaml"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -60,7 +56,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource Policy
-	err = c.Watch(&source.Kind{Type: &policiesv1.Policy{}}, &handler.EnqueueRequestForObject{}, policyPredicateFuncs)
+	err = c.Watch(&source.Kind{Type: &policiesv1.Policy{}},
+		&common.EnqueueRequestsFromMapFunc{ToRequests: &policyMapper{mgr.GetClient()}},
+		policyPredicateFuncs)
 	if err != nil {
 		return err
 	}
@@ -112,37 +110,81 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
+
 	cfgMapList := &corev1.ConfigMapList{}
 	err = r.client.List(context.TODO(), cfgMapList, &client.ListOptions{Namespace: request.Namespace})
 	if err != nil {
+		// failed to query configmap
 		return reconcile.Result{}, err
 	}
-	for _, cfgMap := range cfgMapList.Items {
-		if cfgMap.Data["policyRef"] == request.Name {
-			log.Info("Excuting automation from configmap ...",
-				"Namespace", cfgMap.GetNamespace(), "Name", cfgMap.GetName(), "Policy-Name", request.Name)
-			if cfgMap.Annotations["policy.open-cluster-management.io/run-immediately"] == "true" {
-				log.Info("Triggering single run from configmap ...",
-					"Namespace", cfgMap.GetNamespace(), "Name", cfgMap.GetName(), "Policy-Name", request.Name)
-			}
-			delete(cfgMap.Annotations, "policy.open-cluster-management.io/run-immediately")
-			r.client.Update(context.TODO(), &cfgMap, &client.UpdateOptions{})
-			ansibleJob := &unstructured.Unstructured{}
-			err := yaml.Unmarshal([]byte(cfgMap.Data["ansible.yaml"]), ansibleJob)
-			if err != nil {
-				log.Error(err, "error found!")
-			}
-			log.Info("", "ansibleJob", ansibleJob.Object["spec"])
-			ansibleJobRes := schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1alpha1", Resource: "ansiblejobs"}
-			_, err = r.dyamicClient.Resource(ansibleJobRes).Namespace(request.Namespace).Create(context.TODO(), ansibleJob, v1.CreateOptions{})
-			if err != nil {
-				log.Error(err, "error found!")
-			}
+	if len(cfgMapList.Items) == 0 {
+		// configmap not found could have been deleted
+		// do nothing
+		return reconcile.Result{}, nil
+	}
+	foundCfgMap := false
+	cfgMap := corev1.ConfigMap{}
+	for _, cfgMapTemp := range cfgMapList.Items {
+		if cfgMapTemp.Data["policyRef"] == request.Name {
+			foundCfgMap = true
+			cfgMap = cfgMapTemp
+			break
+
 		}
 	}
-	r.counter++
-	reqLogger.Info(fmt.Sprintf("%d", r.counter))
-	reqLogger.Info("Policy reconciliation completed.")
-	// requeueAfter, _ := time.ParseDuration("60s")
-	return reconcile.Result{RequeueAfter: 0}, nil
+	if !foundCfgMap {
+		// configmap not found could have been deleted
+		// do nothing
+		return reconcile.Result{}, nil
+	}
+
+	reqLogger.Info("Found automation from configmap ...",
+		"Namespace", cfgMap.GetNamespace(), "Name", cfgMap.GetName(), "Policy-Name", request.Name)
+	if cfgMap.Annotations["policy.open-cluster-management.io/run-immediately"] == "true" {
+		reqLogger.Info("Triggering manual run mode ...",
+			"Namespace", cfgMap.GetNamespace(), "Name", cfgMap.GetName(), "Policy-Name", request.Name)
+		err = common.CreateAnsibleJob(cfgMap, r.dyamicClient)
+		if err != nil {
+			return reconcile.Result{}, err
+		}
+		// manual run suceeded, remove annotation
+		delete(cfgMap.Annotations, "policy.open-cluster-management.io/run-immediately")
+		r.client.Update(context.TODO(), &cfgMap, &client.UpdateOptions{})
+		reqLogger.Info("Manual run complelte...",
+			"Namespace", cfgMap.GetNamespace(), "Name", cfgMap.GetName(), "Policy-Name", request.Name)
+		return reconcile.Result{}, nil
+
+	} else if cfgMap.Data["rescanAfter"] != "" {
+		requeueAfter, _ := time.ParseDuration(cfgMap.Data["rescanAfter"])
+		if instance.Spec.Disabled {
+			reqLogger.Info("Policy is disabled, doing nothing...",
+				"Namespace", request.Namespace, "Policy-Name", request.Name)
+		} else {
+			targetList := common.FindNonCompliantClustersForPolicy(instance)
+			if len(targetList) > 0 {
+				reqLogger.Info("Creating ansible job with targetList", "targetList", targetList)
+				err = common.CreateAnsibleJob(cfgMap, r.dyamicClient)
+				if err != nil {
+					return reconcile.Result{RequeueAfter: requeueAfter}, err
+				}
+
+			} else {
+				reqLogger.Info("No cluster is in noncompliant status, doing nothing...")
+			}
+		}
+
+		// no violations found, doing nothing
+		r.counter++
+		reqLogger.Info("RequeueAfter.", "RequeueAfter", fmt.Sprintf("%d", requeueAfter), "counter", fmt.Sprintf("%d", r.counter))
+		return reconcile.Result{RequeueAfter: requeueAfter}, nil
+
+		// run continously mode
+
+		// if requeueAfter == 0 {
+		// 	reqLogger.Info("RequeueAfter.", "RequeueAfter", fmt.Sprintf("%d", requeueAfter), "counter", fmt.Sprintf("%d", r.counter))
+		// 	return reconcile.Result{}, nil
+		// }
+
+	}
+	return reconcile.Result{}, nil
 }

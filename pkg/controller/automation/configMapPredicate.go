@@ -20,6 +20,11 @@ var configMapPredicateFuncs = predicate.Funcs{
 		if cfgObjNew.ObjectMeta.Annotations["policy.open-cluster-management.io/run-immediately"] == "true" {
 			return true
 		}
+		// if cfgObjNew.Data["interval"] != cfgObjOld.Data["interval"] {
+		// 	delete(cfgObjNew.Data, "interval")
+		// 	delete(cfgObjOld.Data, "interval")
+		// 	return !equality.Semantic.DeepEqual(cfgObjNew.Data, cfgObjOld.Data)
+		// }
 		return !equality.Semantic.DeepEqual(cfgObjNew.Data, cfgObjOld.Data)
 	},
 	CreateFunc: func(e event.CreateEvent) bool {

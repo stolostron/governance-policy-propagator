@@ -54,3 +54,14 @@ func IsPbForPoicy(pb *policiesv1.PlacementBinding) bool {
 	}
 	return found
 }
+
+// FindNonCompliantClustersForPolicy returns cluster in noncompliant status with given policy
+func FindNonCompliantClustersForPolicy(plc *policiesv1.Policy) []string {
+	clusterList := []string{}
+	for _, clusterStatus := range plc.Status.Status {
+		if clusterStatus.ComplianceState == policiesv1.NonCompliant {
+			clusterList = append(clusterList, clusterStatus.ClusterName)
+		}
+	}
+	return clusterList
+}

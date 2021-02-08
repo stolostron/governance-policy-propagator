@@ -31,12 +31,12 @@ func (mapper *configMapMapper) Map(obj handler.MapObject) []reconcile.Request {
 			log.Info("Found reconciliation request from config map ...",
 				"Namespace", cfgMap.GetNamespace(), "Name", cfgMap.GetName(), "Policy-Name", policyRef)
 			request := reconcile.Request{NamespacedName: types.NamespacedName{
-				Name:      policyRef,
+				Name:      cfgMap.GetName(),
 				Namespace: cfgMap.GetNamespace(),
 			}}
 			result = append(result, request)
 		} else {
-			log.Error(err, "Failed to retrieve policyRef from config map...ignoring it...",
+			log.Info("Failed to retrieve policyRef from config map...ignoring it...",
 				"Namespace", cfgMap.GetNamespace(), "Name", cfgMap.GetName(), "Policy-Name", policyRef)
 		}
 	}

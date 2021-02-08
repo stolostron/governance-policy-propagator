@@ -37,12 +37,12 @@ func (mapper *policyMapper) Map(obj handler.MapObject) []reconcile.Request {
 		}
 	}
 	if foundCfgMap {
-		if cfgMap.Data["rescanAfter"] != "" {
+		if cfgMap.Data["mode"] == "scan" {
 			// interval mode, do not queue
 		} else {
 			request := reconcile.Request{NamespacedName: types.NamespacedName{
-				Name:      policy.GetName(),
-				Namespace: policy.GetNamespace(),
+				Name:      cfgMap.GetName(),
+				Namespace: cfgMap.GetNamespace(),
 			}}
 			result = append(result, request)
 		}

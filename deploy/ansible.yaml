@@ -1,0 +1,19 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: policy-limitrange-ansible
+  namespace: default
+data:
+  ansible.yaml: |-
+    kind: AnsibleJob
+    apiVersion: tower.ansible.com/v1alpha1
+    spec:
+      tower_auth_secret: toweraccess
+      job_template_name: Demo Job Template
+      extra_vars:
+        cost: 6.88
+        ghosts: ["inky","pinky","clyde","sue"]
+  mode: scan
+  policyRef: policy-limitrange
+  rescanAfter: 60s
+  hook: noncompliant

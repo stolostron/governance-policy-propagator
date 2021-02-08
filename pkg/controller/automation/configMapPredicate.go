@@ -17,7 +17,7 @@ var configMapPredicateFuncs = predicate.Funcs{
 		if cfgObjNew.Data["policyRef"] == "" {
 			return false
 		}
-		if cfgObjNew.ObjectMeta.Annotations["policy.open-cluster-management.io/run-immediately"] == "true" {
+		if cfgObjNew.ObjectMeta.Annotations["policy.open-cluster-management.io/rerun"] == "true" {
 			return true
 		}
 		// if cfgObjNew.Data["interval"] != cfgObjOld.Data["interval"] {

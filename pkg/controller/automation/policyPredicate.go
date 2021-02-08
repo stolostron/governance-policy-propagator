@@ -13,8 +13,12 @@ import (
 var policyPredicateFuncs = predicate.Funcs{
 	UpdateFunc: func(e event.UpdateEvent) bool {
 		plcObjNew := e.ObjectNew.(*policiesv1.Policy)
+		if _, ok := plcObjNew.Labels["policy.open-cluster-management.io/root-policy"]; ok {
+			return false
+		}
 		plcObjOld := e.ObjectOld.(*policiesv1.Policy)
-		return equality.Semantic.DeepEqual(plcObjNew.Status.Status, plcObjOld.Status.Status)
+		same := equality.Semantic.DeepEqual(plcObjNew.Status.Status, plcObjOld.Status.Status)
+		return !same
 	},
 	CreateFunc: func(e event.CreateEvent) bool {
 		return false

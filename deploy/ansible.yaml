@@ -4,7 +4,7 @@ metadata:
   name: create-service-now-ticket
   namespace: default
 data:
-  policyRef: policy-limitrange
+  policyRef: policy-pod
   hook: noncompliant
   mode: scan
   rescanAfter: 60s
@@ -18,3 +18,15 @@ data:
         cost: 6.88
         ghosts: ["inky","pinky","clyde","sue"]
 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  namespace: default
+spec:
+  containers:
+    - name: nginx
+      image: 'nginx:1.7.9'
+      ports:
+        - containerPort: 80

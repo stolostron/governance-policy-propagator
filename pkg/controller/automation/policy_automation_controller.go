@@ -166,7 +166,10 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 		}
 		if cfgMap.Data["mode"] == "scan" {
 			reqLogger.Info("Triggering scan mode...")
-			requeueAfter, _ := time.ParseDuration(cfgMap.Data["rescanAfter"])
+			requeueAfter, err := time.ParseDuration(cfgMap.Data["rescanAfter"])
+			if err != nil {
+				requeueAfter = 10 * time.Minute
+			}
 
 			targetList := common.FindNonCompliantClustersForPolicy(policy)
 			if len(targetList) > 0 {
@@ -182,7 +185,7 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 
 			// no violations found, doing nothing
 			r.counter++
-			reqLogger.Info("RequeueAfter.", "RequeueAfter", fmt.Sprintf("%d", requeueAfter), "counter", fmt.Sprintf("%d", r.counter))
+			reqLogger.Info("RequeueAfter.", "RequeueAfter", requeueAfter.String(), "counter", fmt.Sprintf("%d", r.counter))
 			return reconcile.Result{RequeueAfter: requeueAfter}, nil
 		} else if cfgMap.Data["mode"] == "instant" {
 			reqLogger.Info("Triggering instant mode...")

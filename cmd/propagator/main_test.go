@@ -1,4 +1,5 @@
-// Copyright (c) 2020 Red Hat, Inc.
+// Copyright (c) 2021 Red Hat, Inc.
+
 // +build e2e
 
 package main

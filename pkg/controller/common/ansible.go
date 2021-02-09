@@ -19,7 +19,7 @@ import (
 // CreateAnsibleJob creates ansiblejob with given config map
 func CreateAnsibleJob(cfgMap *corev1.ConfigMap, dyamicClient dynamic.Interface) error {
 	ansibleJob := &unstructured.Unstructured{}
-	err := yaml.Unmarshal([]byte(cfgMap.Data["ansible.yaml"]), ansibleJob)
+	err := yaml.Unmarshal([]byte(cfgMap.Data["ansibleJob.yaml"]), ansibleJob)
 	if err != nil {
 		return err
 	}

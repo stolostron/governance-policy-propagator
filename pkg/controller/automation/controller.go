@@ -1,9 +1,8 @@
-// Copyright (c) 2020 Red Hat, Inc.
-package controller
+// Copyright (c) 2021 Red Hat, Inc.
 
-import (
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-)
+package automation
+
+import "sigs.k8s.io/controller-runtime/pkg/manager"
 
 // AddToManagerFuncs is a list of functions to add all Controllers to the Manager
 var AddToManagerFuncs []func(manager.Manager) error

@@ -1,10 +1,14 @@
 kind: ConfigMap
 apiVersion: v1
 metadata:
-  name: policy-limitrange-ansible
+  name: create-service-now-ticket
   namespace: default
 data:
-  ansible.yaml: |-
+  policyRef: policy-limitrange
+  hook: noncompliant
+  mode: scan
+  rescanAfter: 60s
+  ansibleJob.yaml: |-
     kind: AnsibleJob
     apiVersion: tower.ansible.com/v1alpha1
     spec:
@@ -13,7 +17,4 @@ data:
       extra_vars:
         cost: 6.88
         ghosts: ["inky","pinky","clyde","sue"]
-  mode: scan
-  policyRef: policy-limitrange
-  rescanAfter: 60s
-  hook: noncompliant
+

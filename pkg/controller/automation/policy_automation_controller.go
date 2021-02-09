@@ -104,32 +104,6 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 	reqLogger = log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name, "policyRef", cfgMap.Data["policyRef"])
-	// cfgMapList := &corev1.ConfigMapList{}
-	// err = r.client.List(context.TODO(), cfgMapList, &client.ListOptions{Namespace: request.Namespace})
-	// if err != nil {
-	// 	// failed to query configmap
-	// 	return reconcile.Result{}, err
-	// }
-	// if len(cfgMapList.Items) == 0 {
-	// 	// configmap not found could have been deleted
-	// 	// do nothing
-	// 	return reconcile.Result{}, nil
-	// }
-	// foundCfgMap := false
-	// cfgMap := corev1.ConfigMap{}
-	// for _, cfgMapTemp := range cfgMapList.Items {
-	// 	if cfgMapTemp.Data["policyRef"] == request.Name {
-	// 		foundCfgMap = true
-	// 		cfgMap = cfgMapTemp
-	// 		break
-
-	// 	}
-	// }
-	// if !foundCfgMap {
-	// 	// configmap not found could have been deleted
-	// 	// do nothing
-	// 	return reconcile.Result{}, nil
-	// }
 
 	reqLogger.Info("Handling automation...")
 	if cfgMap.Annotations["policy.open-cluster-management.io/rerun"] == "true" {
@@ -187,8 +161,8 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 			r.counter++
 			reqLogger.Info("RequeueAfter.", "RequeueAfter", requeueAfter.String(), "counter", fmt.Sprintf("%d", r.counter))
 			return reconcile.Result{RequeueAfter: requeueAfter}, nil
-		} else if cfgMap.Data["mode"] == "instant" {
-			reqLogger.Info("Triggering instant mode...")
+		} else if cfgMap.Data["mode"] == "once" {
+			reqLogger.Info("Triggering once mode...")
 			targetList := common.FindNonCompliantClustersForPolicy(policy)
 			if len(targetList) > 0 {
 				reqLogger.Info("Creating ansible job with targetList", "targetList", targetList)
@@ -196,8 +170,8 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 				if err != nil {
 					return reconcile.Result{}, err
 				}
-			} else {
-				reqLogger.Info("No cluster is in noncompliant status, doing nothing...")
+				cfgMap.Data["mode"] = "disabled"
+				r.client.Update(context.TODO(), cfgMap, &client.UpdateOptions{})
 			}
 		}
 	}

@@ -54,7 +54,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to primary resource Policy
 	err = c.Watch(
 		&source.Kind{Type: &policiesv1.Policy{}},
-		&handler.EnqueueRequestsFromMapFunc{ToRequests: &policyMapper{mgr.GetClient()}})
+		&common.EnqueueRequestsFromMapFunc{ToRequests: &policyMapper{mgr.GetClient()}})
 	if err != nil {
 		return err
 	}
@@ -70,7 +70,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to placementrule
 	err = c.Watch(
 		&source.Kind{Type: &appsv1.PlacementRule{}},
-		&common.EnqueueRequestsFromMapFunc{ToRequests: &placementRuleMapper{mgr.GetClient()}})
+		&handler.EnqueueRequestsFromMapFunc{ToRequests: &placementRuleMapper{mgr.GetClient()}})
 	if err != nil {
 		return err
 	}

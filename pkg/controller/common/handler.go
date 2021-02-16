@@ -10,7 +10,9 @@ import (
 
 var _ handler.EventHandler = &EnqueueRequestsFromMapFunc{}
 
-// EnqueueRequestsFromMapFunc same as original EnqueueRequestsFromMapFunc execept this doesn't queue old object for update
+// EnqueueRequestsFromMapFunc same as original EnqueueRequestsFromMapFunc 
+// execept this doesn't queue old object for update
+
 type EnqueueRequestsFromMapFunc struct {
 	// Mapper transforms the argument into a slice of keys to be reconciled
 	ToRequests handler.Mapper

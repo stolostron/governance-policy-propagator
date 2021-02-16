@@ -6,6 +6,7 @@ ENV OPERATOR=/usr/local/bin/governance-policy-propagator \
 
 # install operator binary
 COPY build/_output/bin/governance-policy-propagator ${OPERATOR}
+COPY build/_output/bin/governance-policy-automation governance-policy-automation
 
 COPY build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup

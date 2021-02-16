@@ -4,8 +4,6 @@ package common
 
 import (
 	"context"
-	"fmt"
-	"time"
 
 	"github.com/ghodss/yaml"
 	corev1 "k8s.io/api/core/v1"
@@ -24,7 +22,7 @@ func CreateAnsibleJob(cfgMap *corev1.ConfigMap, dyamicClient dynamic.Interface) 
 		return err
 	}
 	ansibleJobRes := schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1alpha1", Resource: "ansiblejobs"}
-	ansibleJob.SetName(cfgMap.GetName() + "-" + fmt.Sprintf("%d", time.Now().Unix()))
+	ansibleJob.SetGenerateName(cfgMap.GetName() + "-")
 	ansibleJob.SetOwnerReferences([]metav1.OwnerReference{
 		*metav1.NewControllerRef(cfgMap, cfgMap.GroupVersionKind()),
 	})

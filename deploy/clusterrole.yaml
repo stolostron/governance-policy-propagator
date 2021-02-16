@@ -4,11 +4,24 @@ metadata:
   creationTimestamp: null
   name: governance-policy-propagator
 rules:
+  - verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  apiGroups:
+    - tower.ansible.com
+  resources:
+    - ansiblejobs
 - apiGroups:
   - ""
   resources:
   - events
   - configmaps
+  - configmaps/finalizers
   verbs:
   - create
   - delete

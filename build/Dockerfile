@@ -1,10 +1,3 @@
-FROM registry.ci.openshift.org/open-cluster-management/builder:go1.14-linux-amd64 AS builder
-
-ENV REPO_PATH=/go/src/github.com/open-cluster-management/governance-policy-propagator
-WORKDIR $REPO_PATH
-COPY . .
-RUN make build
-
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
 ENV OPERATOR=/usr/local/bin/governance-policy-propagator \
@@ -12,8 +5,9 @@ ENV OPERATOR=/usr/local/bin/governance-policy-propagator \
     USER_NAME=governance-policy-propagator
 
 # install operator binary
-COPY --from=builder /go/src/github.com/open-cluster-management/governance-policy-propagator/build/_output/bin/governance-policy-propagator ${OPERATOR}
-COPY --from=builder /go/src/github.com/open-cluster-management/governance-policy-propagator/build/bin /usr/local/bin
+COPY build/_output/bin/governance-policy-propagator ${OPERATOR}
+
+COPY build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]

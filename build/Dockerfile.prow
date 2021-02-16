@@ -12,8 +12,8 @@ ENV OPERATOR=/usr/local/bin/governance-policy-propagator \
     USER_NAME=governance-policy-propagator
 
 # install operator binary
-COPY --from=builder /go/src/github.com/open-cluster-managementgovernance-policy-propagator/build/_output/bin/governance-policy-propagator ${OPERATOR}
-COPY --from=builder /go/src/github.com/open-cluster-managementgovernance-policy-propagator/build/bin /usr/local/bin
+COPY --from=builder /go/src/github.com/open-cluster-management/governance-policy-propagator/build/_output/bin/governance-policy-propagator ${OPERATOR}
+COPY --from=builder /go/src/github.com/open-cluster-management/governance-policy-propagator/build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]

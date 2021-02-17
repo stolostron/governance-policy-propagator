@@ -126,8 +126,7 @@ local:
 ############################################################
 
 build-images:
-	@operator-sdk build ${IMAGE_NAME_AND_VERSION}
-	@docker tag ${IMAGE_NAME_AND_VERSION} $(REGISTRY)/$(IMG):latest
+	@docker build -f build/Dockerfile.prow -t $(REGISTRY)/$(IMG):latest .
 
 ############################################################
 # clean section

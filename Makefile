@@ -126,7 +126,8 @@ local:
 ############################################################
 
 build-images:
-	@docker build -f build/Dockerfile.prow -t $(REGISTRY)/$(IMG):latest .
+	@docker build -t ${IMAGE_NAME_AND_VERSION} -f build/Dockerfile .
+	@docker tag ${IMAGE_NAME_AND_VERSION} $(REGISTRY)/$(IMG):latest
 
 ############################################################
 # clean section

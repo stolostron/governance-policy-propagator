@@ -103,7 +103,8 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-	reqLogger = log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name, "policyRef", cfgMap.Data["policyRef"])
+	reqLogger = log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name, 
+		"policyRef", cfgMap.Data["policyRef"])
 
 	reqLogger.Info("Handling automation...")
 	if cfgMap.Annotations["policy.open-cluster-management.io/rerun"] == "true" {

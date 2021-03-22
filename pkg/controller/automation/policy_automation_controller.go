@@ -110,11 +110,16 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 		reqLogger.Info("Triggering manual run...")
 		err = common.CreateAnsibleJob(cfgMap, r.dyamicClient)
 		if err != nil {
+			reqLogger.Error(err, "Failed to create ansible job...")
 			return reconcile.Result{}, err
 		}
 		// manual run suceeded, remove annotation
 		delete(cfgMap.Annotations, "policy.open-cluster-management.io/rerun")
-		r.client.Update(context.TODO(), cfgMap, &client.UpdateOptions{})
+		err = r.client.Update(context.TODO(), cfgMap, &client.UpdateOptions{})
+		if err != nil {
+			reqLogger.Error(err, "Failed to remove annotation `policy.open-cluster-management.io/rerun`...")
+			return reconcile.Result{}, err
+		}
 		reqLogger.Info("Manual run complete...")
 		return reconcile.Result{}, nil
 	} else if cfgMap.Data["mode"] == "disabled" {
@@ -168,10 +173,15 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 				reqLogger.Info("Creating ansible job with targetList", "targetList", targetList)
 				err = common.CreateAnsibleJob(cfgMap, r.dyamicClient)
 				if err != nil {
+					reqLogger.Error(err, "Failed to create ansible job...")
 					return reconcile.Result{}, err
 				}
 				cfgMap.Data["mode"] = "disabled"
-				r.client.Update(context.TODO(), cfgMap, &client.UpdateOptions{})
+				err = r.client.Update(context.TODO(), cfgMap, &client.UpdateOptions{})
+				if err != nil {
+					reqLogger.Error(err, "Failed to update mode to disabled...")
+					return reconcile.Result{}, err
+				}
 			}
 		}
 	}

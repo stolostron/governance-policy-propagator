@@ -1,4 +1,5 @@
 // Copyright (c) 2021 Red Hat, Inc.
+// Copyright Contributors to the Open Cluster Management project
 
 package automation
 
@@ -23,8 +24,7 @@ func (mapper *policyMapper) Map(obj handler.MapObject) []reconcile.Request {
 	cfgMapList := &corev1.ConfigMapList{}
 	err := mapper.Client.List(context.TODO(), cfgMapList, &client.ListOptions{Namespace: policy.GetNamespace()})
 	if err != nil {
-		// failed to query configmap
-		// return reconcile.Result{}, err
+		return nil
 	}
 	foundCfgMap := false
 	cfgMap := corev1.ConfigMap{}
@@ -38,7 +38,7 @@ func (mapper *policyMapper) Map(obj handler.MapObject) []reconcile.Request {
 	}
 	if foundCfgMap {
 		if cfgMap.Data["mode"] == "scan" {
-			// interval mode, do not queue
+			// scan mode, do not queue
 		} else if cfgMap.Data["mode"] == "once" {
 			request := reconcile.Request{NamespacedName: types.NamespacedName{
 				Name:      cfgMap.GetName(),

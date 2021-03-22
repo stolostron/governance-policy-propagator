@@ -27,7 +27,8 @@ func CreateAnsibleJob(cfgMap *corev1.ConfigMap, dyamicClient dynamic.Interface) 
 	ansibleJob.SetOwnerReferences([]metav1.OwnerReference{
 		*metav1.NewControllerRef(cfgMap, cfgMap.GroupVersionKind()),
 	})
-	_, err = dyamicClient.Resource(ansibleJobRes).Namespace(cfgMap.GetNamespace()).Create(context.TODO(), ansibleJob, v1.CreateOptions{})
+	_, err = dyamicClient.Resource(ansibleJobRes).Namespace(cfgMap.GetNamespace()).
+		Create(context.TODO(), ansibleJob, v1.CreateOptions{})
 	if err != nil {
 		return err
 	}

@@ -98,7 +98,7 @@ work: $(GOBIN)
 # Default value will run all formats, override these make target with your requirements:
 #    eg: fmt: format-go format-protos
 fmt: # format-go format-protos format-python
-	find . -type d -not -path "./\.*" ! -path "./build*" ! -path "./vbh" | go fmt
+	go fmt ./...
 
 ############################################################
 # check section

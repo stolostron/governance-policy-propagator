@@ -42,7 +42,7 @@ DEST ?= $(GOPATH)/src/$(GIT_HOST)/$(BASE_DIR)
 VERSION ?= $(shell cat COMPONENT_VERSION 2> /dev/null)
 IMAGE_NAME_AND_VERSION ?= $(REGISTRY)/$(IMG)
 # Handle KinD configuration
-KIND_NAME ?= test_hub
+KIND_NAME ?= test-hub
 KIND_NAMESPACE ?= governance
 KIND_VERSION ?= latest
 ifneq ($(KIND_VERSION), latest)

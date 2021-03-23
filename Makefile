@@ -219,7 +219,7 @@ install-resources:
 e2e-test:
 	ginkgo -v --slowSpecThreshold=10 test/e2e
 
-e2e-test-dependencies:
+e2e-dependencies:
 	go get github.com/onsi/ginkgo/ginkgo
 	go get github.com/onsi/gomega/...
 

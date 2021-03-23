@@ -22,6 +22,7 @@ TRAVIS_BUILD ?= 1
 # Use your own docker registry and image name for dev/test by overridding the IMG and REGISTRY environment variable.
 IMG ?= $(shell cat COMPONENT_NAME 2> /dev/null)
 REGISTRY ?= quay.io/open-cluster-management
+TAG ?= latest
 
 # Github host to use for checking the source tree;
 # Override this variable ue with your own value if you're working on forked repo.
@@ -40,7 +41,15 @@ export TESTARGS ?= $(TESTARGS_DEFAULT)
 DEST ?= $(GOPATH)/src/$(GIT_HOST)/$(BASE_DIR)
 VERSION ?= $(shell cat COMPONENT_VERSION 2> /dev/null)
 IMAGE_NAME_AND_VERSION ?= $(REGISTRY)/$(IMG)
-
+# Handle KinD configuration
+KIND_NAME ?= test_hub
+KIND_NAMESPACE ?= governance
+KIND_VERSION ?= latest
+ifneq ($(KIND_VERSION), latest)
+	KIND_ARGS = --image kindest/node:$(KIND_VERSION)
+else
+	KIND_ARGS =
+endif
 
 LOCAL_OS := $(shell uname)
 ifeq ($(LOCAL_OS),Linux)
@@ -167,12 +176,24 @@ kind-deploy-controller: check-env
 	kubectl create secret -n governance docker-registry multiclusterhub-operator-pull-secret --docker-server=quay.io --docker-username=${DOCKER_USER} --docker-password=${DOCKER_PASS}
 	kubectl apply -f deploy/ -n governance
 
+kind-deploy-controller-dev:
+	@echo Pushing image to KinD cluster
+	kind load docker-image $(REGISTRY)/$(IMG):$(TAG) --name $(KIND_NAME)
+	@echo Installing $(IMG)
+	kubectl create ns $(KIND_NAMESPACE)
+	kubectl apply -f deploy/ -n $(KIND_NAMESPACE)
+	@echo "Patch deployment image"
+	kubectl patch deployment $(IMG) -n $(KIND_NAMESPACE) -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"$(IMG)\",\"imagePullPolicy\":\"Never\"}]}}}}"
+	kubectl patch deployment $(IMG) -n $(KIND_NAMESPACE) -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"$(IMG)\",\"image\":\"$(REGISTRY)/$(IMG):$(TAG)\"}]}}}}"
+	kubectl rollout status -n $(KIND_NAMESPACE) deployment $(IMG) --timeout=180s
+
+# Specify KIND_VERSION to indicate the version tag of the KinD image
 kind-create-cluster:
 	@echo "creating cluster"
-	kind create cluster --name test-hub
+	kind create cluster --name $(KIND_NAME) $(KIND_ARGS)
 
 kind-delete-cluster:
-	kind delete cluster --name test-hub
+	kind delete cluster --name $(KIND_NAME)
 
 install-crds:
 	@echo installing crds

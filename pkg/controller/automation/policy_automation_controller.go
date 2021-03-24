@@ -109,7 +109,7 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 	reqLogger.Info("Handling automation...")
 	if cfgMap.Annotations["policy.open-cluster-management.io/rerun"] == "true" {
 		reqLogger.Info("Triggering manual run...")
-		err = common.CreateAnsibleJob(cfgMap, r.dyamicClient)
+		err = common.CreateAnsibleJob(cfgMap, r.dyamicClient, "manual")
 		if err != nil {
 			reqLogger.Error(err, "Failed to create ansible job...")
 			return reconcile.Result{}, err
@@ -156,7 +156,7 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 			targetList := common.FindNonCompliantClustersForPolicy(policy)
 			if len(targetList) > 0 {
 				reqLogger.Info("Creating ansible job with targetList", "targetList", targetList)
-				err = common.CreateAnsibleJob(cfgMap, r.dyamicClient)
+				err = common.CreateAnsibleJob(cfgMap, r.dyamicClient, "scan")
 				if err != nil {
 					return reconcile.Result{RequeueAfter: requeueAfter}, err
 				}
@@ -174,7 +174,7 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 			targetList := common.FindNonCompliantClustersForPolicy(policy)
 			if len(targetList) > 0 {
 				reqLogger.Info("Creating ansible job with targetList", "targetList", targetList)
-				err = common.CreateAnsibleJob(cfgMap, r.dyamicClient)
+				err = common.CreateAnsibleJob(cfgMap, r.dyamicClient, "once")
 				if err != nil {
 					reqLogger.Error(err, "Failed to create ansible job...")
 					return reconcile.Result{}, err

@@ -83,11 +83,13 @@ var _ = Describe("Test policy automation", func() {
 			Eventually(func() interface{} {
 				ansiblejobList, err := clientHubDynamic.Resource(gvrAnsibleJob).Namespace(testNamespace).List(context.TODO(), metav1.ListOptions{})
 				Expect(err).To(BeNil())
+				utils.KubectlWithOutput("get", "ansiblejobs", "-n", testNamespace)
 				return len(ansiblejobList.Items)
 			}, 30, 1).Should(Equal(1))
 			Consistently(func() interface{} {
 				ansiblejobList, err := clientHubDynamic.Resource(gvrAnsibleJob).Namespace(testNamespace).List(context.TODO(), metav1.ListOptions{})
 				Expect(err).To(BeNil())
+				utils.KubectlWithOutput("get", "ansiblejobs", "-n", testNamespace)
 				return len(ansiblejobList.Items)
 			}, 30, 1).Should(Equal(1))
 			By("Mode should be set to disabled after ansiblejob is created")
@@ -103,11 +105,13 @@ var _ = Describe("Test policy automation", func() {
 			Eventually(func() interface{} {
 				ansiblejobList, err := clientHubDynamic.Resource(gvrAnsibleJob).Namespace(testNamespace).List(context.TODO(), metav1.ListOptions{})
 				Expect(err).To(BeNil())
+				utils.KubectlWithOutput("get", "ansiblejobs", "-n", testNamespace)
 				return len(ansiblejobList.Items)
 			}, 30, 1).Should(Equal(2))
 			Consistently(func() interface{} {
 				ansiblejobList, err := clientHubDynamic.Resource(gvrAnsibleJob).Namespace(testNamespace).List(context.TODO(), metav1.ListOptions{})
 				Expect(err).To(BeNil())
+				utils.KubectlWithOutput("get", "ansiblejobs", "-n", testNamespace)
 				return len(ansiblejobList.Items)
 			}, 30, 1).Should(Equal(2))
 			By("Patching policy to make both cluster Compliant")
@@ -127,11 +131,13 @@ var _ = Describe("Test policy automation", func() {
 			Eventually(func() interface{} {
 				ansiblejobList, err := clientHubDynamic.Resource(gvrAnsibleJob).Namespace(testNamespace).List(context.TODO(), metav1.ListOptions{})
 				Expect(err).To(BeNil())
+				utils.KubectlWithOutput("get", "ansiblejobs", "-n", testNamespace)
 				return len(ansiblejobList.Items)
 			}, 30, 1).Should(Equal(3))
 			Consistently(func() interface{} {
 				ansiblejobList, err := clientHubDynamic.Resource(gvrAnsibleJob).Namespace(testNamespace).List(context.TODO(), metav1.ListOptions{})
 				Expect(err).To(BeNil())
+				utils.KubectlWithOutput("get", "ansiblejobs", "-n", testNamespace)
 				return len(ansiblejobList.Items)
 			}, 30, 1).Should(Equal(3))
 		})

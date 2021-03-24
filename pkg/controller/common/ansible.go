@@ -15,16 +15,16 @@ import (
 )
 
 // CreateAnsibleJob creates ansiblejob with given config map
-func CreateAnsibleJob(cfgMap *corev1.ConfigMap, dyamicClient dynamic.Interface) error {
+func CreateAnsibleJob(cfgMap *corev1.ConfigMap, dyamicClient dynamic.Interface, mode string) error {
 	ansibleJob := &unstructured.Unstructured{}
 	err := yaml.Unmarshal([]byte(cfgMap.Data["ansibleJob.yaml"]), ansibleJob)
 	if err != nil {
 		return err
 	}
-	ansibleJobRes := schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1alpha1", 
+	ansibleJobRes := schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1alpha1",
 		Resource: "ansiblejobs"}
 	ansibleJob.SetName("")
-	ansibleJob.SetGenerateName(cfgMap.GetName() + "-")
+	ansibleJob.SetGenerateName(cfgMap.GetName() + "-" + mode + "-")
 	ansibleJob.SetOwnerReferences([]metav1.OwnerReference{
 		*metav1.NewControllerRef(cfgMap, cfgMap.GroupVersionKind()),
 	})

@@ -1,7 +1,6 @@
 // Copyright (c) 2020 Red Hat, Inc.
 // Copyright Contributors to the Open Cluster Management project
 
-
 package e2e
 
 import (
@@ -32,6 +31,7 @@ var (
 	gvrPolicy             schema.GroupVersionResource
 	gvrPlacementBinding   schema.GroupVersionResource
 	gvrPlacementRule      schema.GroupVersionResource
+	gvrAnsibleJob         schema.GroupVersionResource
 	optionsFile           string
 	baseDomain            string
 	kubeadminUser         string
@@ -67,6 +67,7 @@ var _ = BeforeSuite(func() {
 	gvrPolicy = schema.GroupVersionResource{Group: "policy.open-cluster-management.io", Version: "v1", Resource: "policies"}
 	gvrPlacementBinding = schema.GroupVersionResource{Group: "policy.open-cluster-management.io", Version: "v1", Resource: "placementbindings"}
 	gvrPlacementRule = schema.GroupVersionResource{Group: "apps.open-cluster-management.io", Version: "v1", Resource: "placementrules"}
+	gvrAnsibleJob = schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1alpha1", Resource: "ansiblejobs"}
 	clientHub = NewKubeClient("", "", "")
 	clientHubDynamic = NewKubeClientDynamic("", "", "")
 	defaultImageRegistry = "quay.io/open-cluster-management"

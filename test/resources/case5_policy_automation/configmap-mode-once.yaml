@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: create-service-now-ticket
+data:
+  policyRef: case5-test-policy
+  hook: noncompliant # policy hooks e.g. compliant, noncompliant, prepropagation
+  mode: once # once, disabled, scan
+  rescanAfter: 1h #100ms, 2.3h or 4h35m default: 10m
+  ansibleJob.yaml: |-
+    kind: AnsibleJob
+    apiVersion: tower.ansible.com/v1alpha1
+    metadata:
+      name: demo
+    spec:
+      tower_auth_secret: toweraccess
+      job_template_name: Demo Job Template1
+      extra_vars:
+        cost: 6.88
+        ghosts: ["inky","pinky","clyde","sue"]

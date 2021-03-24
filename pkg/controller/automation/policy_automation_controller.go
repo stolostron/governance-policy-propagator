@@ -103,7 +103,7 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 		// Error reading the object - requeue the request.
 		return reconcile.Result{}, err
 	}
-	reqLogger = log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name, 
+	reqLogger = log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name,
 		"policyRef", cfgMap.Data["policyRef"])
 
 	reqLogger.Info("Handling automation...")
@@ -135,9 +135,11 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 		if err != nil {
 			if errors.IsNotFound(err) {
 				//policy is gone, need to delete automation
+				reqLogger.Info("Policy specified in policyRef field not found, may have been deleted, doing nothing...")
 				return reconcile.Result{}, nil
 			}
 			// Error reading the object - requeue the request.
+			reqLogger.Error(err, "Failed to retrieve policy specified in policyRef field...")
 			return reconcile.Result{}, err
 		}
 		if policy.Spec.Disabled {

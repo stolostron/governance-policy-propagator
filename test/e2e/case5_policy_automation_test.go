@@ -80,6 +80,11 @@ var _ = FDescribe("Test policy automation", func() {
 				Expect(err).To(BeNil())
 			}
 			By("Should only create one ansiblejob when mode = once and policy is NonCompliant")
+			Eventually(func() interface{} {
+				ansiblejobList, err := clientHubDynamic.Resource(gvrAnsibleJob).Namespace(testNamespace).List(context.TODO(), metav1.ListOptions{})
+				Expect(err).To(BeNil())
+				return len(ansiblejobList.Items)
+			}, 30, 1).Should(Equal(1))
 			Consistently(func() interface{} {
 				ansiblejobList, err := clientHubDynamic.Resource(gvrAnsibleJob).Namespace(testNamespace).List(context.TODO(), metav1.ListOptions{})
 				Expect(err).To(BeNil())

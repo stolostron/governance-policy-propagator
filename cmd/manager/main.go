@@ -17,7 +17,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/apis"
-	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/propagator"
+	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller"
 	"github.com/open-cluster-management/governance-policy-propagator/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
@@ -126,7 +126,7 @@ func main() {
 	}
 
 	// Setup all Controllers
-	if err := propagator.AddToManager(mgr); err != nil {
+	if err := controller.AddToManager(mgr); err != nil {
 		log.Error(err, "")
 		os.Exit(1)
 	}

@@ -3,7 +3,7 @@
 
 // +build e2e
 
-package main
+package propagator
 
 import (
 	"testing"

@@ -118,12 +118,10 @@ coverage:
 ############################################################
 
 build:
-	@build/common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/propagator
-	@build/common/scripts/gobuild.sh build/_output/bin/governance-policy-automation ./cmd/automation
+	@build/common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
 
 local:
-	@GOOS=darwin build/common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/propagator
-	@GOOS=darwin build/common/scripts/gobuild.sh build/_output/bin/governance-policy-automation ./cmd/automation
+	@GOOS=darwin build/common/scripts/gobuild.sh build/_output/bin/$(IMG) ./cmd/manager
 
 ############################################################
 # images section
@@ -199,7 +197,7 @@ e2e-test:
 # e2e test coverage
 ############################################################
 build-instrumented:
-	go test -covermode=atomic -coverpkg=github.com/open-cluster-management/$(IMG)... -c -tags e2e ./cmd/propagator -o build/_output/bin/$(IMG)-instrumented
+	go test -covermode=atomic -coverpkg=github.com/open-cluster-management/$(IMG)... -c -tags e2e ./cmd/manager -o build/_output/bin/$(IMG)-instrumented
 
 run-instrumented:
 	WATCH_NAMESPACE="" ./build/_output/bin/$(IMG)-instrumented -test.run "^TestRunMain$$" -test.coverprofile=coverage.out &>/dev/null &

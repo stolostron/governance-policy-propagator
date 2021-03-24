@@ -1,6 +1,6 @@
 // Copyright Contributors to the Open Cluster Management project
 
-package propagator
+package controller
 
 import "sigs.k8s.io/controller-runtime/pkg/manager"
 

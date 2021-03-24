@@ -23,6 +23,7 @@ func CreateAnsibleJob(cfgMap *corev1.ConfigMap, dyamicClient dynamic.Interface) 
 	}
 	ansibleJobRes := schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1alpha1", 
 		Resource: "ansiblejobs"}
+	ansibleJob.SetName("")
 	ansibleJob.SetGenerateName(cfgMap.GetName() + "-")
 	ansibleJob.SetOwnerReferences([]metav1.OwnerReference{
 		*metav1.NewControllerRef(cfgMap, cfgMap.GroupVersionKind()),

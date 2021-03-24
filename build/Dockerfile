@@ -20,8 +20,6 @@ ENV OPERATOR=/usr/local/bin/${COMPONENT} \
 
 # install operator binary
 COPY --from=builder ${REPO_PATH}/build/_output/bin/${COMPONENT} ${OPERATOR}
-COPY --from=builder ${REPO_PATH}/build/_output/bin/governance-policy-automation /usr/local/bin
-
 
 COPY --from=builder ${REPO_PATH}/build/bin /usr/local/bin
 RUN  /usr/local/bin/user_setup

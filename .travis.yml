@@ -23,20 +23,6 @@ stages:
 
 jobs:
   include:
-    # - stage: lint
-    #   name: "Run code lint"
-    #   if: type = pull_request
-    #   script: bash ${TRAVIS_BUILD_DIR}/build/run-code-lint.sh
-    - stage: build
-      name: "Build the image for pr and push it"
-      if: type = pull_request
-      script:
-        - set -e
-        - export COMPONENT_TAG_EXTENSION="-PR${TRAVIS_PULL_REQUEST}-${TRAVIS_COMMIT}"
-        - |
-          make
-          make component/build
-          make component/push
     - stage: build
       name: "Build the image with latest-dev tag and push it"
       if: type = push AND branch = main

@@ -94,7 +94,6 @@ type PolicyStatus struct {
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=policies,scope=Namespaced
 // +kubebuilder:resource:path=policies,shortName=plc
-// +kubebuilder:printcolumn:name="Status",type="string",JSONPath=".spec.status.status"
 type Policy struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

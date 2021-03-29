@@ -15,7 +15,8 @@ import (
 )
 
 // CreateAnsibleJob creates ansiblejob with given PolicyAutomation
-func CreateAnsibleJob(policyAutomation *policyv1alpha1.PolicyAutomation, dyamicClient dynamic.Interface, mode string) error {
+func CreateAnsibleJob(policyAutomation *policyv1alpha1.PolicyAutomation,
+	dyamicClient dynamic.Interface, mode string) error {
 	ansibleJob := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "tower.ansible.com/v1alpha1",

@@ -17,7 +17,7 @@ import (
 const case5PolicyName string = "case5-test-policy"
 const case5PolicyYaml string = "../resources/case5_policy_automation/case5-test-policy.yaml"
 
-var _ = Describe("Test policy automation", func() {
+var _ = FDescribe("Test policy automation", func() {
 	Describe("Create policy/pb/plc in ns:"+testNamespace+" and then update pb/plc", func() {
 		It("should be created in user ns", func() {
 			By("Creating " + case5PolicyName)
@@ -37,11 +37,11 @@ var _ = Describe("Test policy automation", func() {
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 		})
 	})
-	Describe("Test ansible job config mode", func() {
+	Describe("Test PolicyAutomation spec.mode", func() {
 		It("Test mode = disable", func() {
-			By("Creating an automation config with mode=disable")
+			By("Creating an policyAutomation with mode=disable")
 			utils.KubectlWithOutput("apply",
-				"-f", "../resources/case5_policy_automation/configmap-mode-disabled.yaml",
+				"-f", "../resources/case5_policy_automation/case5-policy-automation.yaml",
 				"-n", testNamespace)
 			By("Should not create any ansiblejob when mode = disable")
 			Consistently(func() interface{} {
@@ -51,11 +51,11 @@ var _ = Describe("Test policy automation", func() {
 			}, 30, 1).Should(Equal(0))
 		})
 		It("Test mode = once", func() {
-			By("Patching automation config with mode=once")
-			cfgMap, err := clientHub.CoreV1().ConfigMaps(testNamespace).Get(context.TODO(), "create-service-now-ticket", metav1.GetOptions{})
+			By("Patching policyAutomation with mode=once")
+			policyAutomation, err := clientHubDynamic.Resource(gvrPolicyAutomation).Namespace(testNamespace).Get(context.TODO(), "create-service-now-ticket", metav1.GetOptions{})
 			Expect(err).To(BeNil())
-			cfgMap.Data["mode"] = "once"
-			_, err = clientHub.CoreV1().ConfigMaps(testNamespace).Update(context.TODO(), cfgMap, metav1.UpdateOptions{})
+			policyAutomation.Object["spec"].(map[string]interface{})["mode"] = "once"
+			_, err = clientHubDynamic.Resource(gvrPolicyAutomation).Namespace(testNamespace).Update(context.TODO(), policyAutomation, metav1.UpdateOptions{})
 			Expect(err).To(BeNil())
 			By("Should still not create any ansiblejob when mode = once and policy is pending")
 			Consistently(func() interface{} {
@@ -93,13 +93,13 @@ var _ = Describe("Test policy automation", func() {
 				return len(ansiblejobList.Items)
 			}, 30, 1).Should(Equal(1))
 			By("Mode should be set to disabled after ansiblejob is created")
-			cfgMap, err = clientHub.CoreV1().ConfigMaps(testNamespace).Get(context.TODO(), "create-service-now-ticket", metav1.GetOptions{})
+			policyAutomation, err = clientHubDynamic.Resource(gvrPolicyAutomation).Namespace(testNamespace).Get(context.TODO(), "create-service-now-ticket", metav1.GetOptions{})
 			Expect(err).To(BeNil())
-			Expect(cfgMap.Data["mode"]).To(Equal("disabled"))
+			Expect(policyAutomation.Object["spec"].(map[string]interface{})["mode"]).To(Equal("disabled"))
 		})
 		It("Test manual run", func() {
 			By("Applying manual run annotation")
-			utils.KubectlWithOutput("annotate", "configmap", "-n", testNamespace, "create-service-now-ticket",
+			utils.KubectlWithOutput("annotate", "policyautomation", "-n", testNamespace, "create-service-now-ticket",
 				"--overwrite", "policy.open-cluster-management.io/rerun=true")
 			By("Should only create one more ansiblejob because policy is NonCompliant")
 			Eventually(func() interface{} {
@@ -125,7 +125,7 @@ var _ = Describe("Test policy automation", func() {
 				Expect(err).To(BeNil())
 			}
 			By("Applying manual run annotation again")
-			utils.KubectlWithOutput("annotate", "configmap", "-n", testNamespace, "create-service-now-ticket",
+			utils.KubectlWithOutput("annotate", "policyautomation", "-n", testNamespace, "create-service-now-ticket",
 				"--overwrite", "policy.open-cluster-management.io/rerun=true")
 			By("Should still create one more ansiblejob when policy is Compliant")
 			Eventually(func() interface{} {
@@ -143,9 +143,9 @@ var _ = Describe("Test policy automation", func() {
 		})
 	})
 	Describe("Clean up", func() {
-		It("Test ansbilejob clean up", func() {
+		It("Test AnsibleJob clean up", func() {
 			By("Removing config map")
-			utils.KubectlWithOutput("delete", "configmap", "-n", testNamespace, "create-service-now-ticket")
+			utils.KubectlWithOutput("delete", "policyautomation", "-n", testNamespace, "create-service-now-ticket")
 			By("Ansiblejob should also be removed")
 			Eventually(func() interface{} {
 				ansiblejobList, err := clientHubDynamic.Resource(gvrAnsibleJob).Namespace(testNamespace).List(context.TODO(), metav1.ListOptions{})

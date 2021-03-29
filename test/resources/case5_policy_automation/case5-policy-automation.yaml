@@ -1,14 +1,13 @@
-kind: PolicyAutomation
 apiVersion: policy.open-cluster-management.io/v1alpha1
+kind: PolicyAutomation
 metadata:
   name: create-service-now-ticket
-  namespace: default
 spec:
-  policyRef: policy-pod
-  eventHook: noncompliant
-  mode: disabled
-  rescanAfter: 60s
-  automation: 
+  policyRef: case5-test-policy
+  eventHook: noncompliant # policy hooks e.g. compliant, noncompliant, prepropagation
+  mode: disabled # once, disabled, scan
+  rescanAfter: 1h #100ms, 2.3h or 4h35m default: 10m
+  automationDef:
     type: AnsibleJob
     name: Demo Job Template
     tower_auth_secret: toweraccess
@@ -16,4 +15,4 @@ spec:
       sn_severity: 1
       sn_priority: 1
       target_clusters:
-        - my-cluster
+        - cluster1

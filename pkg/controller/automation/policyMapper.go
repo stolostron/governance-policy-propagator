@@ -6,7 +6,7 @@ import (
 	"context"
 
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1"
-	corev1 "k8s.io/api/core/v1"
+	policyv1alpha1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1alpha1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -20,28 +20,28 @@ type policyMapper struct {
 func (mapper *policyMapper) Map(obj handler.MapObject) []reconcile.Request {
 	policy := obj.Object.(*policiesv1.Policy)
 	var result []reconcile.Request
-	cfgMapList := &corev1.ConfigMapList{}
-	err := mapper.Client.List(context.TODO(), cfgMapList, &client.ListOptions{Namespace: policy.GetNamespace()})
+	policyAutomationList := &policyv1alpha1.PolicyAutomationList{}
+	err := mapper.Client.List(context.TODO(), policyAutomationList, &client.ListOptions{Namespace: policy.GetNamespace()})
 	if err != nil {
 		return nil
 	}
-	foundCfgMap := false
-	cfgMap := corev1.ConfigMap{}
-	for _, cfgMapTemp := range cfgMapList.Items {
-		if cfgMapTemp.Data["policyRef"] == policy.GetName() {
-			foundCfgMap = true
-			cfgMap = cfgMapTemp
+	found := false
+	policyAutomation := policyv1alpha1.PolicyAutomation{}
+	for _, policyAutomationTemp := range policyAutomationList.Items {
+		if policyAutomationTemp.Spec.PolicyRef == policy.GetName() {
+			found = true
+			policyAutomation = policyAutomationTemp
 			break
 
 		}
 	}
-	if foundCfgMap {
-		if cfgMap.Data["mode"] == "scan" {
+	if found {
+		if policyAutomation.Spec.Mode == "scan" {
 			// scan mode, do not queue
-		} else if cfgMap.Data["mode"] == "once" {
+		} else if policyAutomation.Spec.Mode == "once" {
 			request := reconcile.Request{NamespacedName: types.NamespacedName{
-				Name:      cfgMap.GetName(),
-				Namespace: cfgMap.GetNamespace(),
+				Name:      policyAutomation.GetName(),
+				Namespace: policyAutomation.GetNamespace(),
 			}}
 			result = append(result, request)
 		}

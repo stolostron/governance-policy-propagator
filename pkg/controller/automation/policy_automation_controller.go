@@ -8,8 +8,8 @@ import (
 	"time"
 
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1"
+	policyv1alpha1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1alpha1"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
-	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -59,9 +59,9 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	// Watch for changes to config map
-	err = c.Watch(&source.Kind{Type: &corev1.ConfigMap{}},
-		&common.EnqueueRequestsFromMapFunc{ToRequests: &configMapMapper{mgr.GetClient()}},
+	// Watch for changes to resource PolicyAutomation
+	err = c.Watch(&source.Kind{Type: &policyv1alpha1.PolicyAutomation{}},
+		&common.EnqueueRequestsFromMapFunc{ToRequests: &policyAutomationMapper{mgr.GetClient()}},
 		configMapPredicateFuncs)
 	if err != nil {
 		return err
@@ -93,8 +93,8 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 
 	// Fetch the ConfigMap instance
-	cfgMap := &corev1.ConfigMap{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, cfgMap)
+	policyAutomation := &policyv1alpha1.PolicyAutomation{}
+	err := r.client.Get(context.TODO(), request.NamespacedName, policyAutomation)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			reqLogger.Info("Automation was deleted, doing nothing...")
@@ -104,33 +104,33 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 		return reconcile.Result{}, err
 	}
 	reqLogger = log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name,
-		"policyRef", cfgMap.Data["policyRef"])
+		"policyRef", policyAutomation.Spec.PolicyRef)
 
 	reqLogger.Info("Handling automation...")
-	if cfgMap.Annotations["policy.open-cluster-management.io/rerun"] == "true" {
+	if policyAutomation.Annotations["policy.open-cluster-management.io/rerun"] == "true" {
 		reqLogger.Info("Triggering manual run...")
-		err = common.CreateAnsibleJob(cfgMap, r.dyamicClient, "manual")
+		err = common.CreateAnsibleJob(policyAutomation, r.dyamicClient, "manual")
 		if err != nil {
 			reqLogger.Error(err, "Failed to create ansible job...")
 			return reconcile.Result{}, err
 		}
 		// manual run suceeded, remove annotation
-		delete(cfgMap.Annotations, "policy.open-cluster-management.io/rerun")
-		err = r.client.Update(context.TODO(), cfgMap, &client.UpdateOptions{})
+		delete(policyAutomation.Annotations, "policy.open-cluster-management.io/rerun")
+		err = r.client.Update(context.TODO(), policyAutomation, &client.UpdateOptions{})
 		if err != nil {
 			reqLogger.Error(err, "Failed to remove annotation `policy.open-cluster-management.io/rerun`...")
 			return reconcile.Result{}, err
 		}
 		reqLogger.Info("Manual run complete...")
 		return reconcile.Result{}, nil
-	} else if cfgMap.Data["mode"] == "disabled" {
+	} else if policyAutomation.Spec.Mode == "disabled" {
 		reqLogger.Info("Automation is disabled, doing nothing...")
 		return reconcile.Result{}, nil
 	} else {
 		policy := &policiesv1.Policy{}
 		err := r.client.Get(context.TODO(), types.NamespacedName{
-			Name:      cfgMap.Data["policyRef"],
-			Namespace: cfgMap.GetNamespace(),
+			Name:      policyAutomation.Spec.PolicyRef,
+			Namespace: policyAutomation.GetNamespace(),
 		}, policy)
 		if err != nil {
 			if errors.IsNotFound(err) {
@@ -146,21 +146,19 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 			reqLogger.Info("Policy is disabled, doing nothing...")
 			return reconcile.Result{}, nil
 		}
-		if cfgMap.Data["mode"] == "scan" {
+		if policyAutomation.Spec.Mode == "scan" {
 			reqLogger.Info("Triggering scan mode...")
-			requeueAfter, err := time.ParseDuration(cfgMap.Data["rescanAfter"])
+			requeueAfter, err := time.ParseDuration(policyAutomation.Spec.RescanAfter)
 			if err != nil {
-				requeueAfter = 10 * time.Minute
+				return reconcile.Result{RequeueAfter: requeueAfter}, err
 			}
-
 			targetList := common.FindNonCompliantClustersForPolicy(policy)
 			if len(targetList) > 0 {
 				reqLogger.Info("Creating ansible job with targetList", "targetList", targetList)
-				err = common.CreateAnsibleJob(cfgMap, r.dyamicClient, "scan")
+				err = common.CreateAnsibleJob(policyAutomation, r.dyamicClient, "scan")
 				if err != nil {
 					return reconcile.Result{RequeueAfter: requeueAfter}, err
 				}
-
 			} else {
 				reqLogger.Info("No cluster is in noncompliant status, doing nothing...")
 			}
@@ -169,22 +167,24 @@ func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result
 			r.counter++
 			reqLogger.Info("RequeueAfter.", "RequeueAfter", requeueAfter.String(), "counter", fmt.Sprintf("%d", r.counter))
 			return reconcile.Result{RequeueAfter: requeueAfter}, nil
-		} else if cfgMap.Data["mode"] == "once" {
+		} else if policyAutomation.Spec.Mode == "once" {
 			reqLogger.Info("Triggering once mode...")
 			targetList := common.FindNonCompliantClustersForPolicy(policy)
 			if len(targetList) > 0 {
 				reqLogger.Info("Creating ansible job with targetList", "targetList", targetList)
-				err = common.CreateAnsibleJob(cfgMap, r.dyamicClient, "once")
+				err = common.CreateAnsibleJob(policyAutomation, r.dyamicClient, "once")
 				if err != nil {
 					reqLogger.Error(err, "Failed to create ansible job...")
 					return reconcile.Result{}, err
 				}
-				cfgMap.Data["mode"] = "disabled"
-				err = r.client.Update(context.TODO(), cfgMap, &client.UpdateOptions{})
+				policyAutomation.Spec.Mode = "disabled"
+				err = r.client.Update(context.TODO(), policyAutomation, &client.UpdateOptions{})
 				if err != nil {
 					reqLogger.Error(err, "Failed to update mode to disabled...")
 					return reconcile.Result{}, err
 				}
+			} else {
+				reqLogger.Info("No cluster is in noncompliant status, doing nothing...")
 			}
 		}
 	}

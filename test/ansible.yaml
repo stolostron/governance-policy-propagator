@@ -11,7 +11,7 @@ spec:
   automation: 
     type: AnsibleJob
     name: Demo Job Template
-    tower_auth_secret: toweraccess
+    secret: toweraccess
     extra_vars: 
       sn_severity: 1
       sn_priority: 1

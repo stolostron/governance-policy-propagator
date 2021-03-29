@@ -5,18 +5,18 @@ metadata:
 spec:
   group: policy.open-cluster-management.io
   names:
-    kind: PolicyAutomation
-    listKind: PolicyAutomationList
+    kind: Policy
+    listKind: PolicyList
     plural: policies
     shortNames:
-    - plca
-    singular: policyautomation
+    - plc
+    singular: policy
   scope: Namespaced
   versions:
-  - name: v1alpha1
+  - name: v1
     schema:
       openAPIV3Schema:
-        description: PolicyAutomation is the Schema for the policyautomations API
+        description: Policy is the Schema for the policies API
         properties:
           apiVersion:
             description: 'APIVersion defines the versioned schema of this representation
@@ -31,57 +31,94 @@ spec:
           metadata:
             type: object
           spec:
-            description: PolicyAutomationSpec defines the desired state of PolicyAutomation
+            description: PolicySpec defines the desired state of Policy
             properties:
-              automationDef:
-                description: AutomationDef defines the automation to invoke
-                properties:
-                  extra_vars:
-                    description: ExtraVars is passed to the Ansible job at execution
-                      time and is a known Ansible entity.
-                    type: object
-                    x-kubernetes-preserve-unknown-fields: true
-                  name:
-                    description: Name of the Ansible Template to run in Tower as a
-                      job
-                    type: string
-                  tower_auth_secret:
-                    type: string
-                  type:
-                    default: AnsibleJob
-                    description: Type of the automation to invoke
-                    type: string
-                required:
-                - name
-                - tower_auth_secret
-                type: object
-              eventHook:
-                description: EventHook decides when auotmation is going to be triggered
-                enum:
-                - noncompliant
-                type: string
-              mode:
-                default: disabled
-                description: Mode decides how automation is going to be triggered
-                enum:
-                - once
-                - disabled
-                - scan
-                type: string
-              policyRef:
-                description: PolicyRef is the name of the policy automation is going
-                  to binding with.
-                type: string
-              rescanAfter:
-                default: 10m
+              disabled:
+                type: boolean
+              policy-templates:
+                items:
+                  description: PolicyTemplate template for custom security policy
+                  properties:
+                    objectDefinition:
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                  type: object
+                type: array
+              remediationAction:
+                description: RemediationAction describes weather to enforce or inform
                 type: string
             required:
-            - automationDef
-            - mode
-            - policyRef
+            - disabled
             type: object
           status:
-            description: PolicyAutomationStatus defines the observed state of PolicyAutomation
+            description: PolicyStatus defines the observed state of Policy
+            properties:
+              compliant:
+                description: ComplianceState shows the state of enforcement
+                enum:
+                - Compliant
+                - NonCompliant
+                type: string
+              details:
+                items:
+                  description: DetailsPerTemplate defines compliance details and history
+                  properties:
+                    compliant:
+                      description: ComplianceState shows the state of enforcement
+                      type: string
+                    history:
+                      items:
+                        description: ComplianceHistory defines compliance details
+                          history
+                        properties:
+                          eventName:
+                            type: string
+                          lastTimestamp:
+                            format: date-time
+                            type: string
+                          message:
+                            type: string
+                        type: object
+                      type: array
+                    templateMeta:
+                      type: object
+                  type: object
+                type: array
+              placement:
+                items:
+                  description: Placement defines the placement results
+                  properties:
+                    decisions:
+                      items:
+                        description: PlacementDecision defines the decision made by
+                          controller
+                        properties:
+                          clusterName:
+                            type: string
+                          clusterNamespace:
+                            type: string
+                        type: object
+                      type: array
+                    placementBinding:
+                      type: string
+                    placementRule:
+                      type: string
+                  type: object
+                type: array
+              status:
+                items:
+                  description: CompliancePerClusterStatus defines compliance per cluster
+                    status
+                  properties:
+                    clustername:
+                      type: string
+                    clusternamespace:
+                      type: string
+                    compliant:
+                      description: ComplianceState shows the state of enforcement
+                      type: string
+                  type: object
+                type: array
             type: object
         type: object
     served: true

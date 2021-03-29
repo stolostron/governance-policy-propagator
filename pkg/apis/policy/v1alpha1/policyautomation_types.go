@@ -36,7 +36,7 @@ type AutomationDef struct {
 	// +kubebuilder:pruning:PreserveUnknownFields
 	ExtraVars *runtime.RawExtension `json:"extra_vars,omitempty"`
 	// +kubebuilder:validation:Required
-	TowerSecret string `json:"tower_auth_secret"`
+	TowerSecret string `json:"secret"`
 }
 
 // PolicyAutomationStatus defines the observed state of PolicyAutomation

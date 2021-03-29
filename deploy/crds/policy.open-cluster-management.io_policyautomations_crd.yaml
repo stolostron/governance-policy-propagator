@@ -38,6 +38,7 @@ spec:
                     description: ExtraVars is passed to the Ansible job at execution
                       time and is a known Ansible entity.
                     type: object
+                    x-kubernetes-preserve-unknown-fields: true
                   name:
                     description: Name of the Ansible Template to run in Tower as a
                       job

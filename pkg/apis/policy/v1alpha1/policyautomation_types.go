@@ -19,8 +19,9 @@ type PolicyAutomationSpec struct {
 	// +kubebuilder:validation:Enum={noncompliant}
 	EventHook string `json:"eventHook,omitempty"`
 	// +kubebuilder:default:="10m"
-	RescanAfter string        `json:"rescanAfter,omitempty"`
-	Automation  AutomationDef `json:"automationDef"`
+	RescanAfter string `json:"rescanAfter,omitempty"`
+	// +kubebuilder:validation:Required
+	Automation AutomationDef `json:"automationDef"`
 }
 
 // AutomationDef defines the automation to invoke
@@ -32,6 +33,7 @@ type AutomationDef struct {
 	// +kubebuilder:validation:Required
 	Name string `json:"name"`
 	// ExtraVars is passed to the Ansible job at execution time and is a known Ansible entity.
+	// +kubebuilder:pruning:PreserveUnknownFields
 	ExtraVars *runtime.RawExtension `json:"extra_vars,omitempty"`
 	// +kubebuilder:validation:Required
 	TowerSecret string `json:"tower_auth_secret"`

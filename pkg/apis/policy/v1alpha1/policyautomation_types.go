@@ -51,7 +51,7 @@ type PolicyAutomationStatus struct {
 // PolicyAutomation is the Schema for the policyautomations API
 // +kubebuilder:subresource:status
 // +kubebuilder:resource:path=policyautomations,scope=Namespaced
-// +kubebuilder:resource:path=policies,shortName=plca
+// +kubebuilder:resource:path=policyautomations,shortName=plca
 type PolicyAutomation struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

@@ -8,6 +8,8 @@ spec:
     kind: PolicyAutomation
     listKind: PolicyAutomationList
     plural: policyautomations
+    shortNames:
+    - plca
     singular: policyautomation
   scope: Namespaced
   versions:

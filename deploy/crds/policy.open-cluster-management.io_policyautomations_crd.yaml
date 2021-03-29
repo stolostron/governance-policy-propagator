@@ -43,7 +43,7 @@ spec:
                     description: Name of the Ansible Template to run in Tower as a
                       job
                     type: string
-                  tower_auth_secret:
+                  secret:
                     type: string
                   type:
                     default: AnsibleJob
@@ -51,7 +51,7 @@ spec:
                     type: string
                 required:
                 - name
-                - tower_auth_secret
+                - secret
                 type: object
               eventHook:
                 description: EventHook decides when auotmation is going to be triggered

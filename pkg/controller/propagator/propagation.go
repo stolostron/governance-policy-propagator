@@ -140,6 +140,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 
 	instance.Status.Status = status
 	//loop through status and set ComplianceState
+	instance.Status.ComplianceState = ""
 	isCompliant := true
 	for _, cpcs := range status {
 		if cpcs.ComplianceState == "NonCompliant" {

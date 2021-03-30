@@ -16,7 +16,7 @@ var policyPredicateFuncs = predicate.Funcs{
 			return false
 		}
 		plcObjOld := e.ObjectOld.(*policiesv1.Policy)
-		return plcObjNew.Status.ComplianceState != policiesv1.ComplianceState(plcObjOld.Spec.RemediationAction)
+		return plcObjNew.Status.ComplianceState != plcObjOld.Status.ComplianceState
 	},
 	CreateFunc: func(e event.CreateEvent) bool {
 		return false

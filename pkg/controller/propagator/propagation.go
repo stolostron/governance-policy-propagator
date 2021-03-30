@@ -152,7 +152,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 		}
 	}
 	// set to compliant only when all status are compliant
-	if isCompliant {
+	if len(status) > 0 && isCompliant {
 		instance.Status.ComplianceState = policiesv1.Compliant
 	}
 	// looped through all pb, update status.placement

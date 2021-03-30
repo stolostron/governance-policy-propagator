@@ -139,6 +139,21 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	}
 
 	instance.Status.Status = status
+	//loop through status and set ComplianceState
+	isCompliant := true
+	for _, cpcs := range status {
+		if cpcs.ComplianceState == "NonCompliant" {
+			instance.Status.ComplianceState = policiesv1.NonCompliant
+			isCompliant = false
+			break
+		} else if cpcs.ComplianceState == "" {
+			isCompliant = false
+		}
+	}
+	// set to compliant only when all status are compliant
+	if isCompliant {
+		instance.Status.ComplianceState = policiesv1.Compliant
+	}
 	// looped through all pb, update status.placement
 	sort.Slice(placement, func(i, j int) bool {
 		return placement[i].PlacementBinding < placement[j].PlacementBinding

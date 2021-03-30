@@ -16,7 +16,7 @@ import (
 
 // CreateAnsibleJob creates ansiblejob with given PolicyAutomation
 func CreateAnsibleJob(policyAutomation *policyv1alpha1.PolicyAutomation,
-	dyamicClient dynamic.Interface, mode string) error {
+	dyamicClient dynamic.Interface, mode string, targetCluster []string) error {
 	ansibleJob := &unstructured.Unstructured{
 		Object: map[string]interface{}{
 			"apiVersion": "tower.ansible.com/v1alpha1",
@@ -24,9 +24,11 @@ func CreateAnsibleJob(policyAutomation *policyv1alpha1.PolicyAutomation,
 			"spec": map[string]interface{}{
 				"job_template_name": policyAutomation.Spec.Automation.Name,
 				"tower_auth_secret": policyAutomation.Spec.Automation.TowerSecret,
+				"extra_vars":        map[string]interface{}{},
 			},
 		},
 	}
+
 	if policyAutomation.Spec.Automation.ExtraVars != nil {
 		// This is to translate the runtime.RawExtension to a map[string]interface{}
 		mapExtraVars := map[string]interface{}{}
@@ -36,6 +38,10 @@ func CreateAnsibleJob(policyAutomation *policyv1alpha1.PolicyAutomation,
 		}
 		ansibleJob.Object["spec"].(map[string]interface{})["extra_vars"] = mapExtraVars
 	}
+	if targetCluster != nil {
+		ansibleJob.Object["spec"].(map[string]interface{})["extra_vars"].(map[string]interface{})["target_clusters"] = targetCluster
+	}
+
 	ansibleJobRes := schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1alpha1",
 		Resource: "ansiblejobs"}
 	ansibleJob.SetGenerateName(policyAutomation.GetName() + "-" + mode + "-")

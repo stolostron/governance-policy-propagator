@@ -11,14 +11,13 @@ type PolicyAutomationSpec struct {
 	// +kubebuilder:validation:Required
 	PolicyRef string `json:"policyRef"`
 	// Mode decides how automation is going to be triggered
-	// +kubebuilder:validation:Enum={once,disabled,scan}
-	// +kubebuilder:default:=disabled
+	// +kubebuilder:validation:Enum={once,disabled}
 	// +kubebuilder:validation:Required
 	Mode string `json:"mode"`
-	// EventHook decides when auotmation is going to be triggered
+	// EventHook decides when automation is going to be triggered
 	// +kubebuilder:validation:Enum={noncompliant}
-	EventHook string `json:"eventHook,omitempty"`
-	// +kubebuilder:default:="10m"
+	// +kubebuilder:validation:Required
+	EventHook   string `json:"eventHook,omitempty"`
 	RescanAfter string `json:"rescanAfter,omitempty"`
 	// +kubebuilder:validation:Required
 	Automation AutomationDef `json:"automationDef"`
@@ -27,7 +26,6 @@ type PolicyAutomationSpec struct {
 // AutomationDef defines the automation to invoke
 type AutomationDef struct {
 	// Type of the automation to invoke
-	// +kubebuilder:default:=AnsibleJob
 	Type string `json:"type,omitempty"`
 	// Name of the Ansible Template to run in Tower as a job
 	// +kubebuilder:validation:Required

@@ -48,7 +48,6 @@ spec:
                   secret:
                     type: string
                   type:
-                    default: AnsibleJob
                     description: Type of the automation to invoke
                     type: string
                 required:
@@ -56,24 +55,21 @@ spec:
                 - secret
                 type: object
               eventHook:
-                description: EventHook decides when auotmation is going to be triggered
+                description: EventHook decides when automation is going to be triggered
                 enum:
                 - noncompliant
                 type: string
               mode:
-                default: disabled
                 description: Mode decides how automation is going to be triggered
                 enum:
                 - once
                 - disabled
-                - scan
                 type: string
               policyRef:
                 description: PolicyRef is the name of the policy automation is going
                   to binding with.
                 type: string
               rescanAfter:
-                default: 10m
                 type: string
             required:
             - automationDef

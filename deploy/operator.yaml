@@ -38,7 +38,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: governance-policy-propagator
-  namespace: governance
+  namespace: open-cluster-management
 roleRef:
   kind: ClusterRole
   name: governance-policy-propagator

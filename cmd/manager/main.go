@@ -4,6 +4,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -18,6 +19,7 @@ import (
 	"github.com/open-cluster-management/governance-policy-propagator/version"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+	"github.com/operator-framework/operator-sdk/pkg/leader"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
@@ -64,12 +66,18 @@ func main() {
 		os.Exit(1)
 	}
 
+	ctx := context.TODO()
+	// Become the leader before proceeding
+	err = leader.Become(ctx, "governance-policy-propagator-lock")
+	if err != nil {
+		log.Error(err, "")
+		os.Exit(1)
+	}
+
 	// Set default manager options
 	options := manager.Options{
 		Namespace:          namespace,
 		MetricsBindAddress: fmt.Sprintf("%s:%d", metricsHost, metricsPort),
-		LeaderElection:     true,
-		LeaderElectionID:   "governance-policy-propagator-lock",
 	}
 
 	// Add support for MultiNamespace set in WATCH_NAMESPACE (e.g ns1,ns2)

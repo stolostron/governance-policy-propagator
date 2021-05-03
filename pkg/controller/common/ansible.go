@@ -6,7 +6,7 @@ import (
 	"context"
 	"encoding/json"
 
-	policyv1alpha1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1alpha1"
+	policyv1beta1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -15,11 +15,11 @@ import (
 )
 
 // CreateAnsibleJob creates ansiblejob with given PolicyAutomation
-func CreateAnsibleJob(policyAutomation *policyv1alpha1.PolicyAutomation,
+func CreateAnsibleJob(policyAutomation *policyv1beta1.PolicyAutomation,
 	dyamicClient dynamic.Interface, mode string, targetCluster []string) error {
 	ansibleJob := &unstructured.Unstructured{
 		Object: map[string]interface{}{
-			"apiVersion": "tower.ansible.com/v1alpha1",
+			"apiVersion": "tower.ansible.com/v1beta1",
 			"kind":       "AnsibleJob",
 			"spec": map[string]interface{}{
 				"job_template_name": policyAutomation.Spec.Automation.Name,
@@ -42,7 +42,7 @@ func CreateAnsibleJob(policyAutomation *policyv1alpha1.PolicyAutomation,
 		ansibleJob.Object["spec"].(map[string]interface{})["extra_vars"].(map[string]interface{})["target_clusters"] = targetCluster
 	}
 
-	ansibleJobRes := schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1alpha1",
+	ansibleJobRes := schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1beta1",
 		Resource: "ansiblejobs"}
 	ansibleJob.SetGenerateName(policyAutomation.GetName() + "-" + mode + "-")
 	ansibleJob.SetOwnerReferences([]metav1.OwnerReference{

@@ -17,7 +17,7 @@ import (
 const case5PolicyName string = "case5-test-policy"
 const case5PolicyYaml string = "../resources/case5_policy_automation/case5-test-policy.yaml"
 
-var _ = Describe("Test policy automation", func() {
+var _ = FDescribe("Test policy automation", func() {
 	Describe("Create policy/pb/plc in ns:"+testNamespace+" and then update pb/plc", func() {
 		It("should be created in user ns", func() {
 			By("Creating " + case5PolicyName)

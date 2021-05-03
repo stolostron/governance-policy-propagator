@@ -19,7 +19,7 @@ func CreateAnsibleJob(policyAutomation *policyv1beta1.PolicyAutomation,
 	dyamicClient dynamic.Interface, mode string, targetCluster []string) error {
 	ansibleJob := &unstructured.Unstructured{
 		Object: map[string]interface{}{
-			"apiVersion": "tower.ansible.com/v1beta1",
+			"apiVersion": "tower.ansible.com/v1alpha1",
 			"kind":       "AnsibleJob",
 			"spec": map[string]interface{}{
 				"job_template_name": policyAutomation.Spec.Automation.Name,
@@ -42,7 +42,7 @@ func CreateAnsibleJob(policyAutomation *policyv1beta1.PolicyAutomation,
 		ansibleJob.Object["spec"].(map[string]interface{})["extra_vars"].(map[string]interface{})["target_clusters"] = targetCluster
 	}
 
-	ansibleJobRes := schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1beta1",
+	ansibleJobRes := schema.GroupVersionResource{Group: "tower.ansible.com", Version: "v1alpha1",
 		Resource: "ansiblejobs"}
 	ansibleJob.SetGenerateName(policyAutomation.GetName() + "-" + mode + "-")
 	ansibleJob.SetOwnerReferences([]metav1.OwnerReference{

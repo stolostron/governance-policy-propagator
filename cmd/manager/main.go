@@ -66,6 +66,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	cfg.QPS = 100.0
+	cfg.Burst = 200
+
+	log.Info(fmt.Sprintf("izhang modified QPS to %v, Burst to %v", cfg.QPS, cfg.Burst))
+
 	ctx := context.TODO()
 	// Become the leader before proceeding
 	err = leader.Become(ctx, "governance-policy-propagator-lock")

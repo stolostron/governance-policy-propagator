@@ -163,7 +163,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	})
 	instance.Status.Placement = placement
 	//err = r.client.Status().Update(context.TODO(), instance)
-	err = r.client.Status().Patch(context.TODO(), instance, client.MergeFrom(oIns), &client.PatchOptions{FieldManager: r.name})
+	err = r.client.Status().Patch(context.TODO(), instance, client.MergeFrom(oIns) )
 	if err != nil && !errors.IsNotFound(err) {
 		// failed to update instance.spec.placement, requeue
 		reqLogger.Error(err, "Failed to update root policy status...")

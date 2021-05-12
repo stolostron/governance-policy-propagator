@@ -30,8 +30,6 @@ var log = logf.Log.WithName(controllerName)
 // Add creates a new Policy Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
-	// return add(mgr, newReconciler(mgr))
-	log.Info("izhang disable automation controller")
 	return nil
 }
 

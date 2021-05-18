@@ -6,15 +6,18 @@ package propagator
 import (
 	"context"
 	"fmt"
+	"time"
 
 	clusterv1 "github.com/open-cluster-management/api/cluster/v1"
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
+	"golang.org/x/time/rate"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/workqueue"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -37,13 +40,7 @@ var log = logf.Log.WithName(controllerName)
 // Add creates a new Policy Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
-	r := newReconciler(mgr)
-	bu := NewbatchUpdater(r)
-	r.bUpdater = bu
-	mgr.Add(bu)
-
-	log.Info(fmt.Sprintf("izhang, reconciler %v, batchUpdator %v", r, bu))
-	return add(mgr, r, bu)
+	return add(mgr, newReconciler(mgr))
 }
 
 // newReconciler returns a new reconcile.Reconciler
@@ -53,20 +50,19 @@ func newReconciler(mgr manager.Manager) *ReconcilePolicy {
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler, bu *batchUpdater) error {
-	workerNum := 1
-	wq_qps := 10.0
-	wq_burst := 100
+func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	workerNum := 100
+	wq_qps := 1000.0
+	wq_burst := 2000
 
 	c, err := controller.New(controllerName, mgr, controller.Options{
 		Reconciler:              r,
 		MaxConcurrentReconciles: workerNum,
-		//		RateLimiter: workqueue.NewMaxOfRateLimiter(
-		//			workqueue.NewItemExponentialFailureRateLimiter(5*time.Millisecond, 1000*time.Second),
-		//			// 10 qps, 100 bucket size.  This is only for retry speed and its only the overall factor (not per item)
-		//			&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(wq_qps), wq_burst)},
-		//		),
-
+		RateLimiter: workqueue.NewMaxOfRateLimiter(
+			workqueue.NewItemExponentialFailureRateLimiter(5*time.Millisecond, 1000*time.Second),
+			// 10 qps, 100 bucket size.  This is only for retry speed and its only the overall factor (not per item)
+			&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(wq_qps), wq_burst)},
+		),
 	})
 	if err != nil {
 		return err
@@ -93,7 +89,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler, bu *batchUpdater) error {
 	// Watch for changes to primary resource Policy
 	err = c.Watch(
 		&source.Kind{Type: &policiesv1.Policy{}},
-		&common.EnqueueRequestsFromMapFunc{ToRequests: &policyMapper{Client: mgr.GetClient(), bUpdater: bu}})
+		&common.EnqueueRequestsFromMapFunc{ToRequests: &policyMapper{Client: mgr.GetClient()}})
 	if err != nil {
 		return err
 	}
@@ -111,7 +107,6 @@ type ReconcilePolicy struct {
 	client   client.Client
 	scheme   *runtime.Scheme
 	recorder record.EventRecorder
-	bUpdater *batchUpdater
 }
 
 // Reconcile reads that state of the cluster for a Policy object and makes changes based on the state read

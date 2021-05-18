@@ -4,7 +4,6 @@
 package propagator
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
@@ -17,23 +16,22 @@ import (
 
 type policyMapper struct {
 	client.Client
-	bUpdater *batchUpdater
 }
 
 func (mapper *policyMapper) Map(obj handler.MapObject) []reconcile.Request {
-	return getOwnerReconcileRequest(mapper.bUpdater, obj.Meta)
+	return getOwnerReconcileRequest(obj.Meta)
 }
 
 // getOwnerReconcileRequest looks at object and returns a slice of reconcile.Request to reconcile
 // owners of object from label: policy.open-cluster-management.io/root-policy
-func getOwnerReconcileRequest(bu *batchUpdater, object metav1.Object) []reconcile.Request {
-#	log.Info("izhang enter getOwnerReconcileRequest()")
+func getOwnerReconcileRequest(object metav1.Object) []reconcile.Request {
+	//	log.Info("izhang enter getOwnerReconcileRequest()")
 
 	var req reconcile.Request
 
-#	defer func() {
-#		log.Info(fmt.Sprintf("izhang exit getOwnerReconcileRequest(), request: %s", req))
-#	}()
+	//	defer func() {
+	//		log.Info(fmt.Sprintf("izhang exit getOwnerReconcileRequest(), request: %s", req))
+	//	}()
 
 	var result []reconcile.Request
 	rootPlcName := object.GetLabels()[common.RootPolicyLabel]

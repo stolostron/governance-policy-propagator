@@ -68,7 +68,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
-	log.Info(fmt.Sprintf("izhang work number: %v and policy mapper log, wq_qps %v, wq_burst %v ", workerNum, wq_qps, wq_burst))
+	log.Info(fmt.Sprintf("izhang work number: %v and policy mapper log, wq_qps %v, wq_burst %v, with status update ON", workerNum, wq_qps, wq_burst))
 
 	// Watch for changes to placementbinding
 	err = c.Watch(

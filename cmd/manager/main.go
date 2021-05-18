@@ -17,7 +17,6 @@ import (
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/apis"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller"
 	"github.com/open-cluster-management/governance-policy-propagator/version"
-
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
@@ -49,7 +48,9 @@ func main() {
 
 	pflag.Parse()
 
-	logf.SetLogger(zap.New())
+	logger := zap.New(zap.UseDevMode(true))
+
+	logf.SetLogger(logger)
 
 	printVersion()
 
@@ -66,8 +67,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg.QPS = 100.0
-	cfg.Burst = 200
+	cfg.QPS = 2000.0
+	cfg.Burst = 4000
 
 	log.Info(fmt.Sprintf("izhang modified QPS to %v, Burst to %v", cfg.QPS, cfg.Burst))
 

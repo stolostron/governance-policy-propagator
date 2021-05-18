@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"sort"
+	"time"
 
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1"
@@ -18,6 +19,14 @@ import (
 )
 
 func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
+	entry_ts := time.Now()
+
+	defer func() {
+		now := time.Now()
+		elapsed := now.Sub(entry_ts) / time.Second
+		roothandlerMeasure.Observe(float64(elapsed))
+	}()
+
 	reqLogger := log.WithValues("Policy-Namespace", instance.GetNamespace(), "Policy-Name", instance.GetName())
 	oIns := instance.DeepCopy()
 	log.Info("izhang patch status")
@@ -163,7 +172,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	})
 	instance.Status.Placement = placement
 	//err = r.client.Status().Update(context.TODO(), instance)
-	err = r.client.Status().Patch(context.TODO(), instance, client.MergeFrom(oIns) )
+	err = r.client.Status().Patch(context.TODO(), instance, client.MergeFrom(oIns))
 	if err != nil && !errors.IsNotFound(err) {
 		// failed to update instance.spec.placement, requeue
 		reqLogger.Error(err, "Failed to update root policy status...")

@@ -12,8 +12,7 @@ import (
 	"strings"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	_ "k8s.io/client-go/plugin/pkg/client/auth"
-
+	"github.com/go-logr/zapr"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/apis"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller"
 	"github.com/open-cluster-management/governance-policy-propagator/version"
@@ -21,10 +20,11 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
+	uzap "go.uber.org/zap"
+	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
@@ -48,9 +48,10 @@ func main() {
 
 	pflag.Parse()
 
-	logger := zap.New(zap.UseDevMode(true))
+	logger, _ := uzap.NewDevelopment(uzap.AddCaller(), uzap.AddCallerSkip(1))
+	mlogger := zapr.NewLogger(logger)
 
-	logf.SetLogger(logger)
+	logf.SetLogger(mlogger)
 
 	printVersion()
 

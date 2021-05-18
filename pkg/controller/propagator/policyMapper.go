@@ -52,7 +52,7 @@ func getOwnerReconcileRequest(bu *batchUpdater, object metav1.Object) []reconcil
 			Namespace: namespace,
 		}}
 
-		bu.add(req)
+		// bu.add(req)
 
 		return []reconcile.Request{}
 	} else {

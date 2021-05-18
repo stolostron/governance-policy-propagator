@@ -52,7 +52,7 @@ func getOwnerReconcileRequest(object metav1.Object) []reconcile.Request {
 
 		// bu.add(req)
 
-		return []reconcile.Request{}
+		return []reconcile.Request{req}
 	} else {
 		// policy.open-cluster-management.io/root-policy doesn't exist, should be a root policy
 		log.Info("Found reconciliation request from root policy...", "Namespace", object.GetNamespace(),

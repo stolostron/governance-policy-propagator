@@ -5,18 +5,23 @@ package propagator
 
 import (
 	"context"
+	"fmt"
+	"time"
 
 	clusterv1 "github.com/open-cluster-management/api/cluster/v1"
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
+	"golang.org/x/time/rate"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/util/workqueue"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
@@ -35,30 +40,41 @@ var log = logf.Log.WithName(controllerName)
 // Add creates a new Policy Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
-	return add(mgr, newReconciler(mgr))
+	r := newReconciler(mgr)
+	bu := NewbatchUpdater(r)
+	r.bUpdater = bu
+	mgr.Add(bu)
+
+	log.Info(fmt.Sprintf("izhang, reconciler %v, batchUpdator %v", r, bu))
+	return add(mgr, r, bu)
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) reconcile.Reconciler {
+func newReconciler(mgr manager.Manager) *ReconcilePolicy {
 	return &ReconcilePolicy{client: mgr.GetClient(), scheme: mgr.GetScheme(),
 		recorder: mgr.GetEventRecorderFor(controllerName)}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
-func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	// Create a new controller
-	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
+func add(mgr manager.Manager, r reconcile.Reconciler, bu *batchUpdater) error {
+	workerNum := 1
+	wq_qps := 1000.0
+	wq_burst := 2000
+
+	c, err := controller.New(controllerName, mgr, controller.Options{
+		Reconciler:              r,
+		MaxConcurrentReconciles: workerNum,
+		RateLimiter: workqueue.NewMaxOfRateLimiter(
+			workqueue.NewItemExponentialFailureRateLimiter(5*time.Millisecond, 1000*time.Second),
+			// 10 qps, 100 bucket size.  This is only for retry speed and its only the overall factor (not per item)
+			&workqueue.BucketRateLimiter{Limiter: rate.NewLimiter(rate.Limit(wq_qps), wq_burst)},
+		),
+	})
 	if err != nil {
 		return err
 	}
 
-	// Watch for changes to primary resource Policy
-	err = c.Watch(
-		&source.Kind{Type: &policiesv1.Policy{}},
-		&common.EnqueueRequestsFromMapFunc{ToRequests: &policyMapper{mgr.GetClient()}})
-	if err != nil {
-		return err
-	}
+	log.Info(fmt.Sprintf("izhang work number: %v and policy mapper log, wq_qps %v, wq_burst %v ", workerNum, wq_qps, wq_burst))
 
 	// Watch for changes to placementbinding
 	err = c.Watch(
@@ -76,6 +92,14 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	// Watch for changes to primary resource Policy
+	err = c.Watch(
+		&source.Kind{Type: &policiesv1.Policy{}},
+		&common.EnqueueRequestsFromMapFunc{ToRequests: &policyMapper{Client: mgr.GetClient(), bUpdater: bu}})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -89,6 +113,7 @@ type ReconcilePolicy struct {
 	client   client.Client
 	scheme   *runtime.Scheme
 	recorder record.EventRecorder
+	bUpdater *batchUpdater
 }
 
 // Reconcile reads that state of the cluster for a Policy object and makes changes based on the state read
@@ -98,6 +123,7 @@ type ReconcilePolicy struct {
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
 func (r *ReconcilePolicy) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
+
 	reqLogger.Info("Reconciling Policy...")
 
 	// Fetch the Policy instance

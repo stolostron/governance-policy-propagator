@@ -44,16 +44,18 @@ func (b *batchUpdater) run(stop <-chan struct{}) error {
 	slowTicker := time.NewTicker(b.defaultUpdateInterval)
 	defer slowTicker.Stop()
 
-	for {
-		select {
-		case <-stop:
-			logger.Info("Stopped")
-			return nil
-		case <-slowTicker.C:
-			b.update()
+	//	for {
+	//		select {
+	//		case <-stop:
+	//			logger.Info("Stopped")
+	//			return nil
+	//		case <-slowTicker.C:
+	//			b.update()
+	//
+	//		}
+	//	}
 
-		}
-	}
+	return nil
 }
 
 func (b *batchUpdater) add(req reconcile.Request) {

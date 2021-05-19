@@ -51,7 +51,7 @@ func newReconciler(mgr manager.Manager) *ReconcilePolicy {
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	workerNum := 100
+	workerNum := 1
 	wq_qps := 10.0
 	wq_burst := 100
 

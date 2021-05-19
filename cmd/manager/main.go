@@ -68,8 +68,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg.QPS = 20.0
-	cfg.Burst = 30
+	cfg.QPS = 2000.0
+	cfg.Burst = 4000
 
 	log.Info(fmt.Sprintf("izhang modified QPS to %v, Burst to %v", cfg.QPS, cfg.Burst))
 

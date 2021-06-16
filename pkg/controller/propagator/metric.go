@@ -7,8 +7,8 @@ import (
 
 var (
 	roothandlerMeasure = prometheus.NewHistogram(prometheus.HistogramOpts{
-		Name: "func_handle_root_policy_elapsed_seconds",
-		Help: "how long do the handleRootPolicy take to complete",
+		Name: "ocm_handle_root_policy_duration_seconds",
+		Help: "Time the handleRootPolicy function takes to complete.",
 	})
 )
 

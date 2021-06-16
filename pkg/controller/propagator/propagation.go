@@ -22,8 +22,8 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	entry_ts := time.Now()
 	defer func() {
 		now := time.Now()
-		elapsed := now.Sub(entry_ts) / time.Second
-		roothandlerMeasure.Observe(float64(elapsed))
+		elapsed := now.Sub(entry_ts).Seconds()
+		roothandlerMeasure.Observe(elapsed)
 	}()
 
 	reqLogger := log.WithValues("Policy-Namespace", instance.GetNamespace(), "Policy-Name", instance.GetName())

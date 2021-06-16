@@ -20,7 +20,6 @@ import (
 
 func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	entry_ts := time.Now()
-
 	defer func() {
 		now := time.Now()
 		elapsed := now.Sub(entry_ts) / time.Second
@@ -28,8 +27,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	}()
 
 	reqLogger := log.WithValues("Policy-Namespace", instance.GetNamespace(), "Policy-Name", instance.GetName())
-	oIns := instance.DeepCopy()
-	log.Info("izhang patch status")
+	originalInstance := instance.DeepCopy()
 	// flow -- if triggerred by user creating a new policy or updateing existing policy
 	if instance.Spec.Disabled {
 		// do nothing, clean up replicated policy
@@ -171,8 +169,7 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 		return placement[i].PlacementBinding < placement[j].PlacementBinding
 	})
 	instance.Status.Placement = placement
-	//err = r.client.Status().Update(context.TODO(), instance)
-	err = r.client.Status().Patch(context.TODO(), instance, client.MergeFrom(oIns))
+	err = r.client.Status().Patch(context.TODO(), instance, client.MergeFrom(originalInstance))
 	if err != nil && !errors.IsNotFound(err) {
 		// failed to update instance.spec.placement, requeue
 		reqLogger.Error(err, "Failed to update root policy status...")

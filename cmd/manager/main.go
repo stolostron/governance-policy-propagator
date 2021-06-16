@@ -11,8 +11,6 @@ import (
 	"runtime"
 	"strings"
 
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	"github.com/go-logr/zapr"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/apis"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller"
 	"github.com/open-cluster-management/governance-policy-propagator/version"
@@ -20,11 +18,13 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
-	uzap "go.uber.org/zap"
+
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 )
@@ -48,10 +48,7 @@ func main() {
 
 	pflag.Parse()
 
-	logger, _ := uzap.NewDevelopment(uzap.AddCaller(), uzap.AddCallerSkip(1))
-	mlogger := zapr.NewLogger(logger)
-
-	logf.SetLogger(mlogger)
+	logf.SetLogger(zap.New())
 
 	printVersion()
 
@@ -70,8 +67,6 @@ func main() {
 
 	cfg.QPS = 200.0
 	cfg.Burst = 400
-
-	log.Info(fmt.Sprintf("izhang modified QPS to %v, Burst to %v", cfg.QPS, cfg.Burst))
 
 	ctx := context.TODO()
 	// Become the leader before proceeding

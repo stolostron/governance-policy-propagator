@@ -5,7 +5,6 @@ package propagator
 
 import (
 	"context"
-	"fmt"
 
 	clusterv1 "github.com/open-cluster-management/api/cluster/v1"
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
@@ -41,24 +40,26 @@ func Add(mgr manager.Manager) error {
 }
 
 // newReconciler returns a new reconcile.Reconciler
-func newReconciler(mgr manager.Manager) *ReconcilePolicy {
+func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 	return &ReconcilePolicy{client: mgr.GetClient(), scheme: mgr.GetScheme(),
 		recorder: mgr.GetEventRecorderFor(controllerName)}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
-	workerNum := 1
-
-	c, err := controller.New(controllerName, mgr, controller.Options{
-		Reconciler:              r,
-		MaxConcurrentReconciles: workerNum,
-	})
+	// Create a new controller
+	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
 
-	log.Info(fmt.Sprintf("izhang work number: %v and policy mapper log with status update ON", workerNum))
+	// Watch for changes to primary resource Policy
+	err = c.Watch(
+		&source.Kind{Type: &policiesv1.Policy{}},
+		&common.EnqueueRequestsFromMapFunc{ToRequests: &policyMapper{mgr.GetClient()}})
+	if err != nil {
+		return err
+	}
 
 	// Watch for changes to placementbinding
 	err = c.Watch(
@@ -72,14 +73,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	err = c.Watch(
 		&source.Kind{Type: &appsv1.PlacementRule{}},
 		&handler.EnqueueRequestsFromMapFunc{ToRequests: &placementRuleMapper{mgr.GetClient()}})
-	if err != nil {
-		return err
-	}
-
-	// Watch for changes to primary resource Policy
-	err = c.Watch(
-		&source.Kind{Type: &policiesv1.Policy{}},
-		&common.EnqueueRequestsFromMapFunc{ToRequests: &policyMapper{Client: mgr.GetClient()}})
 	if err != nil {
 		return err
 	}

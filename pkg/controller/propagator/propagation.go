@@ -231,6 +231,8 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 			labels[common.ClusterNamespaceLabel] = decision.ClusterNamespace
 			labels[common.RootPolicyLabel] = common.FullNameForPolicy(instance)
 			replicatedPlc.SetLabels(labels)
+			// Make sure the parent policy is the owner
+			replicatedPlc.SetOwnerReferences(instance.OwnerReferences)
 			reqLogger.Info("Creating replicated policy...", "Namespace", decision.ClusterNamespace,
 				"Name", common.FullNameForPolicy(instance))
 			err = r.client.Create(context.TODO(), replicatedPlc)

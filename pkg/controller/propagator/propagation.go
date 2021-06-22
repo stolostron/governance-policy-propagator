@@ -231,16 +231,11 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 			labels[common.ClusterNamespaceLabel] = decision.ClusterNamespace
 			labels[common.RootPolicyLabel] = common.FullNameForPolicy(instance)
 			replicatedPlc.SetLabels(labels)
-			replicatedPlc.SetManagedFields(nil)
+
 			// Make sure the parent policy is the owner
-			var owners []metav1.OwnerReference = make([]metav1.OwnerReference, 1)
-			owners[0] = metav1.OwnerReference{
-				APIVersion: "policy.open-cluster-management.io/v1",
-				Kind:       "Policy",
-				Name:       instance.Name,
-				UID:        instance.UID,
-			}
-			replicatedPlc.SetOwnerReferences(owners)
+			replicatedPlc.SetOwnerReferences([]metav1.OwnerReference{
+				*metav1.NewControllerRef(instance, instance.GroupVersionKind()),
+			})
 			reqLogger.Info("Creating replicated policy...", "Namespace", decision.ClusterNamespace,
 				"Name", common.FullNameForPolicy(instance))
 			err = r.client.Create(context.TODO(), replicatedPlc)

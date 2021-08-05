@@ -13,7 +13,7 @@ import (
 )
 
 // reportMetrics returns a bool on whether to report GRC metrics from the propagator
-func reportMetrics() (bool) {
+func reportMetrics() bool {
 	metrics, found := os.LookupEnv("REPORT_METRICS")
 	if found && strings.ToLower(metrics) == "false" {
 		return false

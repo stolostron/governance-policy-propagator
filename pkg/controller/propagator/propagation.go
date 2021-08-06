@@ -10,6 +10,7 @@ import (
 	"time"
 
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
+	clusterv1alpha1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/cluster/v1alpha1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -67,24 +68,64 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 		for _, subject := range subjects {
 			if subject.APIGroup == policiesv1.SchemeGroupVersion.Group &&
 				subject.Kind == policiesv1.Kind && subject.Name == instance.GetName() {
-				plr := &appsv1.PlacementRule{}
-				err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: instance.GetNamespace(),
-					Name: pb.PlacementRef.Name}, plr)
-				if err != nil && !errors.IsNotFound(err) {
-					reqLogger.Error(err, "Failed to get plr...", "Namespace", instance.GetNamespace(), "Name",
-						pb.PlacementRef.Name)
-					return err
+				var decisions []appsv1.PlacementDecision
+				if pb.PlacementRef.APIGroup == appsv1.SchemeGroupVersion.Group &&
+					pb.PlacementRef.Kind == appsv1.Kind {
+					plr := &appsv1.PlacementRule{}
+					err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: instance.GetNamespace(),
+						Name: pb.PlacementRef.Name}, plr)
+					if err != nil && !errors.IsNotFound(err) {
+						reqLogger.Error(err, "Failed to get plr...", "Namespace", instance.GetNamespace(), "Name",
+							pb.PlacementRef.Name)
+						return err
+					}
+					// plr found, add current plcmnt to placement
+					placement = append(placement, &policiesv1.Placement{
+						PlacementBinding: pb.GetName(),
+						PlacementRule:    plr.GetName(),
+						// Decisions:        plr.Status.Decisions,
+					})
+					decisions = plr.Status.Decisions
+				} else if pb.PlacementRef.APIGroup == clusterv1alpha1.SchemeGroupVersion.Group &&
+					pb.PlacementRef.Kind == clusterv1alpha1.Kind {
+					plr := &clusterv1alpha1.Placement{}
+					err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: instance.GetNamespace(),
+						Name: pb.PlacementRef.Name}, plr)
+					if err != nil && !errors.IsNotFound(err) {
+						reqLogger.Error(err, "Failed to get plr...", "Namespace", instance.GetNamespace(), "Name",
+							pb.PlacementRef.Name)
+						return err
+					}
+					// plr found, add current plcmnt to placement
+					placement = append(placement, &policiesv1.Placement{
+						PlacementBinding: pb.GetName(),
+						Placement:        plr.GetName(),
+						// Decisions:        plr.Status.Decisions,
+					})
+					list := &clusterv1alpha1.PlacementDecisionList{}
+					lopts := &client.ListOptions{Namespace: instance.GetNamespace()}
+					opts := client.MatchingLabels{"cluster.open-cluster-management.io/placement": plr.GetName()}
+					opts.ApplyToList(lopts)
+					err = r.client.List(context.TODO(), list, lopts)
+					if err != nil && !errors.IsNotFound(err) {
+						reqLogger.Error(err, "Failed to get plr...", "Namespace", instance.GetNamespace(), "Name",
+							pb.PlacementRef.Name)
+						return err
+					}
+					decisions = make([]appsv1.PlacementDecision, 0, 100)
+					for _, item := range list.Items {
+						for _, cluster := range item.Status.Decisions {
+							decided := &appsv1.PlacementDecision{
+								ClusterName:      cluster.ClusterName,
+								ClusterNamespace: cluster.ClusterName,
+							}
+							decisions = append(decisions, *decided)
+						}
+					}
 				}
-				// plr found, add current plcmnt to placement
-				placement = append(placement, &policiesv1.Placement{
-					PlacementBinding: pb.GetName(),
-					PlacementRule:    plr.GetName(),
-					// Decisions:        plr.Status.Decisions,
-				})
 				// only handle replicate policy when policy is not disabled
 				if !instance.Spec.Disabled {
 					// plr found, checking decision
-					decisions := plr.Status.Decisions
 					for _, decision := range decisions {
 						allDecisions = append(allDecisions, decision)
 						// create/update replicated policy for each decision

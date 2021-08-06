@@ -4,9 +4,9 @@
 package controller
 
 import (
+	"fmt"
 	"os"
 	"strings"
-	"fmt"
 
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/automation"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/policymetrics"
@@ -15,8 +15,8 @@ import (
 
 // reportMetrics returns a bool on whether to report GRC metrics from the propagator
 func reportMetrics() bool {
-	metrics, found := os.LookupEnv("REPORT_METRICS")
-	if found && strings.ToLower(metrics) == "false" {
+	metrics, found := os.LookupEnv("DISABLE_REPORT_METRICS")
+	if found && strings.ToLower(metrics) == "true" {
 		return false
 	}
 	return true

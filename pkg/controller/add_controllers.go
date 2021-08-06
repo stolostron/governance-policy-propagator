@@ -4,7 +4,6 @@
 package controller
 
 import (
-	"fmt"
 	"os"
 	"strings"
 
@@ -23,11 +22,9 @@ func reportMetrics() bool {
 }
 
 func init() {
-	fmt.Println("-- in init --")
 	// AddToManagerFuncs is a list of functions to create controllers and add them to a manager.
 	AddToManagerFuncs = append(AddToManagerFuncs, propagator.Add, automation.Add)
 	if reportMetrics() {
-		fmt.Println("--adding metrics --")
 		AddToManagerFuncs = append(AddToManagerFuncs, policymetrics.Add)
 	}
 }

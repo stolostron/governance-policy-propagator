@@ -16,8 +16,8 @@ type PlacementDecisionSpec struct {
 
 // Decision defines the decision made by a placement
 type Decision struct {
-        ClusterName string `json:"clusterName,omitempty"`
-        Reason      string `json:"reason,omitempty"`
+	ClusterName string `json:"clusterName,omitempty"`
+	Reason      string `json:"reason,omitempty"`
 }
 
 // PlacementDecisionStatus defines the observed state of PlacementDecision

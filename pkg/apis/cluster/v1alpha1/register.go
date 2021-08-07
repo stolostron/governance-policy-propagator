@@ -17,6 +17,6 @@ var (
 	// SchemeBuilder is used to add go types to the GroupVersionKind scheme
 	SchemeBuilder = &scheme.Builder{GroupVersion: SchemeGroupVersion}
 
-        // Kind is used to determine kind
-        Kind = "Placement"
+	// Kind is used to determine kind
+	Kind = "Placement"
 )

@@ -68,61 +68,11 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 		for _, subject := range subjects {
 			if subject.APIGroup == policiesv1.SchemeGroupVersion.Group &&
 				subject.Kind == policiesv1.Kind && subject.Name == instance.GetName() {
-				var decisions []appsv1.PlacementDecision
-				if pb.PlacementRef.APIGroup == appsv1.SchemeGroupVersion.Group &&
-					pb.PlacementRef.Kind == appsv1.Kind {
-					plr := &appsv1.PlacementRule{}
-					err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: instance.GetNamespace(),
-						Name: pb.PlacementRef.Name}, plr)
-					if err != nil && !errors.IsNotFound(err) {
-						reqLogger.Error(err, "Failed to get plr...", "Namespace", instance.GetNamespace(), "Name",
-							pb.PlacementRef.Name)
-						return err
-					}
-					// plr found, add current plcmnt to placement
-					placement = append(placement, &policiesv1.Placement{
-						PlacementBinding: pb.GetName(),
-						PlacementRule:    plr.GetName(),
-						// Decisions:        plr.Status.Decisions,
-					})
-					decisions = plr.Status.Decisions
-				} else if pb.PlacementRef.APIGroup == clusterv1alpha1.SchemeGroupVersion.Group &&
-					pb.PlacementRef.Kind == clusterv1alpha1.Kind {
-					plr := &clusterv1alpha1.Placement{}
-					err := r.client.Get(context.TODO(), types.NamespacedName{Namespace: instance.GetNamespace(),
-						Name: pb.PlacementRef.Name}, plr)
-					if err != nil && !errors.IsNotFound(err) {
-						reqLogger.Error(err, "Failed to get plr...", "Namespace", instance.GetNamespace(), "Name",
-							pb.PlacementRef.Name)
-						return err
-					}
-					// plr found, add current plcmnt to placement
-					placement = append(placement, &policiesv1.Placement{
-						PlacementBinding: pb.GetName(),
-						Placement:        plr.GetName(),
-						// Decisions:        plr.Status.Decisions,
-					})
-					list := &clusterv1alpha1.PlacementDecisionList{}
-					lopts := &client.ListOptions{Namespace: instance.GetNamespace()}
-					opts := client.MatchingLabels{"cluster.open-cluster-management.io/placement": plr.GetName()}
-					opts.ApplyToList(lopts)
-					err = r.client.List(context.TODO(), list, lopts)
-					if err != nil && !errors.IsNotFound(err) {
-						reqLogger.Error(err, "Failed to get plr...", "Namespace", instance.GetNamespace(), "Name",
-							pb.PlacementRef.Name)
-						return err
-					}
-					decisions = make([]appsv1.PlacementDecision, 0, 100)
-					for _, item := range list.Items {
-						for _, cluster := range item.Status.Decisions {
-							decided := &appsv1.PlacementDecision{
-								ClusterName:      cluster.ClusterName,
-								ClusterNamespace: cluster.ClusterName,
-							}
-							decisions = append(decisions, *decided)
-						}
-					}
+				decisions, p, err := getPlacementDecisions(r.client, pb, instance)
+				if err != nil {
+					return err
 				}
+				placement = append(placement, p)
 				// only handle replicate policy when policy is not disabled
 				if !instance.Spec.Disabled {
 					// plr found, checking decision
@@ -249,6 +199,89 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	}
 	reqLogger.Info("Reconciliation complete.")
 	return nil
+}
+
+// getApplicationPlacementDecisions return the placement decisions from an application
+// lifecycle placementrule
+func getApplicationPlacementDecisions(c client.Client, pb policiesv1.PlacementBinding, instance *policiesv1.Policy) ([]appsv1.PlacementDecision, *policiesv1.Placement, error) {
+	plr := &appsv1.PlacementRule{}
+	err := c.Get(context.TODO(), types.NamespacedName{Namespace: instance.GetNamespace(),
+		Name: pb.PlacementRef.Name}, plr)
+	if err != nil && !errors.IsNotFound(err) {
+		log.Error(err, "Failed to get plr...", "Namespace", instance.GetNamespace(), "Name",
+			pb.PlacementRef.Name)
+		return nil, nil, err
+	}
+	// plr found, add current plcmnt to placement
+	placement := &policiesv1.Placement{
+		PlacementBinding: pb.GetName(),
+		PlacementRule:    plr.GetName(),
+		// Decisions:        plr.Status.Decisions,
+	}
+	return plr.Status.Decisions, placement, nil
+}
+
+// getClusterPlacementDecisions return the placement decisions from cluster
+// placement decisions
+func getClusterPlacementDecisions(c client.Client, pb policiesv1.PlacementBinding, instance *policiesv1.Policy) ([]appsv1.PlacementDecision, *policiesv1.Placement, error) {
+	plr := &clusterv1alpha1.Placement{}
+	err := c.Get(context.TODO(), types.NamespacedName{Namespace: instance.GetNamespace(),
+		Name: pb.PlacementRef.Name}, plr)
+	if err != nil && !errors.IsNotFound(err) {
+		log.Error(err, "Failed to get plr...", "Namespace", instance.GetNamespace(), "Name",
+			pb.PlacementRef.Name)
+		return nil, nil, err
+	}
+	// plr found, add current plcmnt to placement
+	placement := &policiesv1.Placement{
+		PlacementBinding: pb.GetName(),
+		Placement:        plr.GetName(),
+		// Decisions:        plr.Status.Decisions,
+	}
+	list := &clusterv1alpha1.PlacementDecisionList{}
+	lopts := &client.ListOptions{Namespace: instance.GetNamespace()}
+
+	opts := client.MatchingLabels{"cluster.open-cluster-management.io/placement": plr.GetName()}
+	opts.ApplyToList(lopts)
+	err = c.List(context.TODO(), list, lopts)
+	if err != nil && !errors.IsNotFound(err) {
+		log.Error(err, "Failed to get plr...", "Namespace", instance.GetNamespace(), "Name",
+			pb.PlacementRef.Name)
+		return nil, nil, err
+	}
+	var decisions []appsv1.PlacementDecision
+	decisions = make([]appsv1.PlacementDecision, 0, 100)
+	for _, item := range list.Items {
+		for _, cluster := range item.Status.Decisions {
+			decided := &appsv1.PlacementDecision{
+				ClusterName:      cluster.ClusterName,
+				ClusterNamespace: cluster.ClusterName,
+			}
+			decisions = append(decisions, *decided)
+		}
+	}
+	return decisions, placement, nil
+}
+
+// getPlacementDecisions gets the PlacementDecisions for a PlacementBinding
+func getPlacementDecisions(c client.Client, pb policiesv1.PlacementBinding,
+	instance *policiesv1.Policy) ([]appsv1.PlacementDecision, *policiesv1.Placement, error) {
+	if pb.PlacementRef.APIGroup == appsv1.SchemeGroupVersion.Group &&
+		pb.PlacementRef.Kind == appsv1.Kind {
+		d, placement, err := getApplicationPlacementDecisions(c, pb, instance)
+		if err != nil {
+			return nil, nil, err
+		}
+		return d, placement, nil
+	} else if pb.PlacementRef.APIGroup == clusterv1alpha1.SchemeGroupVersion.Group &&
+		pb.PlacementRef.Kind == clusterv1alpha1.Kind {
+		d, placement, err := getClusterPlacementDecisions(c, pb, instance)
+		if err != nil {
+			return nil, nil, err
+		}
+		return d, placement, nil
+	}
+	return nil, nil, nil
 }
 
 func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision appsv1.PlacementDecision) error {

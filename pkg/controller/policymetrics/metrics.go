@@ -16,7 +16,7 @@ var (
 		},
 		[]string{
 			"type",              // "root" or "propagated"
-			"policy",              // The name of the root policy
+			"policy",            // The name of the root policy
 			"policy_namespace",  // The namespace where the root policy is defined
 			"cluster_namespace", // The namespace where the policy was propagated
 		},

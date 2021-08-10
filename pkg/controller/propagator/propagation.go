@@ -281,7 +281,7 @@ func getPlacementDecisions(c client.Client, pb policiesv1.PlacementBinding,
 		}
 		return d, placement, nil
 	}
-	return nil, nil, nil
+	return nil, nil, fmt.Errorf("Placement binding %s/%s reference is not valid", pb.Name, pb.Namespace)
 }
 
 func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision appsv1.PlacementDecision) error {

@@ -206,10 +206,10 @@ func KubectlWithOutput(args ...string) (string, error) {
 	return string(output), err
 }
 
-// GetMetric execs into the propagator pod and curls the metrics endpoint, filters
+// GetMetrics execs into the propagator pod and curls the metrics endpoint, filters
 // the response with the given patterns, and returns the value(s) for the matching
 // metric(s).
-func GetMetric(metricPatterns ...string) []string {
+func GetMetrics(metricPatterns ...string) []string {
 	propPodInfo, err := KubectlWithOutput("get", "pod", "-n=open-cluster-management",
 		"-l=name=governance-policy-propagator", "--no-headers")
 	if err != nil {

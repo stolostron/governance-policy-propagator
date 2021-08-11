@@ -49,15 +49,15 @@ var _ = Describe("Test metrics appear locally", func() {
 		}, defaultTimeoutSeconds, 1).Should(utils.SemanticEqual(yamlPlc.Object["status"]))
 		By("Checking metric endpoint for root policy status")
 		Eventually(func() interface{} {
-			return utils.GetMetric("policy_governance_info", `policy=\"case6-test-policy\"`, `type=\"root\"`)
+			return utils.GetMetrics("policy_governance_info", `policy=\"case6-test-policy\"`, `type=\"root\"`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{"0"}))
 		By("Checking metric endpoint for managed1 replicated policy status")
 		Eventually(func() interface{} {
-			return utils.GetMetric("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed1\",`)
+			return utils.GetMetrics("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed1\",`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{"0"}))
 		By("Checking metric endpoint for managed2 replicated policy status")
 		Eventually(func() interface{} {
-			return utils.GetMetric("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed2\",`)
+			return utils.GetMetrics("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed2\",`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{"0"}))
 	})
 	It("should report 1 for noncompliant root policy and replicated policies", func() {
@@ -79,15 +79,15 @@ var _ = Describe("Test metrics appear locally", func() {
 		}, defaultTimeoutSeconds, 1).Should(utils.SemanticEqual(yamlPlc.Object["status"]))
 		By("Checking metric endpoint for root policy status")
 		Eventually(func() interface{} {
-			return utils.GetMetric("policy_governance_info", `policy=\"case6-test-policy\"`, `type=\"root\"`)
+			return utils.GetMetrics("policy_governance_info", `policy=\"case6-test-policy\"`, `type=\"root\"`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{"1"}))
 		By("Checking metric endpoint for managed1 replicated policy status")
 		Eventually(func() interface{} {
-			return utils.GetMetric("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed1\",`)
+			return utils.GetMetrics("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed1\",`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{"1"}))
 		By("Checking metric endpoint for managed2 replicated policy status")
 		Eventually(func() interface{} {
-			return utils.GetMetric("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed2\",`)
+			return utils.GetMetrics("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed2\",`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{"1"}))
 	})
 	It("should not report metrics for policies after they are deleted", func() {
@@ -99,15 +99,15 @@ var _ = Describe("Test metrics appear locally", func() {
 		utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, false, 10)
 		By("Checking metric endpoint for root policy status")
 		Eventually(func() interface{} {
-			return utils.GetMetric("policy_governance_info", `policy=\"case6-test-policy\"`, `type=\"root\"`)
+			return utils.GetMetrics("policy_governance_info", `policy=\"case6-test-policy\"`, `type=\"root\"`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{}))
 		By("Checking metric endpoint for managed1 replicated policy status")
 		Eventually(func() interface{} {
-			return utils.GetMetric("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed1\",`)
+			return utils.GetMetrics("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed1\",`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{}))
 		By("Checking metric endpoint for managed2 replicated policy status")
 		Eventually(func() interface{} {
-			return utils.GetMetric("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed2\",`)
+			return utils.GetMetrics("policy_governance_info", `policy=\"case6-test-policy\"`, `cluster_namespace=\"managed2\",`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{}))
 	})
 })

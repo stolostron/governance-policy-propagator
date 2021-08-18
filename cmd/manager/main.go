@@ -14,6 +14,8 @@ import (
 
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/apis"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller"
+	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/propagator"
+
 	"github.com/open-cluster-management/governance-policy-propagator/version"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
@@ -28,6 +30,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
+	"k8s.io/client-go/kubernetes"
+
 )
 
 // Change below variables to serve metrics on different host or port.
@@ -129,6 +133,10 @@ func main() {
 		log.Error(err, "")
 		os.Exit(1)
 	}
+
+	// Setup config and client for propagator to talk to the apiserver
+	var generatedClient kubernetes.Interface = kubernetes.NewForConfigOrDie(mgr.GetConfig())
+	propagator.Initialize(cfg, &generatedClient)
 
 	log.Info("Starting the Cmd.")
 

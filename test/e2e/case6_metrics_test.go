@@ -13,25 +13,25 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const case6PolicyName string = "case6-test-policy"
-const case6PolicyYaml string = "../resources/case6_metrics/case6-test-policy.yaml"
+const case6MetricsPolicyName string = "case6-test-policy"
+const case6MetricsPolicyYaml string = "../resources/case6_metrics/case6-test-policy.yaml"
 
 var _ = Describe("Test metrics appear locally", func() {
 	It("should report 0 for compliant root policy and replicated policies", func() {
-		By("Creating " + case6PolicyYaml)
+		By("Creating " + case6MetricsPolicyYaml)
 		utils.Kubectl("apply",
-			"-f", case6PolicyYaml,
+			"-f", case6MetricsPolicyYaml,
 			"-n", testNamespace)
-		plc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, case6PolicyName, testNamespace, true, defaultTimeoutSeconds)
+		plc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, case6MetricsPolicyName, testNamespace, true, defaultTimeoutSeconds)
 		Expect(plc).NotTo(BeNil())
 		By("Patching test-policy-plr with decision of cluster managed1 and managed2")
-		plr := utils.GetWithTimeout(clientHubDynamic, gvrPlacementRule, case6PolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds)
+		plr := utils.GetWithTimeout(clientHubDynamic, gvrPlacementRule, case6MetricsPolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds)
 		plr.Object["status"] = utils.GeneratePlrStatus("managed1", "managed2")
 		_, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(context.TODO(), plr, metav1.UpdateOptions{})
 		Expect(err).To(BeNil())
-		plc = utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case6PolicyName, "managed2", true, defaultTimeoutSeconds)
+		plc = utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case6MetricsPolicyName, "managed2", true, defaultTimeoutSeconds)
 		Expect(plc).ToNot(BeNil())
-		opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case6PolicyName}
+		opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case6MetricsPolicyName}
 		By("Patching both replicated policy status to compliant")
 		replicatedPlcList := utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 		for _, replicatedPlc := range replicatedPlcList.Items {
@@ -44,7 +44,7 @@ var _ = Describe("Test metrics appear locally", func() {
 		By("Checking the status of root policy")
 		yamlPlc := utils.ParseYaml("../resources/case6_metrics/managed-both-status-compliant.yaml")
 		Eventually(func() interface{} {
-			rootPlc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, case6PolicyName, testNamespace, true, defaultTimeoutSeconds)
+			rootPlc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, case6MetricsPolicyName, testNamespace, true, defaultTimeoutSeconds)
 			return rootPlc.Object["status"]
 		}, defaultTimeoutSeconds, 1).Should(utils.SemanticEqual(yamlPlc.Object["status"]))
 		By("Checking metric endpoint for root policy status")
@@ -62,7 +62,7 @@ var _ = Describe("Test metrics appear locally", func() {
 	})
 	It("should report 1 for noncompliant root policy and replicated policies", func() {
 		By("Patching both replicated policy status to noncompliant")
-		opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case6PolicyName}
+		opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case6MetricsPolicyName}
 		replicatedPlcList := utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 		for _, replicatedPlc := range replicatedPlcList.Items {
 			replicatedPlc.Object["status"] = &policiesv1.PolicyStatus{
@@ -74,7 +74,7 @@ var _ = Describe("Test metrics appear locally", func() {
 		By("Checking the status of root policy")
 		yamlPlc := utils.ParseYaml("../resources/case6_metrics/managed-both-status-noncompliant.yaml")
 		Eventually(func() interface{} {
-			rootPlc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, case6PolicyName, testNamespace, true, defaultTimeoutSeconds)
+			rootPlc := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, case6MetricsPolicyName, testNamespace, true, defaultTimeoutSeconds)
 			return rootPlc.Object["status"]
 		}, defaultTimeoutSeconds, 1).Should(utils.SemanticEqual(yamlPlc.Object["status"]))
 		By("Checking metric endpoint for root policy status")
@@ -93,7 +93,7 @@ var _ = Describe("Test metrics appear locally", func() {
 	It("should not report metrics for policies after they are deleted", func() {
 		By("Deleting the policy")
 		utils.Kubectl("delete",
-			"-f", case6PolicyYaml,
+			"-f", case6MetricsPolicyYaml,
 			"-n", testNamespace)
 		opt := metav1.ListOptions{}
 		utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, false, 10)

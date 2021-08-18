@@ -6,22 +6,21 @@ package propagator
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"sort"
 	"time"
-	"regexp"
 
+	templates "github.com/open-cluster-management/go-template-utils/pkg/templates"
 	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
 	clusterv1alpha1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/cluster/v1alpha1"
 	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1"
 	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
-	templates "github.com/open-cluster-management/go-template-utils/pkg/templates"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var kubeConfig *rest.Config
@@ -31,7 +30,7 @@ var templateCfg templates.Config
 func Initialize(kubeconfig *rest.Config, kubeclient *kubernetes.Interface) {
 	kubeConfig = kubeconfig
 	kubeClient = kubeclient
-	templateCfg = templates.Config{ StartDelim: "{{hub", StopDelim: "hub}}"}
+	templateCfg = templates.Config{StartDelim: "{{hub", StopDelim: "hub}}"}
 }
 
 func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
@@ -327,7 +326,7 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 
 			//do a quick check for any template delims in the policy before putting it through
 			// template processor
-			if(policyHasTemplates(instance)){
+			if policyHasTemplates(instance) {
 				//resolve hubTemplate before replicating
 				err = processTemplates(replicatedPlc, decision, instance.GetNamespace())
 				if err != nil {
@@ -357,13 +356,13 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 	}
 	// replicated policy already created, need to compare and patch
 	comparePlc := instance
-	if(policyHasTemplates(instance)){
+	if policyHasTemplates(instance) {
 		//template delimis detected, build a temp holder policy with templates resolved
 		//before doing a compare with the replicated policy in the cluster namespaces
 		tempResolvedPlc := &policiesv1.Policy{}
 		tempResolvedPlc.SetAnnotations(instance.GetAnnotations())
 		tempResolvedPlc.Spec = instance.Spec
-		tmplErr := processTemplates(tempResolvedPlc, decision,instance.GetNamespace())
+		tmplErr := processTemplates(tempResolvedPlc, decision, instance.GetNamespace())
 		if tmplErr != nil {
 			return tmplErr
 		}
@@ -390,24 +389,24 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 }
 
 // a helper to quickly check if there are any templates in any of the policy templates
-func  policyHasTemplates(instance *policiesv1.Policy) bool {
+func policyHasTemplates(instance *policiesv1.Policy) bool {
 	for _, policyT := range instance.Spec.PolicyTemplates {
 		if templates.HasTemplate(policyT.ObjectDefinition.Raw, templateCfg.StartDelim) {
 			return true
 		}
-  }
+	}
 	return false
 }
 
-func  processTemplates(replicatedPlc *policiesv1.Policy, decision appsv1.PlacementDecision, rootPlcNamespace string) error {
+func processTemplates(replicatedPlc *policiesv1.Policy, decision appsv1.PlacementDecision, rootPlcNamespace string) error {
 	reqLogger := log.WithValues("Policy-Namespace", replicatedPlc.GetNamespace(), "Policy-Name", replicatedPlc.GetName(),
-									"Managed-Cluster", decision.ClusterName, "Root Policy-Namespace", rootPlcNamespace)
+		"Managed-Cluster", decision.ClusterName, "Root Policy-Namespace", rootPlcNamespace)
 	reqLogger.Info("Processing Templates..")
 
 	templateCfg.LookupNamespace = rootPlcNamespace
 	tmplResolver, err := templates.NewResolver(kubeClient, kubeConfig, templateCfg)
 	if err != nil {
-		reqLogger.Error( err, "Error fetching template resolver")
+		reqLogger.Error(err, "Error fetching template resolver")
 		return err
 	}
 
@@ -416,7 +415,7 @@ func  processTemplates(replicatedPlc *policiesv1.Policy, decision appsv1.Placeme
 
 		if templates.HasTemplate(policyT.ObjectDefinition.Raw, templateCfg.StartDelim) {
 
-			if( ! isConfigurationPolicy(policyT)){
+			if !isConfigurationPolicy(policyT) {
 				// has Templates but not a configuration policy
 				err = errors.NewBadRequest("Templates are restricted to only Configuration Policy")
 				log.Error(err, "Not a Configuration Policy")
@@ -425,7 +424,7 @@ func  processTemplates(replicatedPlc *policiesv1.Policy, decision appsv1.Placeme
 
 			reqLogger.Info("Found Object Definition with templates")
 
-			templateContext := struct{
+			templateContext := struct {
 				ManagedClusterName string
 			}{
 				ManagedClusterName: decision.ClusterName,
@@ -447,10 +446,10 @@ func  processTemplates(replicatedPlc *policiesv1.Policy, decision appsv1.Placeme
 		replicatedPlc.SetAnnotations(annotations)
 	}
 
- return nil
+	return nil
 }
 
-func isConfigurationPolicy(policyT *policiesv1.PolicyTemplate) bool{
+func isConfigurationPolicy(policyT *policiesv1.PolicyTemplate) bool {
 	//check if it is configuration policy first
 	objDef := policyT.ObjectDefinition
 	//find in json policy definition

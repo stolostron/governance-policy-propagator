@@ -420,40 +420,42 @@ func (r *ReconcilePolicy) processTemplates(replicatedPlc *policiesv1.Policy, dec
 	//A policy can have multiple policy templates within it, iterate and process each
 	for _, policyT := range replicatedPlc.Spec.PolicyTemplates {
 
-		if templates.HasTemplate(policyT.ObjectDefinition.Raw, templateCfg.StartDelim) {
-
-			if !isConfigurationPolicy(policyT) {
-				// has Templates but not a configuration policy
-				err = errors.NewBadRequest("Templates are restricted to only Configuration Policies")
-				log.Error(err, "Not a Configuration Policy")
-
-				r.recorder.Event(rootPlc, "Warning", "PolicyPropagation",
-					fmt.Sprintf("Policy %s/%s has templates but it is not a ConfigurationPolicy.", rootPlc.GetName(), rootPlc.GetNamespace()))
-
-				//TODO: when error handling is setup, need to return err
-				return nil
-			}
-
-			reqLogger.Info("Found Object Definition with templates")
-
-			templateContext := struct {
-				ManagedClusterName string
-			}{
-				ManagedClusterName: decision.ClusterName,
-			}
-			resolveddata, tplErr := tmplResolver.ResolveTemplate(policyT.ObjectDefinition.Raw, templateContext)
-			if tplErr != nil {
-				reqLogger.Error(tplErr, "Failed to resolve templates")
-
-				r.recorder.Event(rootPlc, "Warning", "PolicyPropagation",
-					fmt.Sprintf("Failed to resolve templates for policy %s/%s for cluster %s/%s .", rootPlc.GetName(), rootPlc.GetNamespace(), decision.ClusterNamespace, decision.ClusterName))
-
-				//TODO: when error handling is setup, need to return err
-				return nil
-			}
-
-			policyT.ObjectDefinition.Raw = resolveddata
+		if !templates.HasTemplate(policyT.ObjectDefinition.Raw, templateCfg.StartDelim) {
+			return nil
 		}
+
+		if !isConfigurationPolicy(policyT) {
+			// has Templates but not a configuration policy
+			err = errors.NewBadRequest("Templates are restricted to only Configuration Policies")
+			log.Error(err, "Not a Configuration Policy")
+
+			r.recorder.Event(rootPlc, "Warning", "PolicyPropagation",
+				fmt.Sprintf("Policy %s/%s has templates but it is not a ConfigurationPolicy.", rootPlc.GetName(), rootPlc.GetNamespace()))
+
+			//TODO: when error handling is setup, need to return err
+			return nil
+		}
+
+		reqLogger.Info("Found Object Definition with templates")
+
+		templateContext := struct {
+			ManagedClusterName string
+		}{
+			ManagedClusterName: decision.ClusterName,
+		}
+		resolveddata, tplErr := tmplResolver.ResolveTemplate(policyT.ObjectDefinition.Raw, templateContext)
+		if tplErr != nil {
+			reqLogger.Error(tplErr, "Failed to resolve templates")
+
+			r.recorder.Event(rootPlc, "Warning", "PolicyPropagation",
+				fmt.Sprintf("Failed to resolve templates for policy %s/%s for cluster %s/%s .", rootPlc.GetName(), rootPlc.GetNamespace(), decision.ClusterNamespace, decision.ClusterName))
+
+			//TODO: when error handling is setup, need to return err
+			return nil
+		}
+
+		policyT.ObjectDefinition.Raw = resolveddata
+
 	}
 
 	//Also remove  the tempate processing annotation from the replicated policy
@@ -471,9 +473,6 @@ func isConfigurationPolicy(policyT *policiesv1.PolicyTemplate) bool {
 
 	var jsonDef map[string]interface{}
 	_ = json.Unmarshal(policyT.ObjectDefinition.Raw, &jsonDef)
-	if jsonDef != nil && jsonDef["kind"] == "ConfigurationPolicy" {
-		return true
-	}
 
-	return false
+	return jsonDef != nil && jsonDef["kind"] == "ConfigurationPolicy"
 }

@@ -27,7 +27,8 @@ spec:
                 data:
                   # Configuration values can be set as key-value properties
                   Clustername: '{{hub .ManagedClusterName hub}}'
-                  Vlanid: |
+                  Clusterid: '{{ fromClusterClaim id.openshift.io }}'
+                  Vlanid: >-
                     '{{hub printf "%s-vlanid" .ManagedClusterName | fromConfigMap "policy-propagator-test" "case9-config"  | toInt hub}}'
 ---
 apiVersion: policy.open-cluster-management.io/v1

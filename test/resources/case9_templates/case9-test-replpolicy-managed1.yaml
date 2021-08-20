@@ -26,4 +26,5 @@ spec:
                   namespace: test
                 data:
                   Clustername: managed1
+                  Clusterid: '{{ fromClusterClaim id.openshift.io }}'
                   Vlanid: 123

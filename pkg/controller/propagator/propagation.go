@@ -103,34 +103,24 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 			return err
 		}
 		for _, rPlc := range replicatedPlcList.Items {
-			if status == nil {
-				status = []*policiesv1.CompliancePerClusterStatus{
-					{
-						ComplianceState:  rPlc.Status.ComplianceState,
-						ClusterName:      rPlc.GetLabels()[common.ClusterNameLabel],
-						ClusterNamespace: rPlc.GetLabels()[common.ClusterNamespaceLabel],
-					},
+			// loop through status and update
+			found := false
+			for _, compliancePerClusterStatus := range status {
+				if compliancePerClusterStatus.ClusterName == rPlc.GetLabels()[common.ClusterNameLabel] {
+					// found existing entry, check if it needs updating
+					found = true
+					compliancePerClusterStatus.ClusterNamespace = rPlc.GetLabels()[common.ClusterNamespaceLabel]
+					compliancePerClusterStatus.ComplianceState = rPlc.Status.ComplianceState
+					break
 				}
-			} else {
-				// loop through status and update
-				found := false
-				for _, compliancePerClusterStatus := range status {
-					if compliancePerClusterStatus.ClusterName == rPlc.GetLabels()[common.ClusterNameLabel] {
-						// found existing entry, check if it needs updating
-						found = true
-						compliancePerClusterStatus.ClusterNamespace = rPlc.GetLabels()[common.ClusterNamespaceLabel]
-						compliancePerClusterStatus.ComplianceState = rPlc.Status.ComplianceState
-						break
-					}
-				}
-				// not found, it's a CompliancePerClusterStatus, add it
-				if !found {
-					status = append(status, &policiesv1.CompliancePerClusterStatus{
-						ComplianceState:  rPlc.Status.ComplianceState,
-						ClusterName:      rPlc.GetLabels()[common.ClusterNameLabel],
-						ClusterNamespace: rPlc.GetLabels()[common.ClusterNamespaceLabel],
-					})
-				}
+			}
+			// not found, add it
+			if !found {
+				status = append(status, &policiesv1.CompliancePerClusterStatus{
+					ComplianceState:  rPlc.Status.ComplianceState,
+					ClusterName:      rPlc.GetLabels()[common.ClusterNameLabel],
+					ClusterNamespace: rPlc.GetLabels()[common.ClusterNamespaceLabel],
+				})
 			}
 		}
 		sort.Slice(status, func(i, j int) bool {

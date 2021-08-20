@@ -62,7 +62,8 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	}
 	// get placement
 	placement := []*policiesv1.Placement{}
-	allDecisions := []appsv1.PlacementDecision{}
+	// a set in the format of `namespace/name`
+	allDecisions := map[string]struct{}{}
 	for _, pb := range pbList.Items {
 		subjects := pb.Subjects
 		for _, subject := range subjects {
@@ -77,7 +78,8 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 				if !instance.Spec.Disabled {
 					// plr found, checking decision
 					for _, decision := range decisions {
-						allDecisions = append(allDecisions, decision)
+						key := fmt.Sprintf("%s/%s", decision.ClusterNamespace, decision.ClusterName)
+						allDecisions[key] = struct{}{}
 						// create/update replicated policy for each decision
 						err := r.handleDecision(instance, decision)
 						if err != nil {
@@ -161,14 +163,8 @@ func (r *ReconcilePolicy) handleRootPolicy(instance *policiesv1.Policy) error {
 	// if cluster exists in status.status but doesn't exist in allDecisions, then it's stale cluster.
 	// we need to remove this replicated policy
 	for _, cluster := range instance.Status.Status {
-		found := false
-		for _, decision := range allDecisions {
-			if decision.ClusterName == cluster.ClusterName &&
-				decision.ClusterNamespace == cluster.ClusterNamespace {
-				found = true
-				break
-			}
-		}
+		key := fmt.Sprintf("%s/%s", cluster.ClusterNamespace, cluster.ClusterName)
+		_, found := allDecisions[key]
 		// not found in allDecision, orphan, delete it
 		if !found {
 			err := r.client.Delete(context.TODO(), &policiesv1.Policy{

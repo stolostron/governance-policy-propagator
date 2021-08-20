@@ -5,8 +5,8 @@ package propagator
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"regexp"
 	"sort"
 	"time"
 
@@ -328,7 +328,7 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 			// template processor
 			if policyHasTemplates(instance) {
 				//resolve hubTemplate before replicating
-				err = processTemplates(replicatedPlc, decision, instance.GetNamespace())
+				err = r.processTemplates(replicatedPlc, decision, instance)
 				if err != nil {
 					return err
 				}
@@ -346,6 +346,8 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 			r.recorder.Event(instance, "Normal", "PolicyPropagation",
 				fmt.Sprintf("Policy %s/%s was propagated to cluster %s/%s", instance.GetNamespace(),
 					instance.GetName(), decision.ClusterNamespace, decision.ClusterName))
+			//exit after handling the create path, shouldnt be going to through the update path
+			return nil
 		} else {
 			// failed to get replicated object, requeue
 			reqLogger.Error(err, "Failed to get replicated policy...", "Namespace", decision.ClusterNamespace,
@@ -362,7 +364,7 @@ func (r *ReconcilePolicy) handleDecision(instance *policiesv1.Policy, decision a
 		tempResolvedPlc := &policiesv1.Policy{}
 		tempResolvedPlc.SetAnnotations(instance.GetAnnotations())
 		tempResolvedPlc.Spec = instance.Spec
-		tmplErr := processTemplates(tempResolvedPlc, decision, instance.GetNamespace())
+		tmplErr := r.processTemplates(tempResolvedPlc, decision, instance)
 		if tmplErr != nil {
 			return tmplErr
 		}
@@ -398,16 +400,21 @@ func policyHasTemplates(instance *policiesv1.Policy) bool {
 	return false
 }
 
-func processTemplates(replicatedPlc *policiesv1.Policy, decision appsv1.PlacementDecision, rootPlcNamespace string) error {
-	reqLogger := log.WithValues("Policy-Namespace", replicatedPlc.GetNamespace(), "Policy-Name", replicatedPlc.GetName(),
-		"Managed-Cluster", decision.ClusterName, "Root Policy-Namespace", rootPlcNamespace)
+// iterates through policy definitions  and  processes hub templates
+// a special  annotation policy.open-cluster-management.io/trigger-update is used to trigger reprocessing of the
+// templates and ensuring that the replicated-policies in cluster is updated only if there is a change.
+// this annotation is deleted from the replicated policies and not propagated to the cluster namespaces.
+
+func (r *ReconcilePolicy) processTemplates(replicatedPlc *policiesv1.Policy, decision appsv1.PlacementDecision, rootPlc *policiesv1.Policy) error {
+
+	reqLogger := log.WithValues("Policy-Namespace", rootPlc.GetNamespace(), "Policy-Name", rootPlc.GetName(), "Managed-Cluster", decision.ClusterName)
 	reqLogger.Info("Processing Templates..")
 
-	templateCfg.LookupNamespace = rootPlcNamespace
+	templateCfg.LookupNamespace = rootPlc.GetNamespace()
 	tmplResolver, err := templates.NewResolver(kubeClient, kubeConfig, templateCfg)
 	if err != nil {
-		reqLogger.Error(err, "Error fetching template resolver")
-		return err
+		reqLogger.Error(err, "Error instantiating template resolver")
+		panic(err)
 	}
 
 	//A policy can have multiple policy templates within it, iterate and process each
@@ -417,9 +424,14 @@ func processTemplates(replicatedPlc *policiesv1.Policy, decision appsv1.Placemen
 
 			if !isConfigurationPolicy(policyT) {
 				// has Templates but not a configuration policy
-				err = errors.NewBadRequest("Templates are restricted to only Configuration Policy")
+				err = errors.NewBadRequest("Templates are restricted to only Configuration Policies")
 				log.Error(err, "Not a Configuration Policy")
-				return err
+
+				r.recorder.Event(rootPlc, "Warning", "PolicyPropagation",
+					fmt.Sprintf("Policy %s/%s has templates but it is not a ConfigurationPolicy.", rootPlc.GetName(), rootPlc.GetNamespace()))
+
+				//TODO: when error handling is setup, need to return err
+				return nil
 			}
 
 			reqLogger.Info("Found Object Definition with templates")
@@ -432,17 +444,22 @@ func processTemplates(replicatedPlc *policiesv1.Policy, decision appsv1.Placemen
 			resolveddata, tplErr := tmplResolver.ResolveTemplate(policyT.ObjectDefinition.Raw, templateContext)
 			if tplErr != nil {
 				reqLogger.Error(tplErr, "Failed to resolve templates")
-				return tplErr
+
+				r.recorder.Event(rootPlc, "Warning", "PolicyPropagation",
+					fmt.Sprintf("Failed to resolve templates for policy %s/%s for cluster %s/%s .", rootPlc.GetName(), rootPlc.GetNamespace(), decision.ClusterNamespace, decision.ClusterName))
+
+				//TODO: when error handling is setup, need to return err
+				return nil
 			}
 
 			policyT.ObjectDefinition.Raw = resolveddata
 		}
 	}
 
-	//Also reset  the tempate processing annotation in the replicated policy
+	//Also remove  the tempate processing annotation from the replicated policy
 	annotations := replicatedPlc.GetAnnotations()
-	if _, ok := annotations["trigger-template-update"]; ok {
-		annotations["rerun-template-process"] = ""
+	if _, ok := annotations["policy.open-cluster-management.io/trigger-update"]; ok {
+		delete(annotations, "policy.open-cluster-management.io/trigger-update")
 		replicatedPlc.SetAnnotations(annotations)
 	}
 
@@ -450,9 +467,13 @@ func processTemplates(replicatedPlc *policiesv1.Policy, decision appsv1.Placemen
 }
 
 func isConfigurationPolicy(policyT *policiesv1.PolicyTemplate) bool {
-	//check if it is configuration policy first
-	objDef := policyT.ObjectDefinition
-	//find in json policy definition
-	isConfigPlc, _ := regexp.MatchString(`,"kind":"ConfigurationPolicy",`, string(objDef.Raw))
-	return isConfigPlc
+	//check if it is a configuration policy first
+
+	var jsonDef map[string]interface{}
+	_ = json.Unmarshal(policyT.ObjectDefinition.Raw, &jsonDef)
+	if jsonDef != nil && jsonDef["kind"] == "ConfigurationPolicy" {
+		return true
+	}
+
+	return false
 }

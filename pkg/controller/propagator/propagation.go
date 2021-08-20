@@ -421,7 +421,7 @@ func (r *ReconcilePolicy) processTemplates(replicatedPlc *policiesv1.Policy, dec
 	for _, policyT := range replicatedPlc.Spec.PolicyTemplates {
 
 		if !templates.HasTemplate(policyT.ObjectDefinition.Raw, templateCfg.StartDelim) {
-			return nil
+			continue
 		}
 
 		if !isConfigurationPolicy(policyT) {

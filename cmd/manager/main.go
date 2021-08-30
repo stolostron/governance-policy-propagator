@@ -139,7 +139,7 @@ func main() {
 	var generatedClient kubernetes.Interface = kubernetes.NewForConfigOrDie(mgr.GetConfig())
 	propagator.Initialize(cfg, &generatedClient)
 
-		cache := mgr.GetCache()
+	cache := mgr.GetCache()
 
 	indexFunc := func(obj k8sruntime.Object) []string {
 		return []string{obj.(*v1.PlacementBinding).PlacementRef.Name}

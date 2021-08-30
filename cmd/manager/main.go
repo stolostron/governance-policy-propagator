@@ -131,7 +131,7 @@ func main() {
 
 	// Setup all Controllers
 	if err := controller.AddToManager(mgr); err != nil {
-		log.Error(err, "")
+		log.Error(err, "AddToManager returned an error")
 		os.Exit(1)
 	}
 

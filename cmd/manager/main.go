@@ -141,6 +141,8 @@ func main() {
 
 	cache := mgr.GetCache()
 
+	// The following index for the PlacementRef Name is being added to the
+	// client cache to improve the performance of querying PlacementBindings
 	indexFunc := func(obj k8sruntime.Object) []string {
 		return []string{obj.(*v1.PlacementBinding).PlacementRef.Name}
 	}

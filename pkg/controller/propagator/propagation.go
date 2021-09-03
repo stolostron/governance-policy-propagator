@@ -102,7 +102,7 @@ func (r *ReconcilePolicy) cleanUpPolicy(instance *policiesv1.Policy) error {
 	return nil
 }
 
-// getDecisions will get all the placement decisions based on the input policy and placement
+// handleDecisions will get all the placement decisions based on the input policy and placement
 // binding list and propagate the policy. It returns the following:
 // * placements - a slice of all the placement decisions discovered
 // * allDecisions - a set of all the placement decisions encountered in the format of

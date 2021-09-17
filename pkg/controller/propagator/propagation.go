@@ -694,6 +694,7 @@ func (r *ReconcilePolicy) processTemplates(replicatedPlc *policiesv1.Policy, dec
 				//it shouldnt get here but if it did just log a msg
 				//its alright, a generic msg will be used on the managedcluster
 				reqLogger.Error(jsonErr, fmt.Sprintf("Error unmarshalling to json for Policy %s, Cluster %s.", rootPlc.GetName(), decision.ClusterName))
+			} else {
 				policyTAnnotations := policyTObjectUnstructured.GetAnnotations()
 				if policyTAnnotations == nil {
 					policyTAnnotations = make(map[string]string)

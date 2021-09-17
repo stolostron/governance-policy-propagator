@@ -5,7 +5,6 @@ package propagator
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -24,6 +23,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/util/json"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -685,8 +685,7 @@ func (r *ReconcilePolicy) processTemplates(replicatedPlc *policiesv1.Policy, dec
 			reqLogger.Error(tplErr, "Failed to resolve templates")
 
 			r.recorder.Event(rootPlc, "Warning", "PolicyPropagation",
-				fmt.Sprintf("Failed to resolve templates for cluster %s/%s: %s", decision.ClusterNamespace, decision.ClusterName, tplErr.Error()))
-
+			fmt.Sprintf("Failed to resolve templates for cluster %s/%s: %s", decision.ClusterNamespace, decision.ClusterName, tplErr.Error()))
 			//Set an annotation on the policyTemplate(e.g. ConfigurationPolicy)  to the template processing error msg
 			//managed clusters will use this when creating a violation
 			policyTObjectUnstructured := &unstructured.Unstructured{}
@@ -694,8 +693,7 @@ func (r *ReconcilePolicy) processTemplates(replicatedPlc *policiesv1.Policy, dec
 			if jsonErr != nil {
 				//it shouldnt get here but if it did just log a msg
 				//its alright, a generic msg will be used on the managedcluster
-				reqLogger.Error(jsonErr, "Error unmarshalling to json")
-			} else {
+				reqLogger.Error(jsonErr, fmt.Sprintf("Error unmarshalling to json for Policy %s, Cluster %s.", rootPlc.GetName(), decision.ClusterName))
 				policyTAnnotations := policyTObjectUnstructured.GetAnnotations()
 				if policyTAnnotations == nil {
 					policyTAnnotations = make(map[string]string)
@@ -704,7 +702,7 @@ func (r *ReconcilePolicy) processTemplates(replicatedPlc *policiesv1.Policy, dec
 				policyTObjectUnstructured.SetAnnotations(policyTAnnotations)
 				updatedPolicyT, jsonErr := json.Marshal(policyTObjectUnstructured)
 				if jsonErr != nil {
-					reqLogger.Error(jsonErr, "Error marshalling json")
+					reqLogger.Error(jsonErr, fmt.Sprintf("Error unmarshalling to json for Policy %s, Cluster %.", rootPlc.GetName(), decision.ClusterName))
 				} else {
 					policyT.ObjectDefinition.Raw = updatedPolicyT
 				}

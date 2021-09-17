@@ -30,10 +30,16 @@ func TestInitializeAttempts(t *testing.T) {
 				defer func() {
 					// Reset to the default values
 					attempts = 0
-					os.Unsetenv(attemptsEnvName)
+					err := os.Unsetenv(attemptsEnvName)
+					if err != nil {
+						t.Fatalf("failed to unset the environment variable: %v", err)
+					}
 				}()
 
-				os.Setenv(attemptsEnvName, test.envVarValue)
+				err := os.Setenv(attemptsEnvName, test.envVarValue)
+				if err != nil {
+					t.Fatalf("failed to set the environment variable: %v", err)
+				}
 				var k8sInterface kubernetes.Interface
 				Initialize(&rest.Config{}, &k8sInterface)
 
@@ -64,10 +70,16 @@ func TestInitializeRequeueErrorDelay(t *testing.T) {
 				defer func() {
 					// Reset to the default values
 					requeueErrorDelay = 0
-					os.Unsetenv(requeueErrorDelayEnvName)
+					err := os.Unsetenv(requeueErrorDelayEnvName)
+					if err != nil {
+						t.Fatalf("failed to unset the environment variable: %v", err)
+					}
 				}()
 
-				os.Setenv(requeueErrorDelayEnvName, test.envVarValue)
+				err := os.Setenv(requeueErrorDelayEnvName, test.envVarValue)
+				if err != nil {
+					t.Fatalf("failed to set the environment variable: %v", err)
+				}
 				var k8sInterface kubernetes.Interface
 				Initialize(&rest.Config{}, &k8sInterface)
 

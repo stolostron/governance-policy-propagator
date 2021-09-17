@@ -26,7 +26,6 @@ func TestInitializeAttempts(t *testing.T) {
 		t.Run(
 			fmt.Sprintf(`%s="%s"`, attemptsEnvName, test.envVarValue),
 			func(t *testing.T) {
-				t.Parallel()
 				defer func() {
 					// Reset to the default values
 					attempts = 0
@@ -66,7 +65,6 @@ func TestInitializeRequeueErrorDelay(t *testing.T) {
 		t.Run(
 			fmt.Sprintf(`%s="%s"`, requeueErrorDelayEnvName, test.envVarValue),
 			func(t *testing.T) {
-				t.Parallel()
 				defer func() {
 					// Reset to the default values
 					requeueErrorDelay = 0

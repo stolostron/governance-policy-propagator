@@ -702,7 +702,7 @@ func (r *ReconcilePolicy) processTemplates(replicatedPlc *policiesv1.Policy, dec
 				policyTObjectUnstructured.SetAnnotations(policyTAnnotations)
 				updatedPolicyT, jsonErr := json.Marshal(policyTObjectUnstructured)
 				if jsonErr != nil {
-					reqLogger.Error(jsonErr, fmt.Sprintf("Error unmarshalling to json for Policy %s, Cluster %.", rootPlc.GetName(), decision.ClusterName))
+					reqLogger.Error(jsonErr, fmt.Sprintf("Error unmarshalling to json for Policy %s, Cluster %s.", rootPlc.GetName(), decision.ClusterName))
 				} else {
 					policyT.ObjectDefinition.Raw = updatedPolicyT
 				}

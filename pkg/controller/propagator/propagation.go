@@ -648,7 +648,6 @@ func (r *ReconcilePolicy) processTemplates(replicatedPlc *policiesv1.Policy, dec
 		replicatedPlc.SetAnnotations(annotations)
 	}
 
-
 	templateCfg.LookupNamespace = rootPlc.GetNamespace()
 	tmplResolver, err := templates.NewResolver(kubeClient, kubeConfig, templateCfg)
 	if err != nil {
@@ -696,17 +695,17 @@ func (r *ReconcilePolicy) processTemplates(replicatedPlc *policiesv1.Policy, dec
 				//it shouldnt get here but if it did just log a msg
 				//its alright, a generic msg will be used on the managedcluster
 				reqLogger.Error(jsonErr, "Error unmarshalling to json")
-			}else{
+			} else {
 				policyTAnnotations := policyTObjectUnstructured.GetAnnotations()
-				if(policyTAnnotations == nil){
+				if policyTAnnotations == nil {
 					policyTAnnotations = make(map[string]string)
 				}
-				policyTAnnotations["policy.open-cluster-management.io/hub-templates-error"]= tplErr.Error()
+				policyTAnnotations["policy.open-cluster-management.io/hub-templates-error"] = tplErr.Error()
 				policyTObjectUnstructured.SetAnnotations(policyTAnnotations)
 				updatedPolicyT, jsonErr := json.Marshal(policyTObjectUnstructured)
 				if jsonErr != nil {
 					reqLogger.Error(jsonErr, "Error marshalling json")
-				}else{
+				} else {
 					policyT.ObjectDefinition.Raw = updatedPolicyT
 				}
 			}

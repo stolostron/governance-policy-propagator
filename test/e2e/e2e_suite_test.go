@@ -74,7 +74,7 @@ var _ = BeforeSuite(func() {
 	}
 	clientHub = NewKubeClient("", "", "")
 	clientHubDynamic = NewKubeClientDynamic("", "", "")
-	defaultImageRegistry = "quay.io/open-cluster-management"
+	defaultImageRegistry = "quay.io/stolostron"
 	testNamespace = "policy-propagator-test"
 	defaultTimeoutSeconds = 30
 	By("Create Namesapce if needed")

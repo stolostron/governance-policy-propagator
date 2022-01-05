@@ -22,12 +22,12 @@ TRAVIS_BUILD ?= 1
 # Image URL to use all building/pushing image targets;
 # Use your own docker registry and image name for dev/test by overridding the IMG and REGISTRY environment variable.
 IMG ?= $(shell cat COMPONENT_NAME 2> /dev/null)
-REGISTRY ?= quay.io/open-cluster-management
+REGISTRY ?= quay.io/stolostron
 TAG ?= latest
 
 # Github host to use for checking the source tree;
 # Override this variable ue with your own value if you're working on forked repo.
-GIT_HOST ?= github.com/open-cluster-management
+GIT_HOST ?= github.com/stolostron
 
 PWD := $(shell pwd)
 BASE_DIR := $(shell basename $(PWD))

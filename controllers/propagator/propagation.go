@@ -16,7 +16,7 @@ import (
 	retry "github.com/avast/retry-go/v3"
 	"github.com/go-logr/logr"
 	clusterv1alpha1 "github.com/open-cluster-management/api/cluster/v1alpha1"
-	templates "github.com/open-cluster-management/go-template-utils/pkg/templates"
+	templates "github.com/stolostron/go-template-utils/pkg/templates"
 	appsv1 "github.com/open-cluster-management/multicloud-operators-placementrule/pkg/apis/apps/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,8 +27,8 @@ import (
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/api/v1"
-	"github.com/open-cluster-management/governance-policy-propagator/controllers/common"
+	policiesv1 "github.com/stolostron/governance-policy-propagator/api/v1"
+	"github.com/stolostron/governance-policy-propagator/controllers/common"
 )
 
 const (

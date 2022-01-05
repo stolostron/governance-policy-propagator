@@ -1,4 +1,4 @@
-module github.com/open-cluster-management/governance-policy-propagator
+module github.com/stolostron/governance-policy-propagator
 
 go 1.17
 
@@ -9,7 +9,7 @@ require (
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
 	github.com/open-cluster-management/api v0.0.0-20210527013639-a6845f2ebcb1
-	github.com/open-cluster-management/go-template-utils v1.3.0
+	github.com/stolostron/go-template-utils v1.3.0
 	github.com/open-cluster-management/multicloud-operators-placementrule v1.2.4-0-20210816-699e5
 	github.com/prometheus/client_golang v1.11.0
 	k8s.io/api v0.21.3

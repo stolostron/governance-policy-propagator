@@ -205,10 +205,10 @@ install-crds: manifests
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_placementbindings.yaml
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_policies.yaml
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_policyautomations.yaml
-	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management/multicloud-operators-placementrule/main/deploy/crds/apps.open-cluster-management.io_placementrules_crd.yaml
-	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management/api/main/cluster/v1/0000_00_clusters.open-cluster-management.io_managedclusters.crd.yaml
-	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management/api/main/cluster/v1alpha1/0000_03_clusters.open-cluster-management.io_placements.crd.yaml
-	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management/api/main/cluster/v1alpha1/0000_04_clusters.open-cluster-management.io_placementdecisions.crd.yaml
+	kubectl apply -f https://raw.githubusercontent.com/stolostron/multicloud-operators-placementrule/main/deploy/crds/apps.open-cluster-management.io_placementrules_crd.yaml
+	kubectl apply -f https://raw.githubusercontent.com/stolostron/api/main/cluster/v1/0000_00_clusters.open-cluster-management.io_managedclusters.crd.yaml
+	kubectl apply -f https://raw.githubusercontent.com/stolostron/api/main/cluster/v1alpha1/0000_03_clusters.open-cluster-management.io_placements.crd.yaml
+	kubectl apply -f https://raw.githubusercontent.com/stolostron/api/main/cluster/v1alpha1/0000_04_clusters.open-cluster-management.io_placementdecisions.crd.yaml
 	kubectl apply -f deploy/crds/external/tower.ansible.com_joblaunch_crd.yaml
 
 install-resources:
@@ -237,7 +237,7 @@ e2e-debug:
 # e2e test coverage
 ############################################################
 build-instrumented:
-	go test -covermode=atomic -coverpkg=github.com/open-cluster-management/$(IMG)... -c -tags e2e ./cmd/manager -o build/_output/bin/$(IMG)-instrumented
+	go test -covermode=atomic -coverpkg=github.com/stolostron/$(IMG)... -c -tags e2e ./cmd/manager -o build/_output/bin/$(IMG)-instrumented
 
 run-instrumented:
 	WATCH_NAMESPACE="" ./build/_output/bin/$(IMG)-instrumented -test.run "^TestRunMain$$" -test.coverprofile=coverage.out &>/dev/null &

@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 
-	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/api/v1"
+	policiesv1 "github.com/stolostron/governance-policy-propagator/api/v1"
 )
 
 func TestInitializeAttempts(t *testing.T) {

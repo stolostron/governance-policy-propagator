@@ -31,12 +31,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	//+kubebuilder:scaffold:imports
-	policyv1 "github.com/open-cluster-management/governance-policy-propagator/api/v1"
-	policyv1beta1 "github.com/open-cluster-management/governance-policy-propagator/api/v1beta1"
-	automationctrl "github.com/open-cluster-management/governance-policy-propagator/controllers/automation"
-	metricsctrl "github.com/open-cluster-management/governance-policy-propagator/controllers/policymetrics"
-	propagatorctrl "github.com/open-cluster-management/governance-policy-propagator/controllers/propagator"
-	"github.com/open-cluster-management/governance-policy-propagator/version"
+	policyv1 "github.com/stolostron/governance-policy-propagator/api/v1"
+	policyv1beta1 "github.com/stolostron/governance-policy-propagator/api/v1beta1"
+	automationctrl "github.com/stolostron/governance-policy-propagator/controllers/automation"
+	metricsctrl "github.com/stolostron/governance-policy-propagator/controllers/policymetrics"
+	propagatorctrl "github.com/stolostron/governance-policy-propagator/controllers/propagator"
+	"github.com/stolostron/governance-policy-propagator/version"
 )
 
 var (

@@ -22,9 +22,9 @@ import (
 
 	clusterv1 "github.com/open-cluster-management/api/cluster/v1"
 	clusterv1alpha1 "github.com/open-cluster-management/api/cluster/v1alpha1"
-	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/api/v1"
-	"github.com/open-cluster-management/governance-policy-propagator/controllers/common"
 	appsv1 "github.com/open-cluster-management/multicloud-operators-placementrule/pkg/apis/apps/v1"
+	policiesv1 "github.com/stolostron/governance-policy-propagator/api/v1"
+	"github.com/stolostron/governance-policy-propagator/controllers/common"
 )
 
 const ControllerName string = "policy-propagator"

@@ -4,7 +4,7 @@
 package propagator
 
 import (
-	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/api/v1"
+	policiesv1 "github.com/stolostron/governance-policy-propagator/api/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"

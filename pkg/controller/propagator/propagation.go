@@ -9,9 +9,9 @@ import (
 	"sort"
 	"time"
 
-	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
-	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1"
-	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
+	appsv1 "github.com/stolostron/governance-policy-propagator/pkg/apis/apps/v1"
+	policiesv1 "github.com/stolostron/governance-policy-propagator/pkg/apis/policy/v1"
+	"github.com/stolostron/governance-policy-propagator/pkg/controller/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"

@@ -4,7 +4,7 @@
 package apis
 
 import (
-	v1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1"
+	v1 "github.com/stolostron/governance-policy-propagator/pkg/apis/policy/v1"
 )
 
 func init() {

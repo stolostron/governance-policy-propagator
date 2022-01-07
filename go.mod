@@ -1,4 +1,4 @@
-module github.com/open-cluster-management/governance-policy-propagator
+module github.com/stolostron/governance-policy-propagator
 
 go 1.17
 

@@ -11,9 +11,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/open-cluster-management/governance-policy-propagator/pkg/apis"
-	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller"
-	"github.com/open-cluster-management/governance-policy-propagator/version"
+	"github.com/stolostron/governance-policy-propagator/pkg/apis"
+	"github.com/stolostron/governance-policy-propagator/pkg/controller"
+	"github.com/stolostron/governance-policy-propagator/version"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"

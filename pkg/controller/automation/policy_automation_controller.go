@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1"
-	policyv1beta1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policy/v1beta1"
-	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/common"
+	policiesv1 "github.com/stolostron/governance-policy-propagator/pkg/apis/policy/v1"
+	policyv1beta1 "github.com/stolostron/governance-policy-propagator/pkg/apis/policy/v1beta1"
+	"github.com/stolostron/governance-policy-propagator/pkg/controller/common"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"

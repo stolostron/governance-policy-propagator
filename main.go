@@ -30,13 +30,13 @@ import (
 
 	clusterv1 "github.com/open-cluster-management/api/cluster/v1"
 	clusterv1alpha1 "github.com/open-cluster-management/api/cluster/v1alpha1"
-	policyv1 "github.com/open-cluster-management/governance-policy-propagator/api/v1"
-	policyv1beta1 "github.com/open-cluster-management/governance-policy-propagator/api/v1beta1"
-	automationctrl "github.com/open-cluster-management/governance-policy-propagator/controllers/automation"
-	metricsctrl "github.com/open-cluster-management/governance-policy-propagator/controllers/policymetrics"
-	propagatorctrl "github.com/open-cluster-management/governance-policy-propagator/controllers/propagator"
-	"github.com/open-cluster-management/governance-policy-propagator/version"
 	appsv1 "github.com/open-cluster-management/multicloud-operators-placementrule/pkg/apis/apps/v1"
+	policyv1 "github.com/stolostron/governance-policy-propagator/api/v1"
+	policyv1beta1 "github.com/stolostron/governance-policy-propagator/api/v1beta1"
+	automationctrl "github.com/stolostron/governance-policy-propagator/controllers/automation"
+	metricsctrl "github.com/stolostron/governance-policy-propagator/controllers/policymetrics"
+	propagatorctrl "github.com/stolostron/governance-policy-propagator/controllers/propagator"
+	"github.com/stolostron/governance-policy-propagator/version"
 	//+kubebuilder:scaffold:imports
 )
 

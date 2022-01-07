@@ -8,9 +8,9 @@ import (
 	"strings"
 
 	clusterv1 "github.com/open-cluster-management/api/cluster/v1"
-	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/api/v1"
-	"github.com/open-cluster-management/governance-policy-propagator/controllers/common"
 	"github.com/prometheus/client_golang/prometheus"
+	policiesv1 "github.com/stolostron/governance-policy-propagator/api/v1"
+	"github.com/stolostron/governance-policy-propagator/controllers/common"
 
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"

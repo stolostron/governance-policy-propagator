@@ -6,7 +6,7 @@ package propagator
 import (
 	"strings"
 
-	"github.com/open-cluster-management/governance-policy-propagator/controllers/common"
+	"github.com/stolostron/governance-policy-propagator/controllers/common"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"

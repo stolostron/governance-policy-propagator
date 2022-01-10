@@ -35,6 +35,7 @@ import (
 	policyv1beta1 "github.com/stolostron/governance-policy-propagator/api/v1beta1"
 	automationctrl "github.com/stolostron/governance-policy-propagator/controllers/automation"
 	metricsctrl "github.com/stolostron/governance-policy-propagator/controllers/policymetrics"
+	policysetctrl "github.com/stolostron/governance-policy-propagator/controllers/policyset"
 	propagatorctrl "github.com/stolostron/governance-policy-propagator/controllers/propagator"
 	"github.com/stolostron/governance-policy-propagator/version"
 )
@@ -172,6 +173,14 @@ func main() {
 		Recorder:      mgr.GetEventRecorderFor(automationctrl.ControllerName),
 	}).SetupWithManager(mgr); err != nil {
 		log.Error(err, "Unable to create the controller", "controller", automationctrl.ControllerName)
+		os.Exit(1)
+	}
+
+	if err = (&policysetctrl.PolicySetReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		log.Error(err, "Unable to create controller", "controller", policysetctrl.ControllerName)
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

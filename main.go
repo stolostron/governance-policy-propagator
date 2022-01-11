@@ -28,8 +28,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	clusterv1 "github.com/open-cluster-management/api/cluster/v1"
-	clusterv1alpha1 "github.com/open-cluster-management/api/cluster/v1alpha1"
 	appsv1 "github.com/open-cluster-management/multicloud-operators-placementrule/pkg/apis/apps/v1"
 	policyv1 "github.com/stolostron/governance-policy-propagator/api/v1"
 	policyv1beta1 "github.com/stolostron/governance-policy-propagator/api/v1beta1"
@@ -37,6 +35,8 @@ import (
 	metricsctrl "github.com/stolostron/governance-policy-propagator/controllers/policymetrics"
 	propagatorctrl "github.com/stolostron/governance-policy-propagator/controllers/propagator"
 	"github.com/stolostron/governance-policy-propagator/version"
+	clusterv1 "open-cluster-management.io/api/cluster/v1"
+	clusterv1alpha1 "open-cluster-management.io/api/cluster/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 

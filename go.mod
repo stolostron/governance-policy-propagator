@@ -8,7 +8,6 @@ require (
 	github.com/go-logr/logr v0.4.0
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.13.0
-	github.com/open-cluster-management/api v0.0.0-20210527013639-a6845f2ebcb1
 	github.com/open-cluster-management/multicloud-operators-placementrule v1.2.4-0-20210816-699e5
 	github.com/prometheus/client_golang v1.11.0
 	github.com/stolostron/go-template-utils v1.3.1
@@ -16,6 +15,7 @@ require (
 	k8s.io/apimachinery v0.21.3
 	k8s.io/client-go v12.0.0+incompatible
 	k8s.io/klog v1.0.0
+	open-cluster-management.io/api v0.5.0
 	sigs.k8s.io/controller-runtime v0.9.2
 )
 

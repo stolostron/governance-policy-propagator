@@ -12,7 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	appsv1 "github.com/open-cluster-management/multicloud-operators-placementrule/pkg/apis/apps/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/dynamic"
@@ -23,6 +22,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	clusterv1 "open-cluster-management.io/api/cluster/v1"
 	clusterv1alpha1 "open-cluster-management.io/api/cluster/v1alpha1"
+	appsv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"

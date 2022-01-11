@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	clusterv1 "github.com/open-cluster-management/api/cluster/v1"
-	clusterv1alpha1 "github.com/open-cluster-management/api/cluster/v1alpha1"
 	appsv1 "github.com/open-cluster-management/multicloud-operators-placementrule/pkg/apis/apps/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -23,6 +21,8 @@ import (
 
 	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
+	clusterv1 "open-cluster-management.io/api/cluster/v1"
+	clusterv1alpha1 "open-cluster-management.io/api/cluster/v1alpha1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"

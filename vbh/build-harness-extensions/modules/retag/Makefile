@@ -62,7 +62,7 @@ retag/getquaysha: %getquaysha:
 retag/shabuild: %shabuild:
 	@$(shell $(SELF) jq/install > /dev/null)
 	@$(shell $(SELF) yq/install > /dev/null)
-	$(GIT) clone -b $(RETAG_GIT_BRANCH) https://github.com/open-cluster-management/multicloudhub-repo.git
+	$(GIT) clone -b $(RETAG_GIT_BRANCH) https://github.com/stolostron/multicloudhub-repo.git
 	$(shell $(BUILD_HARNESS_EXTENSIONS_PATH)/modules/retag/bin/process.sh multicloudhub-repo/multiclusterhub/charts ${RETAG_SNAPSHOT_NAME} > temp.out )
 	@cat temp.out
 

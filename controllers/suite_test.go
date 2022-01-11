@@ -17,8 +17,8 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	policyv1 "github.com/open-cluster-management/governance-policy-propagator/api/v1"
-	policyv1beta1 "github.com/open-cluster-management/governance-policy-propagator/api/v1beta1"
+	policyv1 "github.com/stolostron/governance-policy-propagator/api/v1"
+	policyv1beta1 "github.com/stolostron/governance-policy-propagator/api/v1beta1"
 	//+kubebuilder:scaffold:imports
 )
 

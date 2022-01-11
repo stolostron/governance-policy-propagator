@@ -30,7 +30,7 @@ PIPELINE_MANIFEST_SNAPSHOT_FOLDER ?= snapshots
 # The branch of the pipeline to use for quay retagging (typically quay-retag vs. quay-retag-test)
 PIPELINE_MANIFEST_RETAG_BRANCH ?= quay-retag
 
-PIPELINE_MANIFEST_REMOTE_REPO ?= quay.io/open-cluster-management
+PIPELINE_MANIFEST_REMOTE_REPO ?= quay.io/stolostron
 
 PIPELINE_MANIFEST_COMPONENT_SUFFIX ?= $(PIPELINE_MANIFEST_COMPONENT_SHA256)
 
@@ -53,7 +53,7 @@ PIPELINE_MANIFEST_GIT_BRANCH ?= $(PIPELINE_MANIFEST_RELEASE_VERSION)-$(PROMOTE_F
 PIPELINE_MANIFEST_RETAG_REPO ?= quay
 
 DATETIME_VAR := $(shell (date +%Y-%m-%d-%H-%M-%S))
-Z_RELEASE_VERSION ?= $(shell curl -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github.v3.raw" https://raw.githubusercontent.com/open-cluster-management/release/${PIPELINE_MANIFEST_BRANCH}/Z_RELEASE_VERSION)
+Z_RELEASE_VERSION ?= $(shell curl -H "Authorization: token ${GITHUB_TOKEN}" -H "Accept: application/vnd.github.v3.raw" https://raw.githubusercontent.com/stolostron/release/${PIPELINE_MANIFEST_BRANCH}/Z_RELEASE_VERSION)
 	
 
 .PHONY: pipeline-manifest/_datetime_gen

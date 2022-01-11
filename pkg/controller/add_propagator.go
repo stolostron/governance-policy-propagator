@@ -2,7 +2,7 @@
 package controller
 
 import (
-	"github.com/open-cluster-management/governance-policy-propagator/pkg/controller/propagator"
+	"github.com/stolostron/governance-policy-propagator/pkg/controller/propagator"
 )
 
 func init() {

@@ -4,8 +4,8 @@ package propagator
 import (
 	"context"
 
-	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
-	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
+	appsv1 "github.com/stolostron/governance-policy-propagator/pkg/apis/apps/v1"
+	policiesv1 "github.com/stolostron/governance-policy-propagator/pkg/apis/policies/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/handler"

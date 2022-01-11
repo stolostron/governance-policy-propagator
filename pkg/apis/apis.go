@@ -3,7 +3,7 @@ package apis
 
 import (
 	clusterv1 "github.com/open-cluster-management/api/cluster/v1"
-	appsv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/apps/v1"
+	appsv1 "github.com/stolostron/governance-policy-propagator/pkg/apis/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 

@@ -78,6 +78,7 @@ require (
 replace (
 	github.com/go-logr/logr => github.com/go-logr/logr v0.2.1
 	github.com/go-logr/zapr => github.com/go-logr/zapr v0.2.0
+	github.com/open-cluster-management/api => open-cluster-management.io/api v0.0.0-20200610161514-939cead3902c
 	golang.org/x/crypto => golang.org/x/crypto v0.0.0-20211202192323-5770296d904e // CVE-2021-43565
 	k8s.io/client-go => k8s.io/client-go v0.20.5
 )

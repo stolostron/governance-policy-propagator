@@ -205,6 +205,7 @@ install-crds: manifests
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_placementbindings.yaml
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_policies.yaml
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_policyautomations.yaml
+	kubectl apply -f deploy/crds/policy.open-cluster-management.io_policysets.yaml
 	kubectl apply -f https://raw.githubusercontent.com/stolostron/multicloud-operators-placementrule/main/deploy/crds/apps.open-cluster-management.io_placementrules_crd.yaml
 	kubectl apply -f https://raw.githubusercontent.com/stolostron/api/main/cluster/v1/0000_00_clusters.open-cluster-management.io_managedclusters.crd.yaml
 	kubectl apply -f https://raw.githubusercontent.com/stolostron/api/main/cluster/v1alpha1/0000_03_clusters.open-cluster-management.io_placements.crd.yaml

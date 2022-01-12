@@ -4,7 +4,7 @@ package common
 
 import (
 	clusterv1 "github.com/open-cluster-management/api/cluster/v1"
-	policiesv1 "github.com/open-cluster-management/governance-policy-propagator/pkg/apis/policies/v1"
+	policiesv1 "github.com/stolostron/governance-policy-propagator/pkg/apis/policies/v1"
 	"k8s.io/apimachinery/pkg/api/equality"
 )
 

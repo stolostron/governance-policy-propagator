@@ -235,7 +235,7 @@ spec:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: governance-policy-propagator
-        image: quay.io/stolostron/governance-policy-propagator:latest
+        image: quay.io/stolostron/governance-policy-propagator:latest-2.4
         imagePullPolicy: Always
         name: governance-policy-propagator
         ports:

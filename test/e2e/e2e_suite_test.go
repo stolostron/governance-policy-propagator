@@ -81,7 +81,7 @@ var _ = BeforeSuite(func() {
 	defaultImageRegistry = "quay.io/stolostron"
 	testNamespace = "policy-propagator-test"
 	defaultTimeoutSeconds = 30
-	By("Create Namesapce if needed")
+	By("Create Namespace if needed")
 	namespaces := clientHub.CoreV1().Namespaces()
 	if _, err := namespaces.Get(
 		context.TODO(), testNamespace, metav1.GetOptions{},

@@ -826,7 +826,6 @@ func policyHasTemplates(instance *policiesv1.Policy) bool {
 // a special  annotation policy.open-cluster-management.io/trigger-update is used to trigger reprocessing of the
 // templates and ensuring that the replicated-policies in cluster is updated only if there is a change.
 // this annotation is deleted from the replicated policies and not propagated to the cluster namespaces.
-
 func (r *PolicyReconciler) processTemplates(
 	replicatedPlc *policiesv1.Policy, decision appsv1.PlacementDecision, rootPlc *policiesv1.Policy,
 ) error {
@@ -848,8 +847,8 @@ func (r *PolicyReconciler) processTemplates(
 		}
 	}
 
-	// clear the trigger-update annotation, its only for the root policy shouldnt be in  replicated policies
-	// as it will cause an unnecessary update to the managed clusters
+	// clear the trigger-update annotation, its only for the root policy shouldn't be in replicated
+	// policies as it will cause an unnecessary update to the managed clusters
 	if _, ok := annotations["policy.open-cluster-management.io/trigger-update"]; ok {
 		delete(annotations, "policy.open-cluster-management.io/trigger-update")
 		replicatedPlc.SetAnnotations(annotations)
@@ -916,14 +915,14 @@ func (r *PolicyReconciler) processTemplates(
 					tplErr.Error(),
 				),
 			)
-			// Set an annotation on the policyTemplate(e.g. ConfigurationPolicy)  to the template processing error msg
+			// Set an annotation on the policyTemplate(e.g. ConfigurationPolicy) to the template processing error msg
 			// managed clusters will use this when creating a violation
 			policyTObjectUnstructured := &unstructured.Unstructured{}
 
 			jsonErr := json.Unmarshal(policyT.ObjectDefinition.Raw, policyTObjectUnstructured)
 			if jsonErr != nil {
-				// it shouldnt get here but if it did just log a msg
-				// its alright, a generic msg will be used on the managedcluster
+				// it shouldn't get here but if it did just log a msg
+				// it's all right, a generic msg will be used on the managedcluster
 				log.Error(jsonErr, "Error unmarshalling the object definition to JSON")
 			} else {
 				policyTAnnotations := policyTObjectUnstructured.GetAnnotations()

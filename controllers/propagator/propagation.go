@@ -790,7 +790,9 @@ func (r *PolicyReconciler) handleDecision(instance *policiesv1.Policy, decision 
 			if tempAnnotations == nil {
 				tempAnnotations = make(map[string]string)
 			}
+
 			tempAnnotations[ivAnnotation] = initializationVector
+
 			tempResolvedPlc.SetAnnotations(tempAnnotations)
 		}
 		// resolve hubTemplate before replicating

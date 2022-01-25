@@ -43,7 +43,8 @@ var _ = Describe("Test policy templates", func() {
 		It("should resolve templates and propagate to cluster ns managed1", func() {
 			By("Patching test-policy-plr with decision of cluster managed1")
 			plr := utils.GetWithTimeout(
-				clientHubDynamic, gvrPlacementRule, case9PolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds,
+				clientHubDynamic, gvrPlacementRule, case9PolicyName+"-plr", testNamespace,
+				true, defaultTimeoutSeconds,
 			)
 			plr.Object["status"] = utils.GeneratePlrStatus("managed1")
 			_, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(
@@ -51,7 +52,8 @@ var _ = Describe("Test policy templates", func() {
 			)
 			Expect(err).To(BeNil())
 			plc := utils.GetWithTimeout(
-				clientHubDynamic, gvrPolicy, testNamespace+"."+case9PolicyName, "managed1", true, defaultTimeoutSeconds,
+				clientHubDynamic, gvrPolicy, testNamespace+"."+case9PolicyName, "managed1",
+				true, defaultTimeoutSeconds,
 			)
 			Expect(plc).ToNot(BeNil())
 
@@ -72,7 +74,8 @@ var _ = Describe("Test policy templates", func() {
 		It("should resolve templates and propagate to cluster ns managed2", func() {
 			By("Patching test-policy-plr with decision of cluster managed2")
 			plr := utils.GetWithTimeout(
-				clientHubDynamic, gvrPlacementRule, case9PolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds,
+				clientHubDynamic, gvrPlacementRule, case9PolicyName+"-plr", testNamespace,
+				true, defaultTimeoutSeconds,
 			)
 			plr.Object["status"] = utils.GeneratePlrStatus("managed2")
 			_, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(
@@ -80,7 +83,8 @@ var _ = Describe("Test policy templates", func() {
 			)
 			Expect(err).To(BeNil())
 			plc := utils.GetWithTimeout(
-				clientHubDynamic, gvrPolicy, testNamespace+"."+case9PolicyName, "managed2", true, defaultTimeoutSeconds,
+				clientHubDynamic, gvrPolicy, testNamespace+"."+case9PolicyName, "managed2",
+				true, defaultTimeoutSeconds,
 			)
 			Expect(plc).ToNot(BeNil())
 
@@ -116,7 +120,8 @@ var _ = Describe("Test encrypted policy templates", func() {
 				"-f", case9PolicyYamlEncrypted,
 				"-n", testNamespace)
 			plc := utils.GetWithTimeout(
-				clientHubDynamic, gvrPolicy, case9PolicyNameEncrypted, testNamespace, true, defaultTimeoutSeconds,
+				clientHubDynamic, gvrPolicy, case9PolicyNameEncrypted, testNamespace,
+				true, defaultTimeoutSeconds,
 			)
 			Expect(plc).NotTo(BeNil())
 		})
@@ -187,7 +192,8 @@ var _ = Describe("Test encrypted policy templates", func() {
 					case9EncryptionSecretName,
 					"-n", managedCluster)
 				utils.GetWithTimeout(
-					clientHubDynamic, gvrSecret, case9EncryptionSecretName, managedCluster, false, defaultTimeoutSeconds,
+					clientHubDynamic, gvrSecret, case9EncryptionSecretName, managedCluster,
+					false, defaultTimeoutSeconds,
 				)
 			})
 		}

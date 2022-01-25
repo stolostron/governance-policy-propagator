@@ -73,11 +73,12 @@ func Initialize(kubeconfig *rest.Config, kubeclient *kubernetes.Interface) {
 
 // getTemplateCfg returns the default policy template configuration.
 func getTemplateCfg() templates.Config {
+	// (Encryption settings are set during the processTemplates method)
 	// Adding eight spaces to the indentation makes the usage of `indent N` be from the logical
 	// starting point of the resource object wrapped in the ConfigurationPolicy.
 	return templates.Config{
 		AdditionalIndentation: 8,
-		DisabledFunctions:     []string{"fromSecret"},
+		DisabledFunctions:     []string{},
 		StartDelim:            startDelim,
 		StopDelim:             stopDelim,
 	}
@@ -778,10 +779,20 @@ func (r *PolicyReconciler) handleDecision(instance *policiesv1.Policy, decision 
 	// replicated policy already created, need to compare and patch
 	comparePlc := instance
 
-	if policyHasTemplates(instance) {
+	if policyHasTemplates(comparePlc) {
 		// template delimis detected, build a temp holder policy with templates resolved
 		// before doing a compare with the replicated policy in the cluster namespaces
 		tempResolvedPlc := instance.DeepCopy()
+
+		// If the replicated policy has an initialization vector specified, set it for processing
+		if initializationVector, ok := replicatedPlc.Annotations[ivAnnotation]; ok {
+			tempAnnotations := tempResolvedPlc.GetAnnotations()
+			if tempAnnotations == nil {
+				tempAnnotations = make(map[string]string)
+			}
+			tempAnnotations[ivAnnotation] = initializationVector
+			tempResolvedPlc.SetAnnotations(tempAnnotations)
+		}
 		// resolve hubTemplate before replicating
 		// #nosec G104 -- any errors are logged and recorded in the processTemplates method,
 		// but the ignored status will be handled appropriately by the policy controllers on
@@ -814,7 +825,7 @@ func (r *PolicyReconciler) handleDecision(instance *policiesv1.Policy, decision 
 // a helper to quickly check if there are any templates in any of the policy templates
 func policyHasTemplates(instance *policiesv1.Policy) bool {
 	for _, policyT := range instance.Spec.PolicyTemplates {
-		if templates.HasTemplate(policyT.ObjectDefinition.Raw, startDelim) {
+		if templates.HasTemplate(policyT.ObjectDefinition.Raw, startDelim, false) {
 			return true
 		}
 	}
@@ -847,18 +858,11 @@ func (r *PolicyReconciler) processTemplates(
 		}
 	}
 
-	// clear the trigger-update annotation, its only for the root policy shouldn't be in replicated
+	// clear the trigger-update annotation, it's only for the root policy shouldn't be in replicated
 	// policies as it will cause an unnecessary update to the managed clusters
 	if _, ok := annotations["policy.open-cluster-management.io/trigger-update"]; ok {
 		delete(annotations, "policy.open-cluster-management.io/trigger-update")
 		replicatedPlc.SetAnnotations(annotations)
-	}
-
-	// For now, get/generate the key but the integration will occur in a future commit.
-	// See https://github.com/stolostron/backlog/issues/18712
-	_, err := r.getEncryptionKey(decision.ClusterName)
-	if err != nil {
-		return err
 	}
 
 	templateCfg := getTemplateCfg()
@@ -872,7 +876,7 @@ func (r *PolicyReconciler) processTemplates(
 
 	// A policy can have multiple policy templates within it, iterate and process each
 	for _, policyT := range replicatedPlc.Spec.PolicyTemplates {
-		if !templates.HasTemplate(policyT.ObjectDefinition.Raw, templateCfg.StartDelim) {
+		if !templates.HasTemplate(policyT.ObjectDefinition.Raw, templateCfg.StartDelim, false) {
 			continue
 		}
 
@@ -898,6 +902,49 @@ func (r *PolicyReconciler) processTemplates(
 			ManagedClusterName string
 		}{
 			ManagedClusterName: decision.ClusterName,
+		}
+
+		// Handle value encryption initialization
+		usesEncryption := templates.UsesEncryption(
+			policyT.ObjectDefinition.Raw, templateCfg.StartDelim, templateCfg.StopDelim,
+		)
+		// Initialize AES Key and initialization vector
+		if usesEncryption && !templateCfg.EncryptionEnabled {
+			log.V(1).Info("Found an object definition requiring encryption. Handling encryption keys.")
+			// Get/generate the encryption key
+			encryptionKey, err := r.getEncryptionKey(decision.ClusterName)
+			if err != nil {
+				log.Error(err, "Failed to get/generate the policy encryption key")
+
+				return err
+			}
+
+			// Get/generate the initialization vector
+			initializationVector, err := r.getInitializationVector(
+				rootPlc.GetName(), decision.ClusterName, annotations,
+			)
+			if err != nil {
+				log.Error(err, "Failed to get initialization vector")
+
+				return err
+			}
+
+			// Set the initialization vector in the annotations
+			replicatedPlc.SetAnnotations(annotations)
+
+			// Set the EncryptionConfig with the retrieved key
+			templateCfg.EncryptionConfig = templates.EncryptionConfig{
+				EncryptionEnabled:    true,
+				AESKey:               encryptionKey,
+				InitializationVector: initializationVector,
+			}
+
+			err = tmplResolver.SetEncryptionConfig(templateCfg.EncryptionConfig)
+			if err != nil {
+				log.Error(err, "Error setting encryption configuration")
+
+				return err
+			}
 		}
 
 		resolveddata, tplErr := tmplResolver.ResolveTemplate(policyT.ObjectDefinition.Raw, templateContext)
@@ -944,6 +991,36 @@ func (r *PolicyReconciler) processTemplates(
 		}
 
 		policyT.ObjectDefinition.Raw = resolveddata
+
+		// Set initialization vector annotation on the ObjectDefinition for the controller's use
+		if usesEncryption {
+			policyTObjectUnstructured := &unstructured.Unstructured{}
+
+			jsonErr := json.Unmarshal(resolveddata, policyTObjectUnstructured)
+			if jsonErr != nil {
+				return fmt.Errorf("failed to unmarshal the object definition to JSON: %w", jsonErr)
+			}
+
+			policyTAnnotations := policyTObjectUnstructured.GetAnnotations()
+			if policyTAnnotations == nil {
+				policyTAnnotations = make(map[string]string)
+			}
+
+			policyIV := annotations[ivAnnotation]
+			foundIV := policyTAnnotations[ivAnnotation]
+
+			if policyIV != foundIV {
+				policyTAnnotations[ivAnnotation] = policyIV
+				policyTObjectUnstructured.SetAnnotations(policyTAnnotations)
+
+				updatedPolicyT, jsonErr := json.Marshal(policyTObjectUnstructured)
+				if jsonErr != nil {
+					return fmt.Errorf("failed to marshal the policy template to JSON: %w", jsonErr)
+				}
+
+				policyT.ObjectDefinition.Raw = updatedPolicyT
+			}
+		}
 	}
 
 	log.V(1).Info("Successfully processed templates")

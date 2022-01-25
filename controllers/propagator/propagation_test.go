@@ -138,45 +138,6 @@ func TestInitializeConcurrencyPerPolicyEnvName(t *testing.T) {
 	}
 }
 
-func TestInitializeEncryptionEnabledEnvName(t *testing.T) {
-	tests := []struct {
-		envVarValue string
-		expected    bool
-	}{
-		{"true", true},
-		{"false", false},
-		{"something else", encryptionEnabledEnvDefault},
-	}
-
-	for _, test := range tests {
-		t.Run(
-			fmt.Sprintf(`%s="%s"`, encryptionEnabledEnvName, test.envVarValue),
-			func(t *testing.T) {
-				defer func() {
-					// Reset to the default values
-					encryptionEnabled = true
-
-					err := os.Unsetenv(encryptionEnabledEnvName)
-					if err != nil {
-						t.Fatalf("failed to unset the environment variable: %v", err)
-					}
-				}()
-
-				err := os.Setenv(encryptionEnabledEnvName, test.envVarValue)
-				if err != nil {
-					t.Fatalf("failed to set the environment variable: %v", err)
-				}
-				var k8sInterface kubernetes.Interface
-				Initialize(&rest.Config{}, &k8sInterface)
-
-				if encryptionEnabled != test.expected {
-					t.Fatalf("Expected encryptionEnabled=%v, got %v", test.expected, attempts)
-				}
-			},
-		)
-	}
-}
-
 // A mock implementation of the PolicyReconciler for the handleDecisionWrapper function.
 type MockPolicyReconciler struct {
 	Err error

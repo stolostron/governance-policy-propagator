@@ -35,6 +35,7 @@ var (
 	gvrPlacementRule      schema.GroupVersionResource
 	gvrPlacement          schema.GroupVersionResource
 	gvrPlacementDecision  schema.GroupVersionResource
+	gvrSecret             schema.GroupVersionResource
 	gvrAnsibleJob         schema.GroupVersionResource
 	defaultTimeoutSeconds int
 	defaultImageRegistry  string
@@ -69,6 +70,9 @@ var _ = BeforeSuite(func() {
 	}
 	gvrPlacementDecision = schema.GroupVersionResource{
 		Group: "cluster.open-cluster-management.io", Version: "v1alpha1", Resource: "placementdecisions",
+	}
+	gvrSecret = schema.GroupVersionResource{
+		Group: "", Version: "v1", Resource: "secrets",
 	}
 	gvrPolicyAutomation = schema.GroupVersionResource{
 		Group: "policy.open-cluster-management.io", Version: "v1beta1", Resource: "policyautomations",

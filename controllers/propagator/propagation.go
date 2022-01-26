@@ -15,7 +15,7 @@ import (
 
 	retry "github.com/avast/retry-go/v3"
 	"github.com/go-logr/logr"
-	templates "github.com/stolostron/go-template-utils/pkg/templates"
+	templates "github.com/stolostron/go-template-utils/v2/pkg/templates"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"

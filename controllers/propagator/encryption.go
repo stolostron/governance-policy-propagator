@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/stolostron/go-template-utils/pkg/templates"
+	"github.com/stolostron/go-template-utils/v2/pkg/templates"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

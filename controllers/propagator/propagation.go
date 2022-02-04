@@ -1047,8 +1047,7 @@ func (r *PolicyReconciler) isPolicySetSubject(instance *policiesv1.Policy, subje
 
 		err := r.Get(context.TODO(), policySetNamespacedName, policySet)
 		if err != nil {
-			log.Error(err, "Failed to get the policyset", "policySetName", subject.Name, "policyName",
-				instance.GetName(), "policyNamespace", instance.GetNamespace())
+			log.V(2).Info("Failed to get the policyset", "policySetName", subject.Name, "error", err)
 
 			return false
 		}

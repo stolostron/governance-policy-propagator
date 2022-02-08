@@ -116,6 +116,8 @@ lint: lint-dependencies lint-all
 KUBEBUILDER_DIR = /usr/local/kubebuilder/bin
 KBVERSION = 3.2.0
 K8S_VERSION = 1.21.2
+GOSEC = $(shell pwd)/bin/gosec
+GOSEC_VERSION = 2.9.6
 
 test: manifests generate fmt
 	go test $(TESTARGS) `go list ./... | grep -v test/e2e`
@@ -133,6 +135,13 @@ test-dependencies:
 	sudo curl -L https://github.com/kubernetes-sigs/kubebuilder/releases/download/v$(KBVERSION)/kubebuilder_$(GOOS)_$(GOARCH) -o $(KUBEBUILDER_DIR)/kubebuilder
 	sudo chmod +x $(KUBEBUILDER_DIR)/kubebuilder
 	curl -L "https://go.kubebuilder.io/test-tools/$(K8S_VERSION)/$(GOOS)/$(GOARCH)" | sudo tar xz --strip-components=2 -C $(KUBEBUILDER_DIR)/
+
+$(GOSEC):
+	curl -L https://github.com/securego/gosec/releases/download/v$(GOSEC_VERSION)/gosec_$(GOSEC_VERSION)_$(GOOS)_$(GOARCH).tar.gz | tar -xz -C /tmp/
+	sudo mv /tmp/gosec $(GOSEC)
+
+gosec-scan: $(GOSEC)
+	$(GOSEC) -fmt sonarqube -out gosec.json -no-fail -exclude-dir=.go ./...
 
 ############################################################
 # build section

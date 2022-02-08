@@ -166,16 +166,13 @@ kind-bootstrap-cluster: kind-create-cluster install-crds kind-deploy-controller 
 kind-bootstrap-cluster-dev: kind-create-cluster install-crds install-resources
 
 kind-deploy-controller: manifests
-	@echo installing policy-propagator
+	@echo installing $(IMG)
 	kubectl create ns $(KIND_NAMESPACE)
 	kubectl apply -f deploy/operator.yaml -n $(KIND_NAMESPACE)
 
-kind-deploy-controller-dev: manifests
+kind-deploy-controller-dev: manifests kind-deploy-controller
 	@echo Pushing image to KinD cluster
 	kind load docker-image $(REGISTRY)/$(IMG):$(TAG) --name $(KIND_NAME)
-	@echo Installing $(IMG)
-	kubectl create ns $(KIND_NAMESPACE)
-	kubectl apply -f deploy/operator.yaml -n $(KIND_NAMESPACE)
 	@echo "Patch deployment image"
 	kubectl patch deployment $(IMG) -n $(KIND_NAMESPACE) -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"$(IMG)\",\"imagePullPolicy\":\"Never\"}]}}}}"
 	kubectl patch deployment $(IMG) -n $(KIND_NAMESPACE) -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"$(IMG)\",\"image\":\"$(REGISTRY)/$(IMG):$(TAG)\"}]}}}}"
@@ -239,6 +236,9 @@ run-instrumented:
 stop-instrumented:
 	ps -ef | grep 'govern' | grep -v grep | awk '{print $$2}' | xargs kill
 
+############################################################
+# Generate manifests
+############################################################
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 

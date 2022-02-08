@@ -53,6 +53,8 @@ endif
 # Fetch Ginkgo/Gomega versions from go.mod
 GINKGO_VERSION := $(shell awk '/github.com\/onsi\/ginkgo\/v2/ {print $$2}' go.mod)
 GOMEGA_VERSION := $(shell awk '/github.com\/onsi\/gomega/ {print $$2}' go.mod)
+# Test coverage threshold
+export COVERAGE_MIN ?= 75
 
 LOCAL_OS := $(shell uname)
 ifeq ($(LOCAL_OS),Linux)
@@ -116,7 +118,10 @@ KBVERSION = 3.2.0
 K8S_VERSION = 1.21.2
 
 test: manifests generate fmt
-	go test ${TESTARGS} `go list ./... | grep -v test/e2e`
+	go test $(TESTARGS) `go list ./... | grep -v test/e2e`
+
+test-coverage: TESTARGS = -json -cover -covermode=atomic -coverprofile=coverage_unit.out
+test-coverage: test
 
 test-dependencies:
 	@if (ls $(KUBEBUILDER_DIR)/*); then \
@@ -212,6 +217,11 @@ e2e-dependencies:
 	go get github.com/onsi/gomega/...@$(GOMEGA_VERSION)
 
 e2e-test:
+	$(GOPATH)/bin/ginkgo -v --fail-fast --slow-spec-threshold=10s $(E2E_TEST_ARGS) test/e2e
+
+e2e-test-coverage: E2E_TEST_ARGS = --json-report=report_e2e.json --output-dir=.
+e2e-test-coverage: e2e-test
+
 e2e-build-instrumented:
 	go test -covermode=atomic -coverpkg=$(GIT_HOST)/$(IMG)/... -c -tags e2e ./ -o build/_output/bin/$(IMG)-instrumented
 
@@ -228,16 +238,19 @@ e2e-debug:
 	kubectl logs $$(kubectl get pods -n $(KIND_NAMESPACE) -o name | grep $(IMG)) -n $(KIND_NAMESPACE) -c governance-policy-propagator
 
 ############################################################
-# e2e test coverage
+# test coverage
 ############################################################
-build-instrumented:
-	go test -covermode=atomic -coverpkg=github.com/stolostron/$(IMG)... -c -tags e2e ./cmd/manager -o build/_output/bin/$(IMG)-instrumented
+GOCOVMERGE = $(shell pwd)/bin/gocovmerge
+coverage-dependencies:
+	$(call go-get-tool,$(GOCOVMERGE),github.com/wadey/gocovmerge)
 
-run-instrumented:
-	WATCH_NAMESPACE="" ./build/_output/bin/$(IMG)-instrumented -test.run "^TestRunMain$$" -test.coverprofile=coverage.out &>/dev/null &
+COVERAGE_FILE = coverage.out
+coverage-merge: coverage-dependencies
+	@echo Merging the coverage reports into $(COVERAGE_FILE)
+	$(GOCOVMERGE) $(PWD)/coverage_* > $(COVERAGE_FILE)
 
-stop-instrumented:
-	ps -ef | grep 'govern' | grep -v grep | awk '{print $$2}' | xargs kill
+coverage-verify:
+	./build/common/scripts/coverage_calc.sh
 
 ############################################################
 # Generate manifests

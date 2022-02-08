@@ -212,11 +212,14 @@ e2e-dependencies:
 	go get github.com/onsi/gomega/...@$(GOMEGA_VERSION)
 
 e2e-test:
-	ginkgo -v --slowSpecThreshold=10 test/e2e
+e2e-build-instrumented:
+	go test -covermode=atomic -coverpkg=$(GIT_HOST)/$(IMG)/... -c -tags e2e ./ -o build/_output/bin/$(IMG)-instrumented
 
-e2e-dependencies:
-	go get github.com/onsi/ginkgo/ginkgo@v1.16.4
-	go get github.com/onsi/gomega/...@v1.13.0
+e2e-run-instrumented:
+	WATCH_NAMESPACE="$(WATCH_NAMESPACE)" ./build/_output/bin/$(IMG)-instrumented -test.run "^TestRunMain$$" -test.coverprofile=coverage_e2e.out &>/dev/null &
+
+e2e-stop-instrumented:
+	ps -ef | grep '$(IMG)' | grep -v grep | awk '{print $$2}' | xargs kill
 
 e2e-debug:
 	kubectl get all -n $(KIND_NAMESPACE)

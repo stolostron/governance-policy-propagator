@@ -50,6 +50,11 @@ ifneq ($(KIND_VERSION), latest)
 else
 	KIND_ARGS =
 endif
+# Fetch Ginkgo/Gomega versions from go.mod
+GINKGO_VERSION := $(shell awk '/github.com\/onsi\/ginkgo\/v2/ {print $$2}' go.mod)
+GOMEGA_VERSION := $(shell awk '/github.com\/onsi\/gomega/ {print $$2}' go.mod)
+# Test coverage threshold
+export COVERAGE_MIN ?= 75
 
 LOCAL_OS := $(shell uname)
 ifeq ($(LOCAL_OS),Linux)
@@ -111,9 +116,14 @@ lint: lint-dependencies lint-all
 KUBEBUILDER_DIR = /usr/local/kubebuilder/bin
 KBVERSION = 3.2.0
 K8S_VERSION = 1.21.2
+GOSEC = $(shell pwd)/bin/gosec
+GOSEC_VERSION = 2.9.6
 
 test: manifests generate fmt
-	go test ${TESTARGS} `go list ./... | grep -v test/e2e`
+	go test $(TESTARGS) `go list ./... | grep -v test/e2e`
+
+test-coverage: TESTARGS = -json -cover -covermode=atomic -coverprofile=coverage_unit.out
+test-coverage: test
 
 test-dependencies:
 	@if (ls $(KUBEBUILDER_DIR)/*); then \
@@ -125,6 +135,13 @@ test-dependencies:
 	sudo curl -L https://github.com/kubernetes-sigs/kubebuilder/releases/download/v$(KBVERSION)/kubebuilder_$(GOOS)_$(GOARCH) -o $(KUBEBUILDER_DIR)/kubebuilder
 	sudo chmod +x $(KUBEBUILDER_DIR)/kubebuilder
 	curl -L "https://go.kubebuilder.io/test-tools/$(K8S_VERSION)/$(GOOS)/$(GOARCH)" | sudo tar xz --strip-components=2 -C $(KUBEBUILDER_DIR)/
+
+$(GOSEC):
+	curl -L https://github.com/securego/gosec/releases/download/v$(GOSEC_VERSION)/gosec_$(GOSEC_VERSION)_$(GOOS)_$(GOARCH).tar.gz | tar -xz -C /tmp/
+	sudo mv /tmp/gosec $(GOSEC)
+
+gosec-scan: $(GOSEC)
+	$(GOSEC) -fmt sonarqube -out gosec.json -no-fail -exclude-dir=.go ./...
 
 ############################################################
 # build section
@@ -163,16 +180,13 @@ kind-bootstrap-cluster: kind-create-cluster install-crds kind-deploy-controller 
 kind-bootstrap-cluster-dev: kind-create-cluster install-crds install-resources
 
 kind-deploy-controller: manifests
-	@echo installing policy-propagator
+	@echo installing $(IMG)
 	kubectl create ns $(KIND_NAMESPACE)
 	kubectl apply -f deploy/operator.yaml -n $(KIND_NAMESPACE)
 
-kind-deploy-controller-dev: manifests
+kind-deploy-controller-dev: manifests kind-deploy-controller
 	@echo Pushing image to KinD cluster
 	kind load docker-image $(REGISTRY)/$(IMG):$(TAG) --name $(KIND_NAME)
-	@echo Installing $(IMG)
-	kubectl create ns $(KIND_NAMESPACE)
-	kubectl apply -f deploy/operator.yaml -n $(KIND_NAMESPACE)
 	@echo "Patch deployment image"
 	kubectl patch deployment $(IMG) -n $(KIND_NAMESPACE) -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"$(IMG)\",\"imagePullPolicy\":\"Never\"}]}}}}"
 	kubectl patch deployment $(IMG) -n $(KIND_NAMESPACE) -p "{\"spec\":{\"template\":{\"spec\":{\"containers\":[{\"name\":\"$(IMG)\",\"image\":\"$(REGISTRY)/$(IMG):$(TAG)\"}]}}}}"
@@ -207,12 +221,24 @@ install-resources:
 	kubectl apply -f test/resources/managed1-cluster.yaml
 	kubectl apply -f test/resources/managed2-cluster.yaml
 
-e2e-test:
-	ginkgo -v --slowSpecThreshold=10 test/e2e
-
 e2e-dependencies:
-	go get github.com/onsi/ginkgo/ginkgo@v1.16.4
-	go get github.com/onsi/gomega/...@v1.13.0
+	go get github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
+	go get github.com/onsi/gomega/...@$(GOMEGA_VERSION)
+
+e2e-test:
+	$(GOPATH)/bin/ginkgo -v --fail-fast --slow-spec-threshold=10s $(E2E_TEST_ARGS) test/e2e
+
+e2e-test-coverage: E2E_TEST_ARGS = --json-report=report_e2e.json --output-dir=.
+e2e-test-coverage: e2e-test
+
+e2e-build-instrumented:
+	go test -covermode=atomic -coverpkg=$(GIT_HOST)/$(IMG)/... -c -tags e2e ./ -o build/_output/bin/$(IMG)-instrumented
+
+e2e-run-instrumented:
+	WATCH_NAMESPACE="$(WATCH_NAMESPACE)" ./build/_output/bin/$(IMG)-instrumented -test.run "^TestRunMain$$" -test.coverprofile=coverage_e2e.out &>/dev/null &
+
+e2e-stop-instrumented:
+	ps -ef | grep '$(IMG)' | grep -v grep | awk '{print $$2}' | xargs kill
 
 e2e-debug:
 	kubectl get all -n $(KIND_NAMESPACE)
@@ -221,17 +247,23 @@ e2e-debug:
 	kubectl logs $$(kubectl get pods -n $(KIND_NAMESPACE) -o name | grep $(IMG)) -n $(KIND_NAMESPACE) -c governance-policy-propagator
 
 ############################################################
-# e2e test coverage
+# test coverage
 ############################################################
-build-instrumented:
-	go test -covermode=atomic -coverpkg=github.com/stolostron/$(IMG)... -c -tags e2e ./cmd/manager -o build/_output/bin/$(IMG)-instrumented
+GOCOVMERGE = $(shell pwd)/bin/gocovmerge
+coverage-dependencies:
+	$(call go-get-tool,$(GOCOVMERGE),github.com/wadey/gocovmerge)
 
-run-instrumented:
-	WATCH_NAMESPACE="" ./build/_output/bin/$(IMG)-instrumented -test.run "^TestRunMain$$" -test.coverprofile=coverage.out &>/dev/null &
+COVERAGE_FILE = coverage.out
+coverage-merge: coverage-dependencies
+	@echo Merging the coverage reports into $(COVERAGE_FILE)
+	$(GOCOVMERGE) $(PWD)/coverage_* > $(COVERAGE_FILE)
 
-stop-instrumented:
-	ps -ef | grep 'govern' | grep -v grep | awk '{print $$2}' | xargs kill
+coverage-verify:
+	./build/common/scripts/coverage_calc.sh
 
+############################################################
+# Generate manifests
+############################################################
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 

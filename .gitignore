@@ -94,5 +94,6 @@ gosec.json
 
 .go
 
+vendor/
 bin
 testbin/*

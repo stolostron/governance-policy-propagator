@@ -728,10 +728,13 @@ var _ = Describe("Test policyset propagation", func() {
 			)
 			Expect(plcSet).NotTo(BeNil())
 			plcSet.Object["spec"].(map[string]interface{})["policies"] = []string{}
-			_, err := clientHubDynamic.Resource(gvrPolicySet).Namespace(testNamespace).Update(
-				context.TODO(), plcSet, metav1.UpdateOptions{},
-			)
-			Expect(err).To(BeNil())
+			Eventually(func() interface{} {
+				_, err := clientHubDynamic.Resource(gvrPolicySet).Namespace(testNamespace).Update(
+					context.TODO(), plcSet, metav1.UpdateOptions{},
+				)
+
+				return err
+			}, defaultTimeoutSeconds, 1).Should(BeNil())
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case10PolicyName, "managed1", false,
 				defaultTimeoutSeconds,
@@ -749,10 +752,13 @@ var _ = Describe("Test policyset propagation", func() {
 			)
 			Expect(plcSet).NotTo(BeNil())
 			plcSet.Object["spec"].(map[string]interface{})["policies"] = []string{case10PolicyName}
-			_, err := clientHubDynamic.Resource(gvrPolicySet).Namespace(testNamespace).Update(
-				context.TODO(), plcSet, metav1.UpdateOptions{},
-			)
-			Expect(err).To(BeNil())
+			Eventually(func() interface{} {
+				_, err := clientHubDynamic.Resource(gvrPolicySet).Namespace(testNamespace).Update(
+					context.TODO(), plcSet, metav1.UpdateOptions{},
+				)
+
+				return err
+			}, defaultTimeoutSeconds, 1).Should(BeNil())
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case10PolicyName, "managed1", true,
 				defaultTimeoutSeconds,
@@ -770,10 +776,14 @@ var _ = Describe("Test policyset propagation", func() {
 			)
 			Expect(plcSet).NotTo(BeNil())
 			plcSet.Object["spec"].(map[string]interface{})["policies"] = []string{case10PolicyName, "policy-not-exists"}
-			_, err := clientHubDynamic.Resource(gvrPolicySet).Namespace(testNamespace).Update(
-				context.TODO(), plcSet, metav1.UpdateOptions{},
-			)
-			Expect(err).To(BeNil())
+			Eventually(func() interface{} {
+				_, err := clientHubDynamic.Resource(gvrPolicySet).Namespace(testNamespace).Update(
+					context.TODO(), plcSet, metav1.UpdateOptions{},
+				)
+
+				return err
+			}, defaultTimeoutSeconds, 1).Should(BeNil())
+
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case10PolicyName, "managed1", true,
 				defaultTimeoutSeconds,
@@ -791,10 +801,13 @@ var _ = Describe("Test policyset propagation", func() {
 			)
 			Expect(plcSet).NotTo(BeNil())
 			plcSet.Object["spec"].(map[string]interface{})["policies"] = []string{}
-			_, err := clientHubDynamic.Resource(gvrPolicySet).Namespace(testNamespace).Update(
-				context.TODO(), plcSet, metav1.UpdateOptions{},
-			)
-			Expect(err).To(BeNil())
+			Eventually(func() interface{} {
+				_, err := clientHubDynamic.Resource(gvrPolicySet).Namespace(testNamespace).Update(
+					context.TODO(), plcSet, metav1.UpdateOptions{},
+				)
+
+				return err
+			}, defaultTimeoutSeconds, 1).Should(BeNil())
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case10PolicyName, "managed1", false,
 				defaultTimeoutSeconds,

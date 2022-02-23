@@ -78,25 +78,30 @@ spec:
                   description: PolicySetStatusResult shows the compliance status of
                     a policy in the set
                   properties:
-                    clusters:
-                      items:
-                        description: PolicySetResultCluster shows the compliance status
-                          of a policy for a specific cluster
-                        properties:
-                          clusterName:
-                            type: string
-                          clusterNamespace:
-                            type: string
-                          compliant:
-                            type: string
-                        type: object
-                      type: array
+                    clusterTotal:
+                      type: integer
                     compliant:
                       type: string
+                    compliantClusterTotal:
+                      type: integer
+                    compliantClusters:
+                      items:
+                        type: string
+                      type: array
                     message:
                       type: string
+                    nonCompliantClusterTotal:
+                      type: integer
+                    nonCompliantClusters:
+                      items:
+                        type: string
+                      type: array
                     policy:
                       type: string
+                  required:
+                  - clusterTotal
+                  - compliantClusterTotal
+                  - nonCompliantClusterTotal
                   type: object
                 type: array
             type: object

@@ -76,9 +76,52 @@ func (r *PolicySetReconciler) Reconcile(ctx context.Context, request ctrl.Reques
 
 		err := r.Status().Patch(ctx, instance, client.MergeFrom(originalInstance))
 		if err != nil {
-			log.Error(err, "Failed to update policy set status")
+			if strings.Contains(err.Error(), "etcdserver: request is too large") ||
+				strings.Contains(err.Error(), "ResourceExhausted") {
+				log.Info("Request is too large, fall back to hide CompliantClusterList")
 
-			return reconcile.Result{}, err
+				for i := range instance.Status.Results {
+					instance.Status.Results[i].CompliantClusters = nil
+					if !strings.Contains(instance.Status.Results[i].Message, "not found") ||
+						!strings.Contains(instance.Status.Results[i].Message, "is disabled") {
+						instance.Status.Results[i].Message = "Compliant cluster list is not displayed due to" +
+							" its large size"
+					}
+				}
+
+				err := r.Status().Patch(ctx, instance, client.MergeFrom(originalInstance))
+				if err != nil {
+					if strings.Contains(err.Error(), "etcdserver: request is too large") ||
+						strings.Contains(err.Error(), "ResourceExhausted") {
+						log.Info("Request is still too large, fall back to hide NonCompliantClusterList")
+
+						for i := range instance.Status.Results {
+							instance.Status.Results[i].NonCompliantClusters = nil
+							if !strings.Contains(instance.Status.Results[i].Message, "not found") ||
+								!strings.Contains(instance.Status.Results[i].Message, "is disabled") {
+								instance.Status.Results[i].Message = "Compliant and NonCompliant cluster " +
+									"lists are not displayed due to its large size"
+							}
+						}
+
+						err = r.Status().Patch(ctx, instance, client.MergeFrom(originalInstance))
+						if err != nil {
+							log.Error(err, "Failed to update policy set status with both "+
+								"CompliantClusterList and NonCompliant hidden")
+
+							return reconcile.Result{}, err
+						}
+					} else {
+						log.Error(err, "Failed to update policy set status with CompliantClusterList hidden")
+
+						return reconcile.Result{}, err
+					}
+				}
+			} else {
+				log.Error(err, "Failed to update policy set status")
+
+				return reconcile.Result{}, err
+			}
 		}
 	}
 
@@ -180,10 +223,17 @@ func processPolicySet(ctx context.Context, c client.Client, plcSet *policyv1.Pol
 					Message: string(childPlcName) + " is disabled",
 				})
 			} else {
+				nonCompliantList, compliantList, pendingList := statusToClusters(childPlc.Status.Status, clusters)
+
 				generatedResults = append(generatedResults, policyv1.PolicySetStatusResult{
-					Policy:    string(childPlcName),
-					Compliant: complianceInRelevantClusters(childPlc.Status.Status, clusters),
-					Clusters:  statusToClusters(childPlc.Status.Status, clusters),
+					Policy:                   string(childPlcName),
+					Compliant:                complianceInRelevantClusters(childPlc.Status.Status, clusters),
+					NonCompliantClusters:     nonCompliantList,
+					CompliantClusters:        compliantList,
+					NonCompliantClusterTotal: len(nonCompliantList),
+					CompliantClusterTotal:    len(compliantList),
+					ClusterTotal: len(pendingList) +
+						len(compliantList) + len(nonCompliantList),
 				})
 			}
 		}
@@ -260,20 +310,24 @@ func (r *PolicySetReconciler) SetupWithManager(mgr ctrl.Manager) error {
 
 // Helper function to convert policy.status.status to policyset.status.results.clusters
 func statusToClusters(status []*policyv1.CompliancePerClusterStatus,
-	relevantClusters []string) []policyv1.PolicySetResultCluster {
-	clusters := []policyv1.PolicySetResultCluster{}
+	relevantClusters []string) ([]string, []string, []string) {
+	nonCompliantClusters := []string{}
+	compliantClusters := []string{}
+	pendingClusters := []string{}
 
 	for i := range status {
 		if clusterInList(relevantClusters, status[i].ClusterName) {
-			clusters = append(clusters, policyv1.PolicySetResultCluster{
-				ClusterName:      status[i].ClusterName,
-				ClusterNamespace: status[i].ClusterNamespace,
-				Compliant:        string(status[i].ComplianceState),
-			})
+			if status[i].ComplianceState == policyv1.Compliant {
+				compliantClusters = append(compliantClusters, status[i].ClusterName)
+			} else if status[i].ComplianceState == policyv1.NonCompliant {
+				nonCompliantClusters = append(nonCompliantClusters, status[i].ClusterName)
+			} else {
+				pendingClusters = append(pendingClusters, status[i].ClusterName)
+			}
 		}
 	}
 
-	return clusters
+	return nonCompliantClusters, compliantClusters, pendingClusters
 }
 
 // Helper function to filter out compliance statuses that are not in scope

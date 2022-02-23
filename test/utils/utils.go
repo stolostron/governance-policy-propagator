@@ -19,6 +19,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
+	clusterv1 "open-cluster-management.io/api/cluster/v1"
 	clusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
 	appsv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 )
@@ -34,6 +35,25 @@ func GeneratePlrStatus(clusters ...string) *appsv1.PlacementRuleStatus {
 	}
 
 	return &appsv1.PlacementRuleStatus{Decisions: plrDecision}
+}
+
+// GenerateManagedCluters generate and manage cluster with given cluster
+func GenerateManagedCluters(clusterName string, clusterNs string) *clusterv1.ManagedCluster {
+	managedCluster := &clusterv1.ManagedCluster{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "ManagedCluster",
+			APIVersion: "cluster.open-cluster-management.io/v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      clusterName,
+			Namespace: clusterNs,
+			Labels: map[string]string{
+				"name": clusterName,
+			},
+		},
+	}
+
+	return managedCluster
 }
 
 // GeneratePldStatus generate pld status with given clusters

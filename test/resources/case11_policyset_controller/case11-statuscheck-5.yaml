@@ -11,9 +11,10 @@ status:
   - placementBinding: test-plcset-managed1-pb
     placementRule: test-plcset-managed1-plr
   results:
-  - clusters:
-    - clusterName: managed1
-      clusterNamespace: managed1
-      compliant: NonCompliant
+  - clusterTotal: 1
     compliant: NonCompliant
+    compliantClusterTotal: 0
+    nonCompliantClusterTotal: 1
+    nonCompliantClusters:
+    - managed1
     policy: case11-multiple-placements-rule

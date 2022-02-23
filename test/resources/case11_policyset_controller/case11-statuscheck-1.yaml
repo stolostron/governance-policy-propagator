@@ -11,12 +11,11 @@ status:
   - placementBinding: case11-test-policyset-pb
     placementRule: case11-test-policyset-plr
   results:
-  - clusters:
-    - clusterName: managed1
-      clusterNamespace: managed1
-      compliant: NonCompliant
-    - clusterName: managed2
-      clusterNamespace: managed2
-      compliant: NonCompliant
+  - clusterTotal: 2
+    compliantClusterTotal: 0
+    nonCompliantClusterTotal: 2
+    nonCompliantClusters: 
+    - managed1
+    - managed2
     compliant: NonCompliant
     policy: case11-test-policy

@@ -37,6 +37,7 @@ var (
 	gvrPlacementDecision  schema.GroupVersionResource
 	gvrSecret             schema.GroupVersionResource
 	gvrAnsibleJob         schema.GroupVersionResource
+	gvrManagedCluster     schema.GroupVersionResource
 	defaultTimeoutSeconds int
 	defaultImageRegistry  string
 )
@@ -80,6 +81,9 @@ var _ = BeforeSuite(func() {
 	gvrAnsibleJob = schema.GroupVersionResource{
 		Group: "tower.ansible.com", Version: "v1alpha1", Resource: "ansiblejobs",
 	}
+	gvrManagedCluster = schema.GroupVersionResource{
+		Group: "cluster.open-cluster-management.io", Version: "v1", Resource: "managedclusters",
+	}
 	clientHub = NewKubeClient("", "", "")
 	clientHubDynamic = NewKubeClientDynamic("", "", "")
 	defaultImageRegistry = "quay.io/stolostron"
@@ -107,6 +111,9 @@ func NewKubeClient(url, kubeconfig, context string) kubernetes.Interface {
 		panic(err)
 	}
 
+	config.QPS = 200.0
+	config.Burst = 400
+
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		panic(err)
@@ -122,6 +129,9 @@ func NewKubeClientDynamic(url, kubeconfig, context string) dynamic.Interface {
 	if err != nil {
 		panic(err)
 	}
+
+	config.QPS = 200.0
+	config.Burst = 400
 
 	clientset, err := dynamic.NewForConfig(config)
 	if err != nil {

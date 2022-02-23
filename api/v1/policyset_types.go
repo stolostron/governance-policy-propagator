@@ -36,17 +36,20 @@ type PolicySetStatusPlacement struct {
 
 // PolicySetResultCluster shows the compliance status of a policy for a specific cluster
 type PolicySetResultCluster struct {
-	ClusterName      string `json:"clusterName,omitempty"`
-	ClusterNamespace string `json:"clusterNamespace,omitempty"`
-	Compliant        string `json:"compliant,omitempty"`
+	ClusterName string `json:"cluster,omitempty"`
+	Compliant   string `json:"compliant,omitempty"`
 }
 
 // PolicySetStatusResult shows the compliance status of a policy in the set
 type PolicySetStatusResult struct {
-	Policy    string                   `json:"policy,omitempty"`
-	Compliant string                   `json:"compliant,omitempty"`
-	Clusters  []PolicySetResultCluster `json:"clusters,omitempty"`
-	Message   string                   `json:"message,omitempty"`
+	Policy                   string   `json:"policy,omitempty"`
+	Compliant                string   `json:"compliant,omitempty"`
+	ClusterTotal             int      `json:"clusterTotal"`
+	CompliantClusterTotal    int      `json:"compliantClusterTotal"`
+	NonCompliantClusterTotal int      `json:"nonCompliantClusterTotal"`
+	CompliantClusters        []string `json:"compliantClusters,omitempty"`
+	NonCompliantClusters     []string `json:"nonCompliantClusters,omitempty"`
+	Message                  string   `json:"message,omitempty"`
 }
 
 // +kubebuilder:object:root=true

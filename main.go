@@ -94,9 +94,7 @@ func main() {
 		"The maximum number of concurrent reconciles for the policy-encryption-keys controller",
 	)
 
-	opts := zap.Options{
-		Development: true,
-	}
+	opts := zap.Options{}
 
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()

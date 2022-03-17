@@ -925,6 +925,8 @@ github.com/spf13/viper v1.7.0/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5q
 github.com/spf13/viper v1.8.1/go.mod h1:o0Pch8wJ9BVSWGQMbra6iw0oQ5oktSIBaujf1rJH9Ns=
 github.com/src-d/gcfg v1.4.0/go.mod h1:p/UMsR43ujA89BJY9duynAwIpvqEujIH/jFlfL7jWoI=
 github.com/stoewer/go-strcase v1.2.0/go.mod h1:IBiWB2sKIp3wVVQ3Y035++gc+knqhUQag1KpM8ahLw8=
+github.com/stolostron/go-log-utils v0.1.0 h1:YRi84JogWKHCfrif46m/4rep+ucsc80c9667FzaBbTA=
+github.com/stolostron/go-log-utils v0.1.0/go.mod h1:2Uc5mbuLvSFpoXFFEKRTEFOlR7nqGVMu9mbU+FIttTI=
 github.com/stolostron/go-template-utils/v2 v2.2.2 h1:wGGfxzexV0xNHcT6XUlXLGj6K44pBDwRixD9wYEyhtc=
 github.com/stolostron/go-template-utils/v2 v2.2.2/go.mod h1:z4d9KZkkW5jAHns3bafVTmab+eq/jVsoFRYWbH37Qu4=
 github.com/streadway/amqp v0.0.0-20190404075320-75d898a42a94/go.mod h1:AZpEONHx3DKn8O/DFsRAY58/XVQiIPMTMB1SddzLXVw=

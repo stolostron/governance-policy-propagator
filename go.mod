@@ -6,15 +6,17 @@ require (
 	github.com/avast/retry-go/v3 v3.1.1
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v1.2.2
+	github.com/go-logr/zapr v1.2.2
 	github.com/onsi/ginkgo/v2 v2.1.3
 	github.com/onsi/gomega v1.18.1
 	github.com/prometheus/client_golang v1.12.1
 	github.com/spf13/pflag v1.0.5
+	github.com/stolostron/go-log-utils v0.1.0
 	github.com/stolostron/go-template-utils/v2 v2.2.2
 	k8s.io/api v0.23.3
 	k8s.io/apimachinery v0.23.3
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/klog v1.0.0
+	k8s.io/klog/v2 v2.40.1
 	open-cluster-management.io/api v0.6.1-0.20220208144021-3297cac74dc5
 	open-cluster-management.io/multicloud-operators-subscription v0.6.0
 	sigs.k8s.io/controller-runtime v0.11.1
@@ -33,7 +35,6 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/fsnotify/fsnotify v1.5.1 // indirect
-	github.com/go-logr/zapr v1.2.2 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang-jwt/jwt/v4 v4.3.0 // indirect
 	github.com/golang/glog v1.0.0 // indirect
@@ -72,7 +73,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	k8s.io/apiextensions-apiserver v0.23.3 // indirect
 	k8s.io/component-base v0.23.3 // indirect
-	k8s.io/klog/v2 v2.40.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20220124234850-424119656bbf // indirect
 	k8s.io/utils v0.0.0-20220210201930-3a6ce19ff2f9 // indirect
 	sigs.k8s.io/json v0.0.0-20211208200746-9f7c6b3444d2 // indirect

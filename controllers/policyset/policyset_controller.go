@@ -162,6 +162,7 @@ func (r *PolicySetReconciler) processPolicySet(ctx context.Context, plcSet *poli
 			if childPlc.Spec.Disabled {
 				// policy is disabled, do not process compliance
 				compliancesFound = append(compliancesFound, "disabled")
+
 				continue
 			}
 
@@ -227,6 +228,7 @@ func (r *PolicySetReconciler) processPolicySet(ctx context.Context, plcSet *poli
 // showCompliance only if all policies in the set can be found and one or more are enabled
 func showCompliance(compliancesFound []string) bool {
 	show := false
+
 	for _, policy := range compliancesFound {
 		if policy == "notfound" {
 			return false
@@ -234,6 +236,7 @@ func showCompliance(compliancesFound []string) bool {
 			show = true
 		}
 	}
+
 	return show
 }
 

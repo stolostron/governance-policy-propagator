@@ -184,7 +184,7 @@ kind-deploy-controller: manifests
 	kubectl create ns $(KIND_NAMESPACE)
 	kubectl apply -f deploy/operator.yaml -n $(KIND_NAMESPACE)
 
-kind-deploy-controller-dev: manifests kind-deploy-controller
+kind-deploy-controller-dev: kind-deploy-controller
 	@echo Pushing image to KinD cluster
 	kind load docker-image $(REGISTRY)/$(IMG):$(TAG) --name $(KIND_NAME)
 	@echo "Patch deployment image"

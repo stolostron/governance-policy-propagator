@@ -11,9 +11,9 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	appsv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 
-	policiesv1 "github.com/stolostron/governance-policy-propagator/api/v1"
-	"github.com/stolostron/governance-policy-propagator/controllers/common"
-	"github.com/stolostron/governance-policy-propagator/test/utils"
+	policiesv1 "open-cluster-management.io/governance-policy-propagator/api/v1"
+	"open-cluster-management.io/governance-policy-propagator/controllers/common"
+	"open-cluster-management.io/governance-policy-propagator/test/utils"
 )
 
 const (

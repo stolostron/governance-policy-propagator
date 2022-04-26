@@ -15,8 +15,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	policiesv1 "github.com/stolostron/governance-policy-propagator/api/v1"
-	"github.com/stolostron/governance-policy-propagator/controllers/common"
+	policiesv1 "open-cluster-management.io/governance-policy-propagator/api/v1"
+	"open-cluster-management.io/governance-policy-propagator/controllers/common"
 )
 
 const ControllerName string = "policy-metrics"

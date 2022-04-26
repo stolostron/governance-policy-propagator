@@ -27,9 +27,9 @@ import (
 	appsv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	policiesv1 "github.com/stolostron/governance-policy-propagator/api/v1"
-	policiesv1beta1 "github.com/stolostron/governance-policy-propagator/api/v1beta1"
-	"github.com/stolostron/governance-policy-propagator/controllers/common"
+	policiesv1 "open-cluster-management.io/governance-policy-propagator/api/v1"
+	policiesv1beta1 "open-cluster-management.io/governance-policy-propagator/api/v1beta1"
+	"open-cluster-management.io/governance-policy-propagator/controllers/common"
 )
 
 const (

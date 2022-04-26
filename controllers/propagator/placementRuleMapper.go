@@ -12,8 +12,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
-	policiesv1 "github.com/stolostron/governance-policy-propagator/api/v1"
-	policiesv1beta1 "github.com/stolostron/governance-policy-propagator/api/v1beta1"
+	policiesv1 "open-cluster-management.io/governance-policy-propagator/api/v1"
+	policiesv1beta1 "open-cluster-management.io/governance-policy-propagator/api/v1beta1"
 )
 
 func placementRuleMapper(c client.Client) handler.MapFunc {

@@ -12,7 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	"github.com/stolostron/governance-policy-propagator/test/utils"
+	"open-cluster-management.io/governance-policy-propagator/test/utils"
 )
 
 const (

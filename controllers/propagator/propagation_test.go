@@ -14,7 +14,7 @@ import (
 	"k8s.io/client-go/rest"
 	appsv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 
-	policiesv1 "github.com/stolostron/governance-policy-propagator/api/v1"
+	policiesv1 "open-cluster-management.io/governance-policy-propagator/api/v1"
 )
 
 func TestInitializeAttempts(t *testing.T) {

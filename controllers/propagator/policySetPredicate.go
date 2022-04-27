@@ -8,7 +8,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	policiesv1beta1 "github.com/stolostron/governance-policy-propagator/api/v1beta1"
+	policiesv1beta1 "open-cluster-management.io/governance-policy-propagator/api/v1beta1"
 )
 
 // we only want to watch for policyset objects with Spec.Policies field change

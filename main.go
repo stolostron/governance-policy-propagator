@@ -36,14 +36,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 
 	//+kubebuilder:scaffold:imports
-	policyv1 "github.com/stolostron/governance-policy-propagator/api/v1"
-	policyv1beta1 "github.com/stolostron/governance-policy-propagator/api/v1beta1"
-	automationctrl "github.com/stolostron/governance-policy-propagator/controllers/automation"
-	encryptionkeysctrl "github.com/stolostron/governance-policy-propagator/controllers/encryptionkeys"
-	metricsctrl "github.com/stolostron/governance-policy-propagator/controllers/policymetrics"
-	policysetctrl "github.com/stolostron/governance-policy-propagator/controllers/policyset"
-	propagatorctrl "github.com/stolostron/governance-policy-propagator/controllers/propagator"
-	"github.com/stolostron/governance-policy-propagator/version"
+	policyv1 "open-cluster-management.io/governance-policy-propagator/api/v1"
+	policyv1beta1 "open-cluster-management.io/governance-policy-propagator/api/v1beta1"
+	automationctrl "open-cluster-management.io/governance-policy-propagator/controllers/automation"
+	encryptionkeysctrl "open-cluster-management.io/governance-policy-propagator/controllers/encryptionkeys"
+	metricsctrl "open-cluster-management.io/governance-policy-propagator/controllers/policymetrics"
+	policysetctrl "open-cluster-management.io/governance-policy-propagator/controllers/policyset"
+	propagatorctrl "open-cluster-management.io/governance-policy-propagator/controllers/propagator"
+	"open-cluster-management.io/governance-policy-propagator/version"
 )
 
 var (

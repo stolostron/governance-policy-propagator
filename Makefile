@@ -14,13 +14,14 @@
 # Copyright Contributors to the Open Cluster Management project
 
 PWD := $(shell pwd)
-export PATH := $(PWD)/bin:$(PATH)
+LOCAL_BIN ?= $(PWD)/bin
 
 # Keep an existing GOPATH, make a private one if it is undefined
 GOPATH_DEFAULT := $(PWD)/.go
 export GOPATH ?= $(GOPATH_DEFAULT)
 GOBIN_DEFAULT := $(GOPATH)/bin
 export GOBIN ?= $(GOBIN_DEFAULT)
+export PATH := $(LOCAL_BIN):$(GOBIN):$(PATH)
 GOARCH = $(shell go env GOARCH)
 GOOS = $(shell go env GOOS)
 TESTARGS_DEFAULT := "-v"
@@ -36,9 +37,6 @@ ifneq ($(KIND_VERSION), latest)
 else
 	KIND_ARGS =
 endif
-# Fetch Ginkgo/Gomega versions from go.mod
-GINKGO_VERSION := $(shell awk '/github.com\/onsi\/ginkgo\/v2/ {print $$2}' go.mod)
-GOMEGA_VERSION := $(shell awk '/github.com\/onsi\/gomega/ {print $$2}' go.mod)
 # Test coverage threshold
 export COVERAGE_MIN ?= 75
 
@@ -48,18 +46,12 @@ IMG ?= $(shell cat COMPONENT_NAME 2> /dev/null)
 REGISTRY ?= quay.io/stolostron
 TAG ?= latest
 
-LOCAL_OS := $(shell uname)
-ifeq ($(LOCAL_OS),Linux)
-    TARGET_OS ?= linux
-    XARGS_FLAGS="-r"
-else ifeq ($(LOCAL_OS),Darwin)
-    TARGET_OS ?= darwin
-    XARGS_FLAGS=
-else
-    $(error "This system's OS $(LOCAL_OS) isn't recognized/supported")
-endif
-
-.PHONY: fmt lint test coverage build build-images fmt-dependencies lint-dependencies
+# go-get-tool will 'go install' any package $1 and install it to LOCAL_BIN.
+define go-get-tool
+@set -e ;\
+echo "Checking installation of $(1)" ;\
+GOBIN=$(LOCAL_BIN) go install $(1)
+endef
 
 include build/common/Makefile.common.mk
 
@@ -70,21 +62,28 @@ $(GOBIN):
 	@echo "create gobin"
 	@mkdir -p $(GOBIN)
 
-work: $(GOBIN)
+$(LOCAL_BIN):
+	@mkdir -p $(LOCAL_BIN)
 
 ############################################################
 # clean section
 ############################################################
-clean::
-	rm -f build/_output/bin/$(IMG)
+
+clean:
+	-rm bin/*
+	-rm build/_output/bin/*
+	-rm coverage*.out
+	-rm report*.json
+	-rm kubeconfig_managed
+	-rm -r vendor/
 
 ############################################################
 # format section
 ############################################################
 
 fmt-dependencies:
-	$(call go-get-tool,$(PWD)/bin/gci,github.com/daixiang0/gci@v0.2.9)
-	$(call go-get-tool,$(PWD)/bin/gofumpt,mvdan.cc/gofumpt@v0.2.0)
+	$(call go-get-tool,github.com/daixiang0/gci@v0.2.9)
+	$(call go-get-tool,mvdan.cc/gofumpt@v0.2.0)
 
 # All available format: format-go format-protos format-python
 # Default value will run all formats, override these make target with your requirements:
@@ -101,7 +100,7 @@ fmt: fmt-dependencies
 check: lint
 
 lint-dependencies:
-	$(call go-get-tool,$(PWD)/bin/golangci-lint,github.com/golangci/golangci-lint/cmd/golangci-lint@v1.41.1)
+	$(call go-get-tool,github.com/golangci/golangci-lint/cmd/golangci-lint@v1.41.1)
 
 # All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-python lint-helm lint-markdown lint-sass lint-typescript lint-protos
 # Default value will run all linters, override these make target with your requirements:
@@ -111,34 +110,37 @@ lint: lint-dependencies lint-all
 ############################################################
 # test section
 ############################################################
-KUBEBUILDER_DIR = /usr/local/kubebuilder/bin
+GOSEC = $(LOCAL_BIN)/gosec
+KUBEBUILDER = $(LOCAL_BIN)/kubebuilder
 KBVERSION = 3.2.0
 K8S_VERSION = 1.21.2
-GOSEC = $(shell pwd)/bin/gosec
-GOSEC_VERSION = 2.9.6
 
-test: manifests generate fmt
-	go test $(TESTARGS) `go list ./... | grep -v test/e2e`
+test: test-dependencies
+	KUBEBUILDER_ASSETS=$(LOCAL_BIN) go test $(TESTARGS) `go list ./... | grep -v test/e2e`
 
 test-coverage: TESTARGS = -json -cover -covermode=atomic -coverprofile=coverage_unit.out
 test-coverage: test
 
-test-dependencies:
-	@if (ls $(KUBEBUILDER_DIR)/*); then \
-		echo "^^^ Files found in $(KUBEBUILDER_DIR). Skipping installation."; exit 1; \
-	else \
-		echo "^^^ Kubebuilder binaries not found. Installing Kubebuilder binaries."; \
+test-dependencies: kubebuilder-dependencies kubebuilder
+
+kubebuilder:
+	@if [ "$$($(KUBEBUILDER) version 2>/dev/null | grep -o KubeBuilderVersion:\"[0-9]*\.[0-9]\.[0-9]*\")" != "KubeBuilderVersion:\"$(KBVERSION)\"" ]; then \
+		echo "Installing Kubebuilder"; \
+		curl -L https://github.com/kubernetes-sigs/kubebuilder/releases/download/v$(KBVERSION)/kubebuilder_$(GOOS)_$(GOARCH) -o $(KUBEBUILDER); \
+		chmod +x $(KUBEBUILDER); \
 	fi
-	sudo mkdir -p $(KUBEBUILDER_DIR)
-	sudo curl -L https://github.com/kubernetes-sigs/kubebuilder/releases/download/v$(KBVERSION)/kubebuilder_$(GOOS)_$(GOARCH) -o $(KUBEBUILDER_DIR)/kubebuilder
-	sudo chmod +x $(KUBEBUILDER_DIR)/kubebuilder
-	curl -L "https://go.kubebuilder.io/test-tools/$(K8S_VERSION)/$(GOOS)/$(GOARCH)" | sudo tar xz --strip-components=2 -C $(KUBEBUILDER_DIR)/
 
-$(GOSEC):
-	curl -L https://github.com/securego/gosec/releases/download/v$(GOSEC_VERSION)/gosec_$(GOSEC_VERSION)_$(GOOS)_$(GOARCH).tar.gz | tar -xz -C /tmp/
-	sudo mv /tmp/gosec $(GOSEC)
+kubebuilder-dependencies: $(LOCAL_BIN)
+	@if [ ! -f $(LOCAL_BIN)/etcd ] || [ ! -f $(LOCAL_BIN)/kube-apiserver ] || [ ! -f $(LOCAL_BIN)/kubectl ] || \
+	[ "$$($(KUBEBUILDER) version 2>/dev/null | grep -o KubeBuilderVersion:\"[0-9]*\.[0-9]\.[0-9]*\")" != "KubeBuilderVersion:\"$(KBVERSION)\"" ]; then \
+		echo "Installing envtest Kubebuilder assets"; \
+		curl -L "https://go.kubebuilder.io/test-tools/$(K8S_VERSION)/$(GOOS)/$(GOARCH)" | tar xz --strip-components=2 -C $(LOCAL_BIN); \
+	fi
 
-gosec-scan: $(GOSEC)
+gosec:
+	$(call go-get-tool,github.com/securego/gosec/v2/cmd/gosec@v2.9.6)
+
+gosec-scan: gosec
 	$(GOSEC) -fmt sonarqube -out gosec.json -no-fail -exclude-dir=.go ./...
 
 ############################################################
@@ -165,6 +167,8 @@ run:
 ############################################################
 # Generate manifests
 ############################################################
+CONTROLLER_GEN = $(LOCAL_BIN)/controller-gen
+KUSTOMIZE = $(LOCAL_BIN)/kustomize
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
@@ -180,17 +184,17 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 generate-operator-yaml: kustomize manifests
 	$(KUSTOMIZE) build deploy/manager > deploy/operator.yaml
 
-CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
-	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.1)
+	$(call go-get-tool,sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.1)
 
-KUSTOMIZE = $(shell pwd)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+	$(call go-get-tool,sigs.k8s.io/kustomize/kustomize/v4@v4.5.4)
 
 ############################################################
 # e2e test section
 ############################################################
+GINKGO = $(LOCAL_BIN)/ginkgo
+
 .PHONY: kind-bootstrap-cluster
 kind-bootstrap-cluster: kind-create-cluster install-crds kind-deploy-controller install-resources
 
@@ -240,11 +244,10 @@ install-resources:
 	kubectl apply -f test/resources/managed2-cluster.yaml
 
 e2e-dependencies:
-	go get github.com/onsi/ginkgo/v2/ginkgo@$(GINKGO_VERSION)
-	go get github.com/onsi/gomega/...@$(GOMEGA_VERSION)
+	$(call go-get-tool,github.com/onsi/ginkgo/v2/ginkgo@$(shell awk '/github.com\/onsi\/ginkgo\/v2/ {print $$2}' go.mod))
 
 e2e-test:
-	$(GOPATH)/bin/ginkgo -v --fail-fast --slow-spec-threshold=10s $(E2E_TEST_ARGS) test/e2e
+	$(GINKGO) -v --fail-fast --slow-spec-threshold=10s $(E2E_TEST_ARGS) test/e2e
 
 e2e-test-coverage: E2E_TEST_ARGS = --json-report=report_e2e.json --output-dir=.
 e2e-test-coverage: e2e-test
@@ -267,9 +270,11 @@ e2e-debug:
 ############################################################
 # test coverage
 ############################################################
-GOCOVMERGE = $(shell pwd)/bin/gocovmerge
+GOCOVMERGE = $(LOCAL_BIN)/gocovmerge
+.PHONY: coverage-dependencies
 coverage-dependencies:
-	$(call go-get-tool,$(GOCOVMERGE),github.com/wadey/gocovmerge)
+	$(call go-get-tool,github.com/wadey/gocovmerge@v0.0.0-20160331181800-b5bfa59ec0ad)
+
 
 COVERAGE_FILE = coverage.out
 coverage-merge: coverage-dependencies
@@ -278,16 +283,3 @@ coverage-merge: coverage-dependencies
 
 coverage-verify:
 	./build/common/scripts/coverage_calc.sh
-
-# go-get-tool will 'go get' any package $2 and install it to $1.
-define go-get-tool
-@[ -f $(1) ] || { \
-set -e ;\
-TMP_DIR=$$(mktemp -d) ;\
-cd $$TMP_DIR ;\
-go mod init tmp ;\
-echo "Downloading $(2)" ;\
-GOBIN=$(PROJECT_DIR)/bin go get $(2) ;\
-rm -rf $$TMP_DIR ;\
-}
-endef

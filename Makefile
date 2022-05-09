@@ -69,6 +69,7 @@ $(LOCAL_BIN):
 # clean section
 ############################################################
 
+.PHONY: clean
 clean:
 	-rm bin/*
 	-rm build/_output/bin/*
@@ -81,6 +82,7 @@ clean:
 # format section
 ############################################################
 
+.PHONY: fmt-dependencies
 fmt-dependencies:
 	$(call go-get-tool,github.com/daixiang0/gci@v0.2.9)
 	$(call go-get-tool,mvdan.cc/gofumpt@v0.2.0)
@@ -97,8 +99,10 @@ fmt: fmt-dependencies
 # check section
 ############################################################
 
+.PHONY: check
 check: lint
 
+.PHONY: lint-dependencies
 lint-dependencies:
 	$(call go-get-tool,github.com/golangci/golangci-lint/cmd/golangci-lint@v1.41.1)
 
@@ -115,14 +119,18 @@ KUBEBUILDER = $(LOCAL_BIN)/kubebuilder
 KBVERSION = 3.2.0
 K8S_VERSION = 1.21.2
 
+.PHONY: test
 test: test-dependencies
 	KUBEBUILDER_ASSETS=$(LOCAL_BIN) go test $(TESTARGS) `go list ./... | grep -v test/e2e`
 
+.PHONY: test-coverage
 test-coverage: TESTARGS = -json -cover -covermode=atomic -coverprofile=coverage_unit.out
 test-coverage: test
 
+.PHONY: test-dependencies
 test-dependencies: kubebuilder-dependencies kubebuilder
 
+.PHONY: kubebuilder
 kubebuilder:
 	@if [ "$$($(KUBEBUILDER) version 2>/dev/null | grep -o KubeBuilderVersion:\"[0-9]*\.[0-9]\.[0-9]*\")" != "KubeBuilderVersion:\"$(KBVERSION)\"" ]; then \
 		echo "Installing Kubebuilder"; \
@@ -130,6 +138,7 @@ kubebuilder:
 		chmod +x $(KUBEBUILDER); \
 	fi
 
+.PHONY: kubebuilder-dependencies
 kubebuilder-dependencies: $(LOCAL_BIN)
 	@if [ ! -f $(LOCAL_BIN)/etcd ] || [ ! -f $(LOCAL_BIN)/kube-apiserver ] || [ ! -f $(LOCAL_BIN)/kubectl ] || \
 	[ "$$($(KUBEBUILDER) version 2>/dev/null | grep -o KubeBuilderVersion:\"[0-9]*\.[0-9]\.[0-9]*\")" != "KubeBuilderVersion:\"$(KBVERSION)\"" ]; then \
@@ -137,9 +146,11 @@ kubebuilder-dependencies: $(LOCAL_BIN)
 		curl -L "https://go.kubebuilder.io/test-tools/$(K8S_VERSION)/$(GOOS)/$(GOARCH)" | tar xz --strip-components=2 -C $(LOCAL_BIN); \
 	fi
 
+.PHONY: gosec
 gosec:
 	$(call go-get-tool,github.com/securego/gosec/v2/cmd/gosec@v2.9.6)
 
+.PHONY: gosec-scan
 gosec-scan: gosec
 	$(GOSEC) -fmt sonarqube -out gosec.json -no-fail -exclude-dir=.go ./...
 
@@ -147,9 +158,11 @@ gosec-scan: gosec
 # build section
 ############################################################
 
+.PHONY: build
 build:
 	@build/common/scripts/gobuild.sh build/_output/bin/$(IMG) main.go
 
+.PHONY: local
 local: generate fmt
 	@GOOS=darwin build/common/scripts/gobuild.sh build/_output/bin/$(IMG) main.go
 
@@ -157,10 +170,12 @@ local: generate fmt
 # images section
 ############################################################
 
+.PHONY: build-images
 build-images:
 	@docker build -t ${IMAGE_NAME_AND_VERSION} -f build/Dockerfile .
 	@docker tag ${IMAGE_NAME_AND_VERSION} $(REGISTRY)/$(IMG):$(TAG)
 
+.PHONY: run
 run:
 	WATCH_NAMESPACE="" go run main.go --leader-elect=false --log-level=2
 
@@ -184,9 +199,11 @@ generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and
 generate-operator-yaml: kustomize manifests
 	$(KUSTOMIZE) build deploy/manager > deploy/operator.yaml
 
+.PHONY: controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-get-tool,sigs.k8s.io/controller-tools/cmd/controller-gen@v0.6.1)
 
+.PHONY: kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(call go-get-tool,sigs.k8s.io/kustomize/kustomize/v4@v4.5.4)
 
@@ -201,11 +218,13 @@ kind-bootstrap-cluster: kind-create-cluster install-crds kind-deploy-controller 
 .PHONY: kind-bootstrap-cluster-dev
 kind-bootstrap-cluster-dev: kind-create-cluster install-crds install-resources
 
+.PHONY: kind-deploy-controller
 kind-deploy-controller: manifests
 	@echo installing $(IMG)
 	kubectl create ns $(KIND_NAMESPACE)
 	kubectl apply -f deploy/operator.yaml -n $(KIND_NAMESPACE)
 
+.PHONY: kind-deploy-controller-dev
 kind-deploy-controller-dev: kind-deploy-controller
 	@echo Pushing image to KinD cluster
 	kind load docker-image $(REGISTRY)/$(IMG):$(TAG) --name $(KIND_NAME)
@@ -215,13 +234,16 @@ kind-deploy-controller-dev: kind-deploy-controller
 	kubectl rollout status -n $(KIND_NAMESPACE) deployment $(IMG) --timeout=180s
 
 # Specify KIND_VERSION to indicate the version tag of the KinD image
+.PHONY: kind-create-cluster
 kind-create-cluster:
 	@echo "creating cluster"
 	kind create cluster --name $(KIND_NAME) $(KIND_ARGS)
 
+.PHONY: kind-delete-cluster
 kind-delete-cluster:
 	kind delete cluster --name $(KIND_NAME)
 
+.PHONY: install-crds
 install-crds: manifests
 	@echo installing crds
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_placementbindings.yaml
@@ -234,6 +256,7 @@ install-crds: manifests
 	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management-io/api/main/cluster/v1beta1/0000_03_clusters.open-cluster-management.io_placementdecisions.crd.yaml --validate=false
 	kubectl apply -f deploy/crds/external/tower.ansible.com_joblaunch_crd.yaml
 
+.PHONY: install-resources
 install-resources:
 	@echo creating namespaces
 	kubectl create ns policy-propagator-test
@@ -243,24 +266,31 @@ install-resources:
 	kubectl apply -f test/resources/managed1-cluster.yaml
 	kubectl apply -f test/resources/managed2-cluster.yaml
 
+.PHONY: e2e-dependencies
 e2e-dependencies:
 	$(call go-get-tool,github.com/onsi/ginkgo/v2/ginkgo@$(shell awk '/github.com\/onsi\/ginkgo\/v2/ {print $$2}' go.mod))
 
+.PHONY: e2e-test
 e2e-test:
 	$(GINKGO) -v --fail-fast --slow-spec-threshold=10s $(E2E_TEST_ARGS) test/e2e
 
+.PHONY: e2e-test-coverage
 e2e-test-coverage: E2E_TEST_ARGS = --json-report=report_e2e.json --output-dir=.
 e2e-test-coverage: e2e-test
 
+.PHONY: e2e-build-instrumented
 e2e-build-instrumented:
 	go test -covermode=atomic -coverpkg=$(GIT_HOST)/$(IMG)/... -c -tags e2e ./ -o build/_output/bin/$(IMG)-instrumented
 
+.PHONY: e2e-run-instrumented
 e2e-run-instrumented:
 	WATCH_NAMESPACE="$(WATCH_NAMESPACE)" ./build/_output/bin/$(IMG)-instrumented -test.run "^TestRunMain$$" -test.coverprofile=coverage_e2e.out &>/dev/null &
 
+.PHONY: e2e-stop-instrumented
 e2e-stop-instrumented:
 	ps -ef | grep '$(IMG)' | grep -v grep | awk '{print $$2}' | xargs kill
 
+.PHONY: e2e-debug
 e2e-debug:
 	kubectl get all -n $(KIND_NAMESPACE)
 	kubectl get Policy.policy.open-cluster-management.io --all-namespaces
@@ -277,9 +307,11 @@ coverage-dependencies:
 
 
 COVERAGE_FILE = coverage.out
+.PHONY: coverage-merge
 coverage-merge: coverage-dependencies
 	@echo Merging the coverage reports into $(COVERAGE_FILE)
 	$(GOCOVMERGE) $(PWD)/coverage_* > $(COVERAGE_FILE)
 
+.PHONY: coverage-verify
 coverage-verify:
 	./build/common/scripts/coverage_calc.sh

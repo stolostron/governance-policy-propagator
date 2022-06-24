@@ -221,7 +221,7 @@ kind-bootstrap-cluster-dev: kind-create-cluster install-crds install-resources
 .PHONY: kind-deploy-controller
 kind-deploy-controller: manifests
 	@echo installing $(IMG)
-	kubectl create ns $(KIND_NAMESPACE)
+	kubectl create ns $(KIND_NAMESPACE) --dry-run=client -o yaml | kubectl apply -f -
 	kubectl apply -f deploy/operator.yaml -n $(KIND_NAMESPACE)
 
 .PHONY: kind-deploy-controller-dev
@@ -259,9 +259,9 @@ install-crds: manifests
 .PHONY: install-resources
 install-resources:
 	@echo creating namespaces
-	kubectl create ns policy-propagator-test
-	kubectl create ns managed1
-	kubectl create ns managed2
+	kubectl create ns policy-propagator-test --dry-run=client -o yaml | kubectl apply -f -
+	kubectl create ns managed1 --dry-run=client -o yaml | kubectl apply -f -
+	kubectl create ns managed2 --dry-run=client -o yaml | kubectl apply -f -
 	@echo creating cluster resources
 	kubectl apply -f test/resources/managed1-cluster.yaml
 	kubectl apply -f test/resources/managed2-cluster.yaml

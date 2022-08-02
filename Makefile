@@ -280,7 +280,7 @@ e2e-test-coverage: e2e-run-instrumented e2e-test e2e-stop-instrumented
 
 .PHONY: e2e-build-instrumented
 e2e-build-instrumented:
-	go test -covermode=atomic -coverpkg=$(GIT_HOST)/$(IMG)/... -c -tags e2e ./ -o build/_output/bin/$(IMG)-instrumented
+	go test -covermode=atomic -coverpkg=$(shell cat go.mod | head -1 | cut -d ' ' -f 2)/... -c -tags e2e ./ -o build/_output/bin/$(IMG)-instrumented
 
 .PHONY: e2e-run-instrumented
 e2e-run-instrumented: e2e-build-instrumented

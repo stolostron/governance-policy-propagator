@@ -243,6 +243,8 @@ kind-create-cluster:
 kind-delete-cluster:
 	kind delete cluster --name $(KIND_NAME)
 
+RAW_API_VERSION := $(shell awk '/open-cluster-management.io\/api/ {print $$2}' go.mod)
+OCM_API_COMMIT := $(lastword $(subst -, ,$(RAW_API_VERSION)))
 .PHONY: install-crds
 install-crds: manifests
 	@echo installing crds
@@ -251,9 +253,9 @@ install-crds: manifests
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_policyautomations.yaml
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_policysets.yaml
 	kubectl apply -f https://raw.githubusercontent.com/stolostron/multicloud-operators-placementrule/main/deploy/crds/apps.open-cluster-management.io_placementrules_crd.yaml
-	kubectl apply -f https://raw.githubusercontent.com/stolostron/api/main/cluster/v1/0000_00_clusters.open-cluster-management.io_managedclusters.crd.yaml
-	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management-io/api/main/cluster/v1beta1/0000_02_clusters.open-cluster-management.io_placements.crd.yaml --validate=false
-	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management-io/api/main/cluster/v1beta1/0000_03_clusters.open-cluster-management.io_placementdecisions.crd.yaml --validate=false
+	kubectl apply -f https://raw.githubusercontent.com/stolostron/api/$(OCM_API_COMMIT)/cluster/v1/0000_00_clusters.open-cluster-management.io_managedclusters.crd.yaml
+	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management-io/api/$(OCM_API_COMMIT)/cluster/v1beta1/0000_02_clusters.open-cluster-management.io_placements.crd.yaml --validate=false
+	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management-io/api/$(OCM_API_COMMIT)/cluster/v1beta1/0000_03_clusters.open-cluster-management.io_placementdecisions.crd.yaml --validate=false
 	kubectl apply -f deploy/crds/external/tower.ansible.com_joblaunch_crd.yaml
 
 .PHONY: install-resources

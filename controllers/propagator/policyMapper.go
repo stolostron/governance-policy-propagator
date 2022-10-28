@@ -4,8 +4,6 @@
 package propagator
 
 import (
-	"strings"
-
 	"github.com/stolostron/governance-policy-propagator/controllers/common"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -24,8 +22,16 @@ func policyMapper(c client.Client) handler.MapFunc {
 			// policy.open-cluster-management.io/root-policy exists, should be a replicated policy
 			log.Info("Found reconciliation request from replicated policy...", "Namespace", object.GetNamespace(),
 				"Name", object.GetName())
-			name = strings.Split(rootPlcName, ".")[1]
-			namespace = strings.Split(rootPlcName, ".")[0]
+
+			var err error
+
+			name, namespace, err = common.ParseRootPolicyLabel(rootPlcName)
+			if err != nil {
+				log.Error(err, "Unable to parse name and namespace of root policy, ignoring replicated policy",
+					"rootPlcName", rootPlcName)
+
+				return nil
+			}
 		} else {
 			// policy.open-cluster-management.io/root-policy doesn't exist, should be a root policy
 			log.Info("Found reconciliation request from root policy...", "Namespace", object.GetNamespace(),

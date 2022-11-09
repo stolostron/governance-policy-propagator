@@ -505,8 +505,8 @@ github.com/spf13/viper v1.8.1/go.mod h1:o0Pch8wJ9BVSWGQMbra6iw0oQ5oktSIBaujf1rJH
 github.com/stoewer/go-strcase v1.2.0/go.mod h1:IBiWB2sKIp3wVVQ3Y035++gc+knqhUQag1KpM8ahLw8=
 github.com/stolostron/go-log-utils v0.1.1 h1:T48GyfuGpn2+6817FQVec1CyxGf0ibuVhoBiz9SeCec=
 github.com/stolostron/go-log-utils v0.1.1/go.mod h1:2Uc5mbuLvSFpoXFFEKRTEFOlR7nqGVMu9mbU+FIttTI=
-github.com/stolostron/go-template-utils/v2 v2.5.1 h1:bXuPH3tpkvilGNMVVNikS96O/+/VGyjQuZ69tfjlTEQ=
-github.com/stolostron/go-template-utils/v2 v2.5.1/go.mod h1:sWRijO7EblHCoFUvZASmWHmFxG6ARrQ9SfGQDiwrz4A=
+github.com/stolostron/go-template-utils/v2 v2.6.0 h1:pBotX+kmDKCHRLFZ5WtcKL5LfI1Ve7gVQlQLJieetwo=
+github.com/stolostron/go-template-utils/v2 v2.6.0/go.mod h1:pKGWkJIzXK869kazZ69kWtdRuMUtqPmWYI1mlJYJMgM=
 github.com/stolostron/multicloud-operators-subscription v1.2.4-0-20211122-7277a37.0.20220524175450-869cac7bc5b6 h1:bDHIHt63JjGcNwoKRsccqEHFa8EYcADbkcfiSpsAmNc=
 github.com/stolostron/multicloud-operators-subscription v1.2.4-0-20211122-7277a37.0.20220524175450-869cac7bc5b6/go.mod h1:zxwPtJvJTWKqQoxxji7SGAmfqKh9s02IW6iQVtdmDSs=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

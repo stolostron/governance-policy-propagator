@@ -1,6 +1,6 @@
 module github.com/stolostron/governance-policy-propagator
 
-go 1.18
+go 1.19
 
 require (
 	github.com/avast/retry-go/v3 v3.1.1

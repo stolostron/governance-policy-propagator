@@ -43,11 +43,6 @@ type PolicySpec struct {
 	Disabled          bool              `json:"disabled"`
 	RemediationAction RemediationAction `json:"remediationAction,omitempty"` // Enforce, Inform
 	PolicyTemplates   []*PolicyTemplate `json:"policy-templates"`
-	// If set to true (default), all the policy's labels and annotations will be copied to the replicated policy.
-	// If set to false, only the policy framework specific policy labels and annotations will be copied to the
-	// replicated policy.
-	// +kubebuilder:validation:Optional
-	CopyPolicyMetadata *bool `json:"copyPolicyMetadata,omitempty"`
 }
 
 // PlacementDecision defines the decision made by controller

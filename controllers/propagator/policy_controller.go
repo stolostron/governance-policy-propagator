@@ -135,6 +135,8 @@ func (r *PolicyReconciler) Reconcile(ctx context.Context, request ctrl.Request) 
 				},
 			})
 			if err != nil {
+				log.Error(err, "Failure during replicated policy cleanup")
+
 				return reconcile.Result{}, err
 			}
 
@@ -157,6 +159,8 @@ func (r *PolicyReconciler) Reconcile(ctx context.Context, request ctrl.Request) 
 	if !inClusterNs {
 		err := r.handleRootPolicy(instance)
 		if err != nil {
+			log.Error(err, "Failure during root policy handling")
+
 			propagationFailureMetric.WithLabelValues(instance.GetName(), instance.GetNamespace()).Inc()
 		}
 

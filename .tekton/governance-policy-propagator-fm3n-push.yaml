@@ -144,7 +144,7 @@ spec:
       runAfter:
       - clone-repository
       taskRef:
-        bundle: quay.io/redhat-appstudio-tekton-catalog/task-prefetch-dependencies:0.1@sha256:6090a9a142a1eefe30b098f41a48e0e6387e185892e5a7c004607efcbe986db9
+        bundle: quay.io/redhat-appstudio-tekton-catalog/task-prefetch-dependencies:0.1@sha256:fe10ce0268d116eae6cc5fe253ee7a5f081c9341aa4b3c9268519498f6d2641c
         name: prefetch-dependencies
       when:
       - input: $(params.hermetic)
@@ -238,7 +238,7 @@ spec:
       - name: BASE_IMAGES_DIGESTS
         value: $(tasks.build-container.results.BASE_IMAGES_DIGESTS)
       taskRef:
-        bundle: quay.io/redhat-appstudio-tekton-catalog/task-deprecated-image-check:0.1@sha256:24209e5877c6fc3bc35178535a4610dd691cb0bb925429012c392e40a02806ad
+        bundle: quay.io/redhat-appstudio-tekton-catalog/task-deprecated-image-check:0.1@sha256:bf1a1cad85bb896e920f0f7ff5dda2f885b76f2617934f72e7954565cd50df49
         name: deprecated-image-check
       when:
       - input: $(params.skip-checks)

@@ -631,6 +631,18 @@ func (r *PolicyReconciler) handleRootPolicy(instance *policiesv1.Policy) error {
 		return err
 	}
 
+	if len(failedClusters) != 0 {
+		failedNS := make([]string, 0)
+
+		for decision, isTrue := range failedClusters {
+			if isTrue {
+				failedNS = append(failedNS, decision)
+			}
+		}
+
+		return errors.New("failed to handle cluster namespaces: " + strings.Join(failedNS, ", "))
+	}
+
 	log.Info("Reconciliation complete")
 
 	return nil

@@ -10,6 +10,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	templates "github.com/stolostron/go-template-utils/v3/pkg/templates"

@@ -276,6 +276,7 @@ var _ = Describe("Test policy automation", Ordered, func() {
 			lastAnsiblejob := ansiblejobList.Items[0]
 			spec := lastAnsiblejob.Object["spec"]
 			extraVars := spec.(map[string]interface{})["extra_vars"].(map[string]interface{})
+			Expect(len(ansiblejobList.Items)).To(Equal(1))
 			Expect(extraVars["policy_name"]).To(Equal("case5-test-policy"))
 			Expect(extraVars["policy_namespace"]).To(Equal(testNamespace))
 			Expect(extraVars["hub_cluster"]).To(Equal("millienium-falcon.tatooine.local"))

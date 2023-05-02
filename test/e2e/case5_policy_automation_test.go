@@ -25,6 +25,8 @@ const (
 )
 
 var _ = Describe("Test policy automation", func() {
+	const automationName string = "create-service.now-ticket"
+
 	Describe("Create policy/pb/plc in ns:"+testNamespace+" and then update pb/plc", func() {
 		It("should be created in user ns", func() {
 			By("Creating " + case5PolicyName)
@@ -74,7 +76,7 @@ var _ = Describe("Test policy automation", func() {
 		It("Test mode = once", func() {
 			By("Patching policyAutomation with mode=once")
 			policyAutomation, err := clientHubDynamic.Resource(gvrPolicyAutomation).Namespace(testNamespace).Get(
-				context.TODO(), "create-service-now-ticket", metav1.GetOptions{},
+				context.TODO(), automationName, metav1.GetOptions{},
 			)
 			Expect(err).To(BeNil())
 			policyAutomation.Object["spec"].(map[string]interface{})["mode"] = string(policyv1beta1.Once)
@@ -142,7 +144,7 @@ var _ = Describe("Test policy automation", func() {
 			}, 30, 1).Should(Equal(1))
 			By("Mode should be set to disabled after ansiblejob is created")
 			policyAutomation, err = clientHubDynamic.Resource(gvrPolicyAutomation).Namespace(testNamespace).Get(
-				context.TODO(), "create-service-now-ticket", metav1.GetOptions{},
+				context.TODO(), automationName, metav1.GetOptions{},
 			)
 			Expect(err).To(BeNil())
 			Expect(
@@ -181,7 +183,7 @@ var _ = Describe("Test policy automation", func() {
 
 			By("Removing config map")
 			_, err = utils.KubectlWithOutput(
-				"delete", "policyautomation", "-n", testNamespace, "create-service-now-ticket",
+				"delete", "policyautomation", "-n", testNamespace, automationName,
 			)
 			Expect(err).Should(BeNil())
 			By("Ansiblejob should also be removed")
@@ -359,7 +361,7 @@ var _ = Describe("Test policy automation", func() {
 
 			By("Removing config map")
 			_, err = utils.KubectlWithOutput(
-				"delete", "policyautomation", "-n", testNamespace, "create-service-now-ticket",
+				"delete", "policyautomation", "-n", testNamespace, automationName,
 			)
 			Expect(err).Should(BeNil())
 			By("Ansiblejob should also be removed")
@@ -419,7 +421,7 @@ var _ = Describe("Test policy automation", func() {
 			// controller.
 			Eventually(func(g Gomega) {
 				policyAutomation, err = clientHubDynamic.Resource(gvrPolicyAutomation).Namespace(testNamespace).Get(
-					context.TODO(), "create-service-now-ticket", metav1.GetOptions{},
+					context.TODO(), automationName, metav1.GetOptions{},
 				)
 				g.Expect(err).To(BeNil())
 
@@ -611,7 +613,7 @@ var _ = Describe("Test policy automation", func() {
 
 			By("Patching automationStartTime to an earlier time and let delayAfterRunSeconds expire immediately")
 			policyAutomation, err = clientHubDynamic.Resource(gvrPolicyAutomation).Namespace(testNamespace).Get(
-				context.TODO(), "create-service-now-ticket", metav1.GetOptions{},
+				context.TODO(), automationName, metav1.GetOptions{},
 			)
 			Expect(err).To(BeNil())
 			status := policyAutomation.Object["status"].(map[string]interface{})
@@ -679,7 +681,7 @@ var _ = Describe("Test policy automation", func() {
 
 			By("Removing config map")
 			_, err = utils.KubectlWithOutput(
-				"delete", "policyautomation", "-n", testNamespace, "create-service-now-ticket",
+				"delete", "policyautomation", "-n", testNamespace, automationName,
 			)
 			Expect(err).Should(BeNil())
 			By("Ansiblejob should also be removed")
@@ -704,7 +706,7 @@ var _ = Describe("Test policy automation", func() {
 				"policyautomation",
 				"-n",
 				testNamespace,
-				"create-service-now-ticket",
+				automationName,
 				"--overwrite",
 				"policy.open-cluster-management.io/rerun=true",
 			)
@@ -750,7 +752,7 @@ var _ = Describe("Test policy automation", func() {
 				"policyautomation",
 				"-n",
 				testNamespace,
-				"create-service-now-ticket",
+				automationName,
 				"--overwrite",
 				"policy.open-cluster-management.io/rerun=true",
 			)
@@ -787,7 +789,7 @@ var _ = Describe("Test policy automation", func() {
 			By("PolicyAutomation should also be removed")
 			Eventually(func() *unstructured.Unstructured {
 				policyAutomation, err := clientHubDynamic.Resource(gvrPolicyAutomation).Namespace(testNamespace).Get(
-					context.TODO(), "create-service-now-ticket", metav1.GetOptions{},
+					context.TODO(), automationName, metav1.GetOptions{},
 				)
 				if !k8serrors.IsNotFound(err) {
 					Expect(err).To(BeNil())

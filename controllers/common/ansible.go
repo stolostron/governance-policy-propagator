@@ -5,6 +5,7 @@ package common
 import (
 	"context"
 	"encoding/json"
+	"regexp"
 	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -54,8 +55,12 @@ func CreateAnsibleJob(policyAutomation *policyv1beta1.PolicyAutomation,
 		Resource: "ansiblejobs",
 	}
 
+	// Replace all special characters with hyphens. The ansible tower API requires this.
+	nonAlphaNumerics := regexp.MustCompile("[^a-zA-Z0-9]")
+	cleanName := nonAlphaNumerics.ReplaceAllString(policyAutomation.GetName(), "-")
+
 	// Ansible tower API requires the lower case naming
-	ansibleJob.SetGenerateName(strings.ToLower(policyAutomation.GetName() + "-" + mode + "-"))
+	ansibleJob.SetGenerateName(strings.ToLower(cleanName + "-" + mode + "-"))
 	ansibleJob.SetOwnerReferences([]metav1.OwnerReference{
 		*metav1.NewControllerRef(policyAutomation, policyAutomation.GroupVersionKind()),
 	})

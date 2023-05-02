@@ -271,6 +271,8 @@ spec:
               fieldPath: metadata.name
         - name: OPERATOR_NAME
           value: governance-policy-propagator
+        - name: CONTROLLER_CONFIG_REQUEUE_ERROR_DELAY
+          value: "1"
         image: quay.io/stolostron/governance-policy-propagator:latest
         imagePullPolicy: Always
         name: governance-policy-propagator

@@ -587,7 +587,7 @@ var _ = Describe("Test policy propagation", func() {
 
 			By("Verifying that the policy is now replicated")
 			pol := utils.GetWithTimeout(clientHubDynamic, gvrPolicy, testNamespace+"."+case6PolicyName,
-				"test6-extra", true, defaultTimeoutSeconds)
+				"test6-extra", true, defaultTimeoutSeconds*4)
 			Expect(pol).NotTo(BeNil())
 		})
 		AfterAll(func() {

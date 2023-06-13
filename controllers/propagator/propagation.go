@@ -903,6 +903,11 @@ func (r *PolicyReconciler) processTemplates(
 
 	templateCfg := getTemplateCfg()
 	templateCfg.LookupNamespace = rootPlc.GetNamespace()
+	templateCfg.ClusterScopedAllowList = []templates.ClusterScopedObjectIdentifier{{
+		Group: "cluster.open-cluster-management.io",
+		Kind:  "ManagedCluster",
+		Name:  decision.ClusterName,
+	}}
 
 	tmplResolver, err := templates.NewResolver(kubeClient, kubeConfig, templateCfg)
 	if err != nil {

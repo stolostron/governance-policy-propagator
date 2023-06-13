@@ -67,7 +67,7 @@ var _ = Describe("Test policy template metrics", Ordered, func() {
 			By("Checking metric endpoint for root policy hub template watches")
 			Eventually(func() interface{} {
 				return utils.GetMetrics("hub_templates_active_watches", "\"[0-9]\"")
-			}, defaultTimeoutSeconds, 1).Should(Equal([]string{"2"}))
+			}, defaultTimeoutSeconds, 1).Should(Equal([]string{"3"}))
 		})
 
 		cleanup := func() {

@@ -543,7 +543,7 @@ func (r *PolicyReconciler) handleRootPolicy(instance *policiesv1.Policy) error {
 
 	log.V(1).Info("Updating the root policy status")
 
-	err = r.Status().Update(context.TODO(), instance, &client.UpdateOptions{})
+	err = r.Status().Update(context.TODO(), instance)
 	if err != nil {
 		return err
 	}
@@ -899,6 +899,11 @@ func (r *PolicyReconciler) processTemplates(
 
 	templateCfg := getTemplateCfg()
 	templateCfg.LookupNamespace = rootPlc.GetNamespace()
+	templateCfg.ClusterScopedAllowList = []templates.ClusterScopedObjectIdentifier{{
+		Group: "cluster.open-cluster-management.io",
+		Kind:  "ManagedCluster",
+		Name:  decision.ClusterName,
+	}}
 
 	tmplResolver, err := templates.NewResolver(kubeClient, kubeConfig, templateCfg)
 	if err != nil {

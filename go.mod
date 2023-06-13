@@ -6,17 +6,17 @@ require (
 	github.com/ghodss/yaml v1.0.1-0.20190212211648-25d852aebe32
 	github.com/go-logr/logr v1.2.4
 	github.com/go-logr/zapr v1.2.3
+	github.com/google/go-cmp v0.5.9
 	github.com/onsi/ginkgo/v2 v2.9.4
 	github.com/onsi/gomega v1.27.6
-	github.com/google/go-cmp v0.5.9
 	github.com/prometheus/client_golang v1.15.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stolostron/go-log-utils v0.1.2
-	github.com/stolostron/go-template-utils/v3 v3.2.1
-	github.com/stolostron/kubernetes-dependency-watches v0.2.1
-	k8s.io/api v0.27.1
-	k8s.io/apimachinery v0.27.1
-	k8s.io/client-go v12.0.0+incompatible
+	github.com/stolostron/go-template-utils/v3 v3.3.0
+	github.com/stolostron/kubernetes-dependency-watches v0.3.0
+	k8s.io/api v0.27.2
+	k8s.io/apimachinery v0.27.2
+	k8s.io/client-go v0.27.2
 	k8s.io/klog/v2 v2.100.1
 	open-cluster-management.io/api v0.10.1
 	open-cluster-management.io/multicloud-operators-subscription v0.10.0

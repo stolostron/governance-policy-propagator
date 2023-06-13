@@ -44,7 +44,9 @@ type erroringFakeClient struct {
 	UpdateError bool
 }
 
-func (c *erroringFakeClient) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
+func (c *erroringFakeClient) Get(
+	ctx context.Context, key client.ObjectKey, obj client.Object, _ ...client.GetOption,
+) error {
 	if c.GetError {
 		return errors.New("some get error")
 	}

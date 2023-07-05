@@ -224,8 +224,13 @@ kind-deploy-controller: manifests
 	-kubectl create ns $(KIND_NAMESPACE)
 	kubectl apply -f deploy/operator.yaml -n $(KIND_NAMESPACE)
 
+HOSTED ?= none
+
 .PHONY: kind-deploy-controller-dev
-kind-deploy-controller-dev: kind-deploy-controller
+kind-deploy-controller-dev:
+	if [ "$(HOSTED)" != "hosted" ]; then\
+		$(MAKE) kind-deploy-controller;\
+	fi;
 	@echo Pushing image to KinD cluster
 	kind load docker-image $(REGISTRY)/$(IMG):$(TAG) --name $(KIND_NAME)
 	@echo "Patch deployment image"

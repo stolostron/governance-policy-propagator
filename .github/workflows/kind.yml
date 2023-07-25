@@ -119,4 +119,3 @@ jobs:
       if: ${{ always() }}
       run: |
         make kind-delete-cluster
-        

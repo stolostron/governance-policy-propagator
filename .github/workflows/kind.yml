@@ -108,6 +108,13 @@ jobs:
       run: |
         make e2e-debug
 
+    - name: E2E Tests for Webhook
+      run: |
+        make webhook
+        make build-images
+        make kind-deploy-controller-dev
+        make e2e-test-webhook
+
     - name: Clean up cluster
       if: ${{ always() }}
       run: |

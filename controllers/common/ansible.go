@@ -45,7 +45,7 @@ func CreateAnsibleJob(policyAutomation *policyv1beta1.PolicyAutomation,
 	}
 
 	if targetClusters != nil {
-		// nolint: forcetypeassert
+		//nolint: forcetypeassert
 		extravars := ansibleJob.Object["spec"].(map[string]interface{})["extra_vars"].(map[string]interface{})
 		extravars["target_clusters"] = targetClusters
 	}

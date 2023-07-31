@@ -107,7 +107,7 @@ check: lint
 
 .PHONY: lint-dependencies
 lint-dependencies:
-	$(call go-get-tool,github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.2)
+	$(call go-get-tool,github.com/golangci/golangci-lint/cmd/golangci-lint@v1.52.2)
 
 # All available linters: lint-dockerfiles lint-scripts lint-yaml lint-copyright-banner lint-go lint-python lint-helm lint-markdown lint-sass lint-typescript lint-protos
 # Default value will run all linters, override these make target with your requirements:
@@ -151,7 +151,7 @@ kubebuilder-dependencies: $(LOCAL_BIN)
 
 .PHONY: gosec
 gosec:
-	$(call go-get-tool,github.com/securego/gosec/v2/cmd/gosec@v2.9.6)
+	$(call go-get-tool,github.com/securego/gosec/v2/cmd/gosec@v2.15.0)
 
 .PHONY: gosec-scan
 gosec-scan: gosec
@@ -253,7 +253,7 @@ install-crds: manifests
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_policyautomations.yaml
 	kubectl apply -f deploy/crds/policy.open-cluster-management.io_policysets.yaml
 	kubectl apply -f https://raw.githubusercontent.com/stolostron/multicloud-operators-subscription/$(RELEASE_BRANCH)/deploy/hub-common/apps.open-cluster-management.io_placementrules_crd.yaml
-	kubectl apply -f https://raw.githubusercontent.com/stolostron/api/$(OCM_API_COMMIT)/cluster/v1/0000_00_clusters.open-cluster-management.io_managedclusters.crd.yaml
+	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management-io/api/$(OCM_API_COMMIT)/cluster/v1/0000_00_clusters.open-cluster-management.io_managedclusters.crd.yaml
 	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management-io/api/$(OCM_API_COMMIT)/cluster/v1beta1/0000_02_clusters.open-cluster-management.io_placements.crd.yaml --validate=false
 	kubectl apply -f https://raw.githubusercontent.com/open-cluster-management-io/api/$(OCM_API_COMMIT)/cluster/v1beta1/0000_03_clusters.open-cluster-management.io_placementdecisions.crd.yaml --validate=false
 	kubectl apply -f deploy/crds/external/tower.ansible.com_joblaunch_crd.yaml

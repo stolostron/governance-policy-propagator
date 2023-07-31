@@ -148,7 +148,7 @@ func (r *PolicyReconciler) Reconcile(ctx context.Context, request ctrl.Request) 
 
 			// An error must not be returned for RequeueAfter to take effect. See:
 			// https://github.com/kubernetes-sigs/controller-runtime/blob/5de246bfbfd1a75f966b5662edcb9c7235244160/pkg/internal/controller/controller.go#L319-L322
-			// nolint: nilerr
+			//nolint: nilerr
 			return reconcile.Result{RequeueAfter: duration}, nil
 		}
 

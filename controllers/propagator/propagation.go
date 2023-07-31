@@ -165,7 +165,8 @@ func (r *PolicyReconciler) cleanUpPolicy(instance *policiesv1.Policy) error {
 		return nil
 	}
 
-	log.V(2).Info("Deleting %d replicated policies because root policy was deleted", len(replicatedPlcList.Items))
+	log.V(2).Info(fmt.Sprintf(
+		"Deleting %d replicated policies because root policy was deleted", len(replicatedPlcList.Items)))
 
 	policiesChan := make(chan policiesv1.Policy, len(replicatedPlcList.Items))
 	deletionResultsChan := make(chan deletionResult, len(replicatedPlcList.Items))

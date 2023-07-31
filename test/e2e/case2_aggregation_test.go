@@ -42,7 +42,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			_, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(
 				context.TODO(), plr, metav1.UpdateOptions{},
 			)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case2PolicyName, "managed1", true, defaultTimeoutSeconds,
 			)
@@ -70,7 +70,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			_, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(
 				context.TODO(), plr, metav1.UpdateOptions{},
 			)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case2PolicyName, "managed2", true, defaultTimeoutSeconds,
 			)
@@ -98,7 +98,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			_, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(
 				context.TODO(), plr, metav1.UpdateOptions{},
 			)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case2PolicyName, "managed2", true, defaultTimeoutSeconds,
 			)
@@ -141,7 +141,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			_, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(
 				context.TODO(), plr, metav1.UpdateOptions{},
 			)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			By("Checking the status of root policy")
 			yamlPlc := utils.ParseYaml("../resources/case2_aggregation/managed-both-placement-status.yaml")
 			Eventually(func() interface{} {
@@ -161,7 +161,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			_, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(
 				context.TODO(), plr, metav1.UpdateOptions{},
 			)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			By("Checking the status of root policy")
 			yamlPlc := utils.ParseYaml("../resources/case2_aggregation/managed-both-placement-status.yaml")
 			Eventually(func() interface{} {
@@ -248,7 +248,7 @@ var _ = Describe("Test policy status aggregation", func() {
 			_, err := clientHubDynamic.Resource(gvrPlacementRule).Namespace(testNamespace).UpdateStatus(
 				context.TODO(), plr, metav1.UpdateOptions{},
 			)
-			Expect(err).To(BeNil())
+			Expect(err).ToNot(HaveOccurred())
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case2PolicyName, "managed2", true, defaultTimeoutSeconds,
 			)
@@ -265,7 +265,7 @@ var _ = Describe("Test policy status aggregation", func() {
 				_, err = clientHubDynamic.Resource(gvrPolicy).Namespace(replicatedPlc.GetNamespace()).UpdateStatus(
 					context.TODO(), &replicatedPlc, metav1.UpdateOptions{},
 				)
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 			}
 			By("Checking the status of root policy")
 			yamlPlc := utils.ParseYaml("../resources/case2_aggregation/managed-both-status-compliant.yaml")
@@ -285,7 +285,7 @@ var _ = Describe("Test policy status aggregation", func() {
 				_, err = clientHubDynamic.Resource(gvrPolicy).Namespace(replicatedPlc.GetNamespace()).UpdateStatus(
 					context.TODO(), &replicatedPlc, metav1.UpdateOptions{},
 				)
-				Expect(err).To(BeNil())
+				Expect(err).ToNot(HaveOccurred())
 			}
 			By("Checking the status of root policy")
 			yamlPlc = utils.ParseYaml("../resources/case2_aggregation/managed-both-status-noncompliant.yaml")

@@ -263,9 +263,7 @@ func handleDecisionWrapper(
 		)
 		log.V(1).Info("Handling the decision")
 
-		instanceCopy := *instance.DeepCopy()
-
-		templateRefObjs, err := decisionHandler.handleDecision(&instanceCopy, decision)
+		templateRefObjs, err := decisionHandler.handleDecision(instance, decision)
 		if err == nil {
 			log.V(1).Info("Replicated the policy")
 		}
@@ -881,7 +879,6 @@ func (r *PolicyReconciler) handleDecision(
 	log := log.WithValues(
 		"policyName", rootPlc.GetName(),
 		"policyNamespace", rootPlc.GetNamespace(),
-		"replicatePolicyName", common.FullNameForPolicy(rootPlc),
 		"replicatedPolicyNamespace", decision.ClusterNamespace,
 	)
 	// retrieve replicated policy in cluster namespace

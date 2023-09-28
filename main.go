@@ -88,11 +88,18 @@ func main() {
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 
-	var metricsAddr string
-	var enableLeaderElection bool
-	var probeAddr string
-	var keyRotationDays, keyRotationMaxConcurrency, policyMetricsMaxConcurrency, policyStatusMaxConcurrency uint
-	var enableWebhooks bool
+	var (
+		metricsAddr                 string
+		enableLeaderElection        bool
+		probeAddr                   string
+		keyRotationDays             uint
+		keyRotationMaxConcurrency   uint
+		policyMetricsMaxConcurrency uint
+		policyStatusMaxConcurrency  uint
+		rootPolicyMaxConcurrency    uint
+		replPolicyMaxConcurrency    uint
+		enableWebhooks              bool
+	)
 
 	pflag.StringVar(&metricsAddr, "metrics-bind-address", ":8383", "The address the metric endpoint binds to.")
 	pflag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
@@ -124,6 +131,18 @@ func main() {
 		"policy-status-max-concurrency",
 		5,
 		"The maximum number of concurrent reconciles for the policy-status controller",
+	)
+	pflag.UintVar(
+		&rootPolicyMaxConcurrency,
+		"root-policy-max-concurrency",
+		2,
+		"The maximum number of concurrent reconciles for the root-policy controller",
+	)
+	pflag.UintVar(
+		&replPolicyMaxConcurrency,
+		"replicated-policy-max-concurrency",
+		10,
+		"The maximum number of concurrent reconciles for the replicated-policy controller",
 	)
 
 	pflag.Parse()
@@ -265,7 +284,7 @@ func main() {
 
 	if err = (&propagatorctrl.RootPolicyReconciler{
 		Propagator: propagator,
-	}).SetupWithManager(mgr); err != nil {
+	}).SetupWithManager(mgr, rootPolicyMaxConcurrency); err != nil {
 		log.Error(err, "Unable to create the controller", "controller", "root-policy-spec")
 		os.Exit(1)
 	}
@@ -273,17 +292,16 @@ func main() {
 	if err = (&propagatorctrl.ReplicatedPolicyReconciler{
 		Propagator:       propagator,
 		ResourceVersions: replicatedResourceVersions,
-	}).SetupWithManager(mgr, dynamicWatcherSource, replicatedUpdatesSource); err != nil {
+	}).SetupWithManager(mgr, replPolicyMaxConcurrency, dynamicWatcherSource, replicatedUpdatesSource); err != nil {
 		log.Error(err, "Unable to create the controller", "controller", "replicated-policy")
 		os.Exit(1)
 	}
 
 	if reportMetrics() {
 		if err = (&metricsctrl.MetricReconciler{
-			Client:                  mgr.GetClient(),
-			MaxConcurrentReconciles: policyMetricsMaxConcurrency,
-			Scheme:                  mgr.GetScheme(),
-		}).SetupWithManager(mgr); err != nil {
+			Client: mgr.GetClient(),
+			Scheme: mgr.GetScheme(),
+		}).SetupWithManager(mgr, policyMetricsMaxConcurrency); err != nil {
 			log.Error(err, "Unable to create the controller", "controller", metricsctrl.ControllerName)
 			os.Exit(1)
 		}
@@ -309,21 +327,19 @@ func main() {
 	}
 
 	if err = (&encryptionkeysctrl.EncryptionKeysReconciler{
-		Client:                  mgr.GetClient(),
-		KeyRotationDays:         keyRotationDays,
-		MaxConcurrentReconciles: keyRotationMaxConcurrency,
-		Scheme:                  mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+		Client:          mgr.GetClient(),
+		KeyRotationDays: keyRotationDays,
+		Scheme:          mgr.GetScheme(),
+	}).SetupWithManager(mgr, keyRotationMaxConcurrency); err != nil {
 		log.Error(err, "Unable to create controller", "controller", encryptionkeysctrl.ControllerName)
 		os.Exit(1)
 	}
 
 	if err = (&rootpolicystatusctrl.RootPolicyStatusReconciler{
-		Client:                  mgr.GetClient(),
-		MaxConcurrentReconciles: policyStatusMaxConcurrency,
-		RootPolicyLocks:         policiesLock,
-		Scheme:                  mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+		Client:          mgr.GetClient(),
+		RootPolicyLocks: policiesLock,
+		Scheme:          mgr.GetScheme(),
+	}).SetupWithManager(mgr, policyStatusMaxConcurrency); err != nil {
 		log.Error(err, "Unable to create controller", "controller", rootpolicystatusctrl.ControllerName)
 		os.Exit(1)
 	}

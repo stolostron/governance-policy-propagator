@@ -244,6 +244,7 @@ func main() {
 	}()
 
 	policiesLock := &sync.Map{}
+	replicatedResourceVersions := &sync.Map{}
 
 	bufferSize := 1024
 
@@ -270,7 +271,8 @@ func main() {
 	}
 
 	if err = (&propagatorctrl.ReplicatedPolicyReconciler{
-		Propagator: propagator,
+		Propagator:       propagator,
+		ResourceVersions: replicatedResourceVersions,
 	}).SetupWithManager(mgr, dynamicWatcherSource, replicatedUpdatesSource); err != nil {
 		log.Error(err, "Unable to create the controller", "controller", "replicated-policy")
 		os.Exit(1)

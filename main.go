@@ -277,7 +277,6 @@ func main() {
 		Client:                  mgr.GetClient(),
 		Scheme:                  mgr.GetScheme(),
 		Recorder:                mgr.GetEventRecorderFor(propagatorctrl.ControllerName),
-		DynamicWatcher:          dynamicWatcher,
 		RootPolicyLocks:         policiesLock,
 		ReplicatedPolicyUpdates: replicatedPolicyUpdates,
 	}
@@ -292,6 +291,7 @@ func main() {
 	if err = (&propagatorctrl.ReplicatedPolicyReconciler{
 		Propagator:       propagator,
 		ResourceVersions: replicatedResourceVersions,
+		DynamicWatcher:   dynamicWatcher,
 	}).SetupWithManager(mgr, replPolicyMaxConcurrency, dynamicWatcherSource, replicatedUpdatesSource); err != nil {
 		log.Error(err, "Unable to create the controller", "controller", "replicated-policy")
 		os.Exit(1)

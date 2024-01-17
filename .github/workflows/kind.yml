@@ -54,12 +54,10 @@ jobs:
         make test
 
     - name: Unit Test Coverage
-      if: ${{ github.event_name == 'pull_request' }}
       run: |
         make test-coverage
     
     - name: Upload Unit Test Coverage
-      if: ${{ github.event_name == 'pull_request' }}
       uses: actions/upload-artifact@v3
       with:
         name: coverage_unit
@@ -101,7 +99,7 @@ jobs:
         KUBECONFIG=${PWD}/kubeconfig_hub make e2e-test-coverage
 
     - name: Upload E2E Test Coverage
-      if: ${{ github.event_name == 'pull_request' && matrix.kind == 'latest'}}
+      if: ${{ matrix.kind == 'latest'}}
       uses: actions/upload-artifact@v3
       with:
         name: coverage_e2e
@@ -113,7 +111,7 @@ jobs:
         KUBECONFIG=${PWD}/kubeconfig_hub make e2e-test-coverage-compliance-events-api
 
     - name: Upload Compliance Events API Test Coverage
-      if: ${{ github.event_name == 'pull_request' && matrix.kind == 'latest'}}
+      if: ${{  matrix.kind == 'latest'}}
       uses: actions/upload-artifact@v3
       with:
         name: coverage_e2e_compliance_events_api
@@ -171,7 +169,7 @@ jobs:
         KUBECONFIG=${PWD}/kubeconfig_hub make e2e-test-coverage-policyautomation
 
     - name: Upload PolicyAutomation Test Coverage
-      if: ${{ github.event_name == 'pull_request' && matrix.kind == 'latest'}}
+      if: ${{ matrix.kind == 'latest'}}
       uses: actions/upload-artifact@v3
       with:
         name: coverage_e2e_policyautomation

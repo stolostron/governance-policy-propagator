@@ -279,6 +279,10 @@ func (r *ReplicatedPolicyReconciler) Reconcile(ctx context.Context, request ctrl
 			return reconcile.Result{}, err
 		}
 
+		r.Recorder.Event(rootPolicy, "Normal", "PolicyPropagation",
+			fmt.Sprintf("Policy %s/%s was propagated to cluster %s/%s", rootPolicy.GetNamespace(),
+				rootPolicy.GetName(), decision.Cluster.ClusterName, decision.Cluster.ClusterNamespace))
+
 		version.resourceVersion = desiredReplicatedPolicy.GetResourceVersion()
 
 		log.Info("Created replicated policy")
@@ -301,6 +305,10 @@ func (r *ReplicatedPolicyReconciler) Reconcile(ctx context.Context, request ctrl
 
 			return reconcile.Result{}, err
 		}
+
+		r.Recorder.Event(rootPolicy, "Normal", "PolicyPropagation",
+			fmt.Sprintf("Policy %s/%s was updated for cluster %s/%s", rootPolicy.GetNamespace(),
+				rootPolicy.GetName(), decision.Cluster.ClusterName, decision.Cluster.ClusterNamespace))
 
 		log.Info("Replicated policy updated")
 	} else {

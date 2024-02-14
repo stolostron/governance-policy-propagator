@@ -180,7 +180,7 @@ func GetDecisions(
 	ctx context.Context, c client.Client, pb *policiesv1.PlacementBinding,
 ) ([]appsv1.PlacementDecision, error) {
 	if !HasValidPlacementRef(pb) {
-		return nil, fmt.Errorf("placement binding %s/%s reference is not valid", pb.Name, pb.Namespace)
+		return nil, fmt.Errorf("placement binding %s/%s reference is not valid", pb.Namespace, pb.Name)
 	}
 
 	refNN := types.NamespacedName{
@@ -234,7 +234,7 @@ func GetDecisions(
 		return plr.Status.Decisions, nil
 	}
 
-	return nil, fmt.Errorf("placement binding %s/%s reference is not valid", pb.Name, pb.Namespace)
+	return nil, fmt.Errorf("placement binding %s/%s reference is not valid", pb.Namespace, pb.Name)
 }
 
 func ParseRootPolicyLabel(rootPlc string) (name, namespace string, err error) {

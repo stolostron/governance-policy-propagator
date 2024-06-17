@@ -24,7 +24,7 @@ spec:
   - name: output-image
     value: quay.io/redhat-user-workloads/crt-redhat-acm-tenant/release-acm-211/governance-policy-propagator-acm-211:{{revision}}
   - name: dockerfile
-    value: Dockerfile.rhtap
+    value: build/Dockerfile.rhtap
   - name: path-context
     value: .
   pipelineSpec:

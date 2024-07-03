@@ -100,3 +100,6 @@ WATCH_NAMESPACE="" WATCH_NAMESPACE_COMPLIANCE_EVENTS_STORE="open-cluster-managem
 
 - The `governance-policy-propagator` is part of the `open-cluster-management` community. For more information, visit: [open-cluster-management.io](https://open-cluster-management.io).
 
+<!---
+Date: 07/03/2024
+-->

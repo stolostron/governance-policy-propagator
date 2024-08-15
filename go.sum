@@ -208,10 +208,10 @@ github.com/spf13/pflag v1.0.5/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An
 github.com/stoewer/go-strcase v1.2.0/go.mod h1:IBiWB2sKIp3wVVQ3Y035++gc+knqhUQag1KpM8ahLw8=
 github.com/stolostron/go-log-utils v0.1.2 h1:7l1aJWvBqU2+DUyimcslT5SJpdygVY/clRDmX5sO29c=
 github.com/stolostron/go-log-utils v0.1.2/go.mod h1:8zrB8UJmp1rXhv3Ck9bBl5SpNfKk3SApeElbo96YRtQ=
-github.com/stolostron/go-template-utils/v4 v4.0.1 h1:osMyNHBm9g7LKaC/zufR6G4lEMU8M8sirGWw2rCTPE8=
-github.com/stolostron/go-template-utils/v4 v4.0.1/go.mod h1:wX4y8C2+qExXeJlqRk7+9Xv4nekukaJ7UHS7/QsfySw=
-github.com/stolostron/kubernetes-dependency-watches v0.5.2 h1:TtctOgPn+TYo1dJ+dr9TLR2rlpy5aFQ/1dzfcYZUDi4=
-github.com/stolostron/kubernetes-dependency-watches v0.5.2/go.mod h1:5nwtuleCNR9Mno7SJRz6B2BavvXHbfR4rIwzKLkk9G8=
+github.com/stolostron/go-template-utils/v4 v4.0.2-0.20240815180347-91d2369085b6 h1:f+7EcwhPv0MA0lHfBMxhCQiIfMSioZ8FbF21S9K//dw=
+github.com/stolostron/go-template-utils/v4 v4.0.2-0.20240815180347-91d2369085b6/go.mod h1:c6yaXUht7X0UOCsmNHelyUiFz1s/aoWP8BFM3oqsrHQ=
+github.com/stolostron/kubernetes-dependency-watches v0.5.3-0.20240815175218-37926d362880 h1:y+K7vy64SO3QrqDKx5Qy0OSIBO6KhjZFbDI3nSObfm0=
+github.com/stolostron/kubernetes-dependency-watches v0.5.3-0.20240815175218-37926d362880/go.mod h1:5nwtuleCNR9Mno7SJRz6B2BavvXHbfR4rIwzKLkk9G8=
 github.com/stolostron/multicloud-operators-subscription v1.2.4-0-20211122-7277a37.0.20231027053049-af37552e5602 h1:yTNmyt3R/76cG8ikLKG046PJcmhXpn8dbbigXYpmu4s=
 github.com/stolostron/multicloud-operators-subscription v1.2.4-0-20211122-7277a37.0.20231027053049-af37552e5602/go.mod h1:+p7x8NNLtrlfv8ZDjomRYAoIpHUd4R4XMo3jYwZWWmc=
 github.com/stolostron/rbac-api-utils v0.0.0-20240404212618-7f57fc664256 h1:BeTUZoAkKzPKSH0sG4a9PaakKHuJ0h9Cks9joBn3Ns8=

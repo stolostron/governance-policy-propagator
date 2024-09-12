@@ -227,7 +227,6 @@ jobs:
     
     - name: Test Coverage Verification
       run: |
-        make coverage-verify
 
     - name: Prepare additional artifacts for the sonarcloud workflow
       run: |

@@ -30,7 +30,7 @@ var log = ctrl.Log.WithName(ControllerName)
 //+kubebuilder:rbac:groups=policy.open-cluster-management.io,resources=policies/status,verbs=get;update;patch
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *RootPolicyStatusReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentReconciles uint) error {
+func (r *RootPolicyStatusReconciler) SetupWithManager(mgr ctrl.Manager, maxConcurrentReconciles uint16) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		WithOptions(controller.Options{MaxConcurrentReconciles: int(maxConcurrentReconciles)}).
 		Named(ControllerName).

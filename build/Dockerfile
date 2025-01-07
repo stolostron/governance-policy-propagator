@@ -26,7 +26,12 @@ RUN  /usr/local/bin/user_setup
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
 
-RUN microdnf update -y && \
-    microdnf clean all
-
 USER ${USER_UID}
+
+LABEL name="rhacm2/governance-policy-propagator-rhel9"
+LABEL summary="Propagate Policies to managed cluster namespaces"
+LABEL description="Propagate Policies from user namespaces to managed cluster namespaces as defined by the PlacementBinding and bound Placement."
+LABEL io.k8s.display-name="Governance policy propagator"
+LABEL io.k8s.description="Propagate Policies from user namespaces to managed cluster namespaces as defined by the PlacementBinding and bound Placement."
+LABEL com.redhat.component="acm-governance-policy-propagator-container"
+LABEL io.openshift.tags="data,images"

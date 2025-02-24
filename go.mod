@@ -13,7 +13,7 @@ require (
 	github.com/onsi/gomega v1.33.1
 	github.com/prometheus/client_golang v1.19.1
 	github.com/spf13/pflag v1.0.5
-	github.com/stolostron/go-log-utils v0.1.2
+	github.com/stolostron/go-log-utils v0.1.3
 	github.com/stolostron/go-template-utils/v6 v6.3.0
 	github.com/stolostron/kubernetes-dependency-watches v0.10.0
 	github.com/stolostron/rbac-api-utils v0.0.0-20240404212618-7f57fc664256

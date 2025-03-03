@@ -12,7 +12,7 @@ require (
 	github.com/onsi/ginkgo/v2 v2.13.0
 	github.com/onsi/gomega v1.28.1
 	github.com/prometheus/client_golang v1.17.0
-	github.com/spf13/pflag v1.0.5
+	github.com/spf13/pflag v1.0.6
 	github.com/stolostron/go-log-utils v0.1.2
 	github.com/stolostron/go-template-utils/v4 v4.0.2-0.20240815180347-91d2369085b6
 	github.com/stolostron/kubernetes-dependency-watches v0.5.3-0.20240815175218-37926d362880

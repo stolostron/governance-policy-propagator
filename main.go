@@ -529,7 +529,7 @@ func main() {
 		mgr, replPolicyMaxConcurrency, dynamicWatcherSource, replicatedUpdatesSource, templatesSource,
 	); err != nil {
 		log.Error(err, "Unable to create the controller", "controller", "replicated-policy")
-		os.Exit(1)
+		os.Exit(1) //nolint:gocritic
 	}
 
 	log.Info("Starting manager")
@@ -566,14 +566,16 @@ func startComplianceEventsAPI(
 	dbSecret, err := client.CoreV1().Secrets(controllerNamespace).Get(
 		ctx, complianceeventsapi.DBSecretName, metav1.GetOptions{},
 	)
-	if k8serrors.IsNotFound(err) {
+
+	switch {
+	case k8serrors.IsNotFound(err):
 		log.Info(
 			"Could not start the compliance events API. To enable this functionality, ensure the Postgres "+
 				"connection secret is valid in the controller namespace.",
 			"secretName", complianceeventsapi.DBSecretName,
 			"namespace", controllerNamespace,
 		)
-	} else if err != nil {
+	case err != nil:
 		log.Error(
 			err,
 			"Failed to determine if the secret was defined",
@@ -582,7 +584,7 @@ func startComplianceEventsAPI(
 		)
 
 		os.Exit(1)
-	} else {
+	default:
 		var err error
 
 		dbConnectionURL, err = complianceeventsapi.ParseDBSecret(dbSecret, tempDir)

@@ -58,4 +58,4 @@ func (e *EnqueueRequestsFromMapFunc) mapAndEnqueue(ctx context.Context, q workqu
 	}
 }
 
-var NeverEnqueue = predicate.NewPredicateFuncs(func(o client.Object) bool { return false })
+var NeverEnqueue = predicate.NewPredicateFuncs(func(_ client.Object) bool { return false })

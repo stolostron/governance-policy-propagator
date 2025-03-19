@@ -6,7 +6,6 @@ package v1
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"unicode/utf8"
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -84,7 +83,7 @@ func (r *Policy) validateName() error {
 
 	// 1 character for "."
 	if (utf8.RuneCountInString(r.Name) + utf8.RuneCountInString(r.Namespace)) > 62 {
-		log.Info(fmt.Sprintf("Invalid policy name/namespace: %s", errName.Error()))
+		log.Info("Invalid policy name/namespace: " + errName.Error())
 
 		return errName
 	}
@@ -110,7 +109,7 @@ func (r *Policy) validateRemediationAction() error {
 		if objUnstruct.GroupVersionKind().Kind == "ConfigurationPolicy" {
 			_, found, _ := unstructured.NestedString(objUnstruct.Object, "spec", "remediationAction")
 			if !found {
-				log.Info(fmt.Sprintf("Invalid remediationAction configuration: %s", errRemediation.Error()))
+				log.Info("Invalid remediationAction configuration: " + errRemediation.Error())
 
 				return errRemediation
 			}

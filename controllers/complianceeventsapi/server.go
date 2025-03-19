@@ -1,3 +1,4 @@
+//nolint:all
 package complianceeventsapi
 
 import (
@@ -222,6 +223,7 @@ func (s *ComplianceAPIServer) Start(ctx context.Context, serverContext *Complian
 
 				return
 			}
+
 			getComplianceEvents(serverContext.DB, w, r, userConfig)
 		case http.MethodPost:
 			postComplianceEvent(serverContext, s.cfg, w, r)

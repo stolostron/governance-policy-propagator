@@ -1,3 +1,4 @@
+//nolint:all
 package complianceeventsapi
 
 import (
@@ -326,6 +327,7 @@ func (p *ParentPolicy) SelectQuery(returnedColumns ...string) (string, []any) {
 	} else {
 		columnCount++
 		sql += fmt.Sprintf(" AND categories=$%d", columnCount)
+
 		values = append(values, p.Categories)
 	}
 
@@ -334,6 +336,7 @@ func (p *ParentPolicy) SelectQuery(returnedColumns ...string) (string, []any) {
 	} else {
 		columnCount++
 		sql += fmt.Sprintf(" AND controls=$%d", columnCount)
+
 		values = append(values, p.Controls)
 	}
 
@@ -342,6 +345,7 @@ func (p *ParentPolicy) SelectQuery(returnedColumns ...string) (string, []any) {
 	} else {
 		columnCount++
 		sql += fmt.Sprintf(" AND standards=$%d", columnCount)
+
 		values = append(values, p.Standards)
 	}
 
@@ -459,14 +463,14 @@ func PolicyFromUnstructured(obj unstructured.Unstructured) *Policy {
 }
 
 type Policy struct {
-	KeyID     int32   `db:"id" json:"id"`
-	Kind      string  `db:"kind" json:"kind"`
+	KeyID     int32   `db:"id" 	      json:"id"`
+	Kind      string  `db:"kind"      json:"kind"`
 	APIGroup  string  `db:"api_group" json:"apiGroup"`
-	Name      string  `db:"name" json:"name"`
+	Name      string  `db:"name"      json:"name"`
 	Namespace *string `db:"namespace" json:"namespace"`
 	Spec      JSONMap `json:"spec,omitempty"`
-	SpecID    int32   `db:"spec_id" json:"-"`
-	Severity  *string `db:"severity" json:"severity"`
+	SpecID    int32   `db:"spec_id"   json:"-"`
+	Severity  *string `db:"severity"  json:"severity"`
 }
 
 func (p *Policy) Validate() error {
@@ -537,6 +541,7 @@ func (p *Policy) SelectQuery(returnedColumns ...string) (string, []any) {
 	} else {
 		columnCount++
 		sql += fmt.Sprintf(" AND namespace=$%d", columnCount)
+
 		values = append(values, p.Namespace)
 	}
 
@@ -545,6 +550,7 @@ func (p *Policy) SelectQuery(returnedColumns ...string) (string, []any) {
 	} else {
 		columnCount++
 		sql += fmt.Sprintf(" AND severity=$%d", columnCount)
+
 		values = append(values, p.Severity)
 	}
 

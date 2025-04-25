@@ -424,7 +424,6 @@ spec:
             operator: in
             values:
               - "false"
-        workspaces: []
       - name: sast-unicode-check
         params:
           - name: image-url
@@ -449,7 +448,6 @@ spec:
             operator: in
             values:
               - "false"
-        workspaces: []
       - name: clamav-scan
         params:
           - name: image-digest
@@ -537,7 +535,8 @@ spec:
         optional: true
       - name: netrc
         optional: true
-  taskRunTemplate: {}
+  taskRunTemplate:
+    serviceAccountName: build-pipeline-governance-policy-propagator-acm-213
   workspaces:
     - name: git-auth
       secret:

@@ -97,7 +97,7 @@ gosec-scan: GOSEC_ARGS=-exclude G201
 
 .PHONY: build
 build:
-	CGO_ENABLED=1 go build -o build/_output/bin/$(IMG) main.go
+	CGO_ENABLED=1 go build -mod=readonly -o build/_output/bin/$(IMG) main.go
 
 ############################################################
 # images section

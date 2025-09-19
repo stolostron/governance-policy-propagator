@@ -211,9 +211,9 @@ func getReconciler(encryptionSecret *corev1.Secret) *EncryptionKeysReconciler {
 	}
 }
 
-func assertTriggerUpdate(r *EncryptionKeysReconciler) {
+func assertTriggerUpdate(ctx context.Context, r *EncryptionKeysReconciler) {
 	policyList := v1.PolicyList{}
-	err := r.List(context.TODO(), &policyList)
+	err := r.List(ctx, &policyList)
 	Expect(err).ToNot(HaveOccurred())
 
 	for _, policy := range policyList.Items {
@@ -228,9 +228,9 @@ func assertTriggerUpdate(r *EncryptionKeysReconciler) {
 	}
 }
 
-func assertNoTriggerUpdate(r *EncryptionKeysReconciler) {
+func assertNoTriggerUpdate(ctx context.Context, r *EncryptionKeysReconciler) {
 	policyList := v1.PolicyList{}
-	err := r.List(context.TODO(), &policyList)
+	err := r.List(ctx, &policyList)
 	Expect(err).ToNot(HaveOccurred())
 
 	for _, policy := range policyList.Items {
@@ -277,7 +277,7 @@ func TestReconcileRotateKey(t *testing.T) {
 				Expect(bytes.Equal(encryptionSecret.Data["key"], originalKey)).To(BeFalse())
 				Expect(bytes.Equal(encryptionSecret.Data["previousKey"], originalKey)).To(BeTrue())
 
-				assertTriggerUpdate(r)
+				assertTriggerUpdate(t.Context(), r)
 			},
 		)
 	}
@@ -310,7 +310,7 @@ func TestReconcileNoRotation(t *testing.T) {
 	Expect(bytes.Equal(encryptionSecret.Data["key"], originalKey)).To(BeTrue())
 	Expect(bytes.Equal(encryptionSecret.Data["previousKey"], originalKey)).To(BeFalse())
 
-	assertNoTriggerUpdate(r)
+	assertNoTriggerUpdate(t.Context(), r)
 }
 
 func TestReconcileNotFound(t *testing.T) {
@@ -368,7 +368,7 @@ func TestReconcileManualRotation(t *testing.T) {
 	Expect(bytes.Equal(encryptionSecret.Data["key"], originalKey)).To(BeTrue())
 	Expect(bytes.Equal(encryptionSecret.Data["previousKey"], originalPrevKey)).To(BeTrue())
 
-	assertTriggerUpdate(r)
+	assertTriggerUpdate(t.Context(), r)
 }
 
 func TestReconcileInvalidKey(t *testing.T) {
@@ -400,7 +400,7 @@ func TestReconcileInvalidKey(t *testing.T) {
 	Expect(bytes.Equal(encryptionSecret.Data["key"], originalKey)).To(BeFalse())
 	Expect(encryptionSecret.Data["previousKey"]).To(BeEmpty())
 
-	assertTriggerUpdate(r)
+	assertTriggerUpdate(t.Context(), r)
 }
 
 func TestReconcileInvalidPreviousKey(t *testing.T) {
@@ -432,7 +432,7 @@ func TestReconcileInvalidPreviousKey(t *testing.T) {
 	Expect(bytes.Equal(encryptionSecret.Data["key"], originalKey)).To(BeTrue())
 	Expect(encryptionSecret.Data["previousKey"]).To(BeEmpty())
 
-	assertNoTriggerUpdate(r)
+	assertNoTriggerUpdate(t.Context(), r)
 }
 
 func TestReconcileSecretNotFiltered(t *testing.T) {
@@ -456,7 +456,7 @@ func TestReconcileSecretNotFiltered(t *testing.T) {
 	Expect(result.Requeue).To(BeFalse())
 	Expect(result.RequeueAfter).To(Equal(time.Duration(0)))
 
-	assertNoTriggerUpdate(r)
+	assertNoTriggerUpdate(t.Context(), r)
 }
 
 func TestReconcileAPIFails(t *testing.T) {
@@ -523,7 +523,7 @@ func TestReconcileAPIFails(t *testing.T) {
 
 				// Revert back the fake client to verify no policy updates were triggered
 				r.Client = erroringClient.Client
-				assertNoTriggerUpdate(r)
+				assertNoTriggerUpdate(t.Context(), r)
 			},
 		)
 	}

@@ -1,7 +1,6 @@
 package propagator
 
 import (
-	"context"
 	"testing"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -73,7 +72,7 @@ func TestSetDBAnnotationsNoDB(t *testing.T) {
 
 	existingReplicatedPolicy := replicatedPolicy.DeepCopy()
 
-	reconciler.setDBAnnotations(context.TODO(), rootPolicy, replicatedPolicy, existingReplicatedPolicy)
+	reconciler.setDBAnnotations(t.Context(), rootPolicy, replicatedPolicy, existingReplicatedPolicy)
 
 	annotations := rootPolicy.GetAnnotations()
 	if annotations[ParentPolicyIDAnnotation] != "" {
@@ -110,7 +109,7 @@ func TestSetDBAnnotationsNoDB(t *testing.T) {
 		}
 	}`)
 
-	reconciler.setDBAnnotations(context.TODO(), rootPolicy2, replicatedPolicy2, existingReplicatedPolicy2)
+	reconciler.setDBAnnotations(t.Context(), rootPolicy2, replicatedPolicy2, existingReplicatedPolicy2)
 
 	annotations = replicatedPolicy2.GetAnnotations()
 	if annotations[ParentPolicyIDAnnotation] != "23" {
@@ -131,7 +130,7 @@ func TestSetDBAnnotationsNoDB(t *testing.T) {
 	}
 
 	// Test a cache hit from the last run using the policies from the first run
-	reconciler.setDBAnnotations(context.TODO(), rootPolicy, replicatedPolicy, existingReplicatedPolicy)
+	reconciler.setDBAnnotations(t.Context(), rootPolicy, replicatedPolicy, existingReplicatedPolicy)
 
 	annotations = replicatedPolicy.GetAnnotations()
 	if annotations[ParentPolicyIDAnnotation] != "23" {

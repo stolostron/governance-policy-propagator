@@ -266,13 +266,13 @@ func TestReconcileRotateKey(t *testing.T) {
 					Namespace: clusterName, Name: propagator.EncryptionKeySecret,
 				}
 				request := ctrl.Request{NamespacedName: secretID}
-				result, err := r.Reconcile(context.TODO(), request)
+				result, err := r.Reconcile(t.Context(), request)
 
 				Expect(err).ToNot(HaveOccurred())
 				Expect(result.Requeue).To(BeFalse())
 				Expect(getRequeueAfterDays(result)).To(Equal(30))
 
-				err = r.Get(context.TODO(), secretID, encryptionSecret)
+				err = r.Get(t.Context(), secretID, encryptionSecret)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(bytes.Equal(encryptionSecret.Data["key"], originalKey)).To(BeFalse())
 				Expect(bytes.Equal(encryptionSecret.Data["previousKey"], originalKey)).To(BeTrue())
@@ -300,12 +300,12 @@ func TestReconcileNoRotation(t *testing.T) {
 		Namespace: clusterName, Name: propagator.EncryptionKeySecret,
 	}
 	request := ctrl.Request{NamespacedName: secretID}
-	result, err := r.Reconcile(context.TODO(), request)
+	result, err := r.Reconcile(t.Context(), request)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(getRequeueAfterDays(result)).To(Equal(30))
 
-	err = r.Get(context.TODO(), secretID, encryptionSecret)
+	err = r.Get(t.Context(), secretID, encryptionSecret)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(bytes.Equal(encryptionSecret.Data["key"], originalKey)).To(BeTrue())
 	Expect(bytes.Equal(encryptionSecret.Data["previousKey"], originalKey)).To(BeFalse())
@@ -323,13 +323,13 @@ func TestReconcileNotFound(t *testing.T) {
 		Namespace: clusterName, Name: propagator.EncryptionKeySecret,
 	}
 	request := ctrl.Request{NamespacedName: secretID}
-	result, err := r.Reconcile(context.TODO(), request)
+	result, err := r.Reconcile(t.Context(), request)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(result.RequeueAfter).To(Equal(time.Duration(0)))
 
 	policyList := v1.PolicyList{}
-	err = r.List(context.TODO(), &policyList)
+	err = r.List(t.Context(), &policyList)
 	Expect(err).ToNot(HaveOccurred())
 
 	for _, policy := range policyList.Items {
@@ -357,13 +357,13 @@ func TestReconcileManualRotation(t *testing.T) {
 		Namespace: clusterName, Name: propagator.EncryptionKeySecret,
 	}
 	request := ctrl.Request{NamespacedName: secretID}
-	result, err := r.Reconcile(context.TODO(), request)
+	result, err := r.Reconcile(t.Context(), request)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(result.Requeue).To(BeFalse())
 	Expect(result.RequeueAfter).To(Equal(time.Duration(0)))
 
-	err = r.Get(context.TODO(), secretID, encryptionSecret)
+	err = r.Get(t.Context(), secretID, encryptionSecret)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(bytes.Equal(encryptionSecret.Data["key"], originalKey)).To(BeTrue())
 	Expect(bytes.Equal(encryptionSecret.Data["previousKey"], originalPrevKey)).To(BeTrue())
@@ -389,13 +389,13 @@ func TestReconcileInvalidKey(t *testing.T) {
 		Namespace: clusterName, Name: propagator.EncryptionKeySecret,
 	}
 	request := ctrl.Request{NamespacedName: secretID}
-	result, err := r.Reconcile(context.TODO(), request)
+	result, err := r.Reconcile(t.Context(), request)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(result.Requeue).To(BeFalse())
 	Expect(getRequeueAfterDays(result)).To(Equal(30))
 
-	err = r.Get(context.TODO(), secretID, encryptionSecret)
+	err = r.Get(t.Context(), secretID, encryptionSecret)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(bytes.Equal(encryptionSecret.Data["key"], originalKey)).To(BeFalse())
 	Expect(encryptionSecret.Data["previousKey"]).To(BeEmpty())
@@ -421,13 +421,13 @@ func TestReconcileInvalidPreviousKey(t *testing.T) {
 		Namespace: clusterName, Name: propagator.EncryptionKeySecret,
 	}
 	request := ctrl.Request{NamespacedName: secretID}
-	result, err := r.Reconcile(context.TODO(), request)
+	result, err := r.Reconcile(t.Context(), request)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(result.Requeue).To(BeFalse())
 	Expect(getRequeueAfterDays(result)).To(Equal(30))
 
-	err = r.Get(context.TODO(), secretID, encryptionSecret)
+	err = r.Get(t.Context(), secretID, encryptionSecret)
 	Expect(err).ToNot(HaveOccurred())
 	Expect(bytes.Equal(encryptionSecret.Data["key"], originalKey)).To(BeTrue())
 	Expect(encryptionSecret.Data["previousKey"]).To(BeEmpty())
@@ -450,7 +450,7 @@ func TestReconcileSecretNotFiltered(t *testing.T) {
 
 	secretID := types.NamespacedName{Namespace: clusterName, Name: "random-secret"}
 	request := ctrl.Request{NamespacedName: secretID}
-	result, err := r.Reconcile(context.TODO(), request)
+	result, err := r.Reconcile(t.Context(), request)
 
 	Expect(err).ToNot(HaveOccurred())
 	Expect(result.Requeue).To(BeFalse())
@@ -497,7 +497,7 @@ func TestReconcileAPIFails(t *testing.T) {
 
 				secretID := types.NamespacedName{Namespace: clusterName, Name: propagator.EncryptionKeySecret}
 				request := ctrl.Request{NamespacedName: secretID}
-				result, err := r.Reconcile(context.TODO(), request)
+				result, err := r.Reconcile(t.Context(), request)
 
 				if !test.ExpectedRotation {
 					Expect(err).Should(HaveOccurred())
@@ -512,7 +512,7 @@ func TestReconcileAPIFails(t *testing.T) {
 				// Revert back the fake client to verify the secret and that no policy updates were triggered
 				r.Client = erroringClient.Client
 
-				err = r.Get(context.TODO(), client.ObjectKeyFromObject(encryptionSecret), encryptionSecret)
+				err = r.Get(t.Context(), client.ObjectKeyFromObject(encryptionSecret), encryptionSecret)
 				Expect(err).ShouldNot(HaveOccurred())
 
 				if test.ExpectedRotation {

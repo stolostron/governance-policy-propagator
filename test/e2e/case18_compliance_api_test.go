@@ -1,5 +1,6 @@
 // Copyright Contributors to the Open Cluster Management project
 
+//nolint:all
 package e2e
 
 import (

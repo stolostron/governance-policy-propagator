@@ -57,7 +57,7 @@ type clusterDecision struct {
 // so the policy will be removed.
 func (r *RootPolicyReconciler) cleanUpOrphanedRplPolicies(
 	instance *policiesv1.Policy, originalCPCS []*policiesv1.CompliancePerClusterStatus, allDecisions common.DecisionSet,
-) error {
+) {
 	log := log.WithValues("policyName", instance.GetName(), "policyNamespace", instance.GetNamespace())
 
 	for _, cluster := range originalCPCS {
@@ -81,8 +81,6 @@ func (r *RootPolicyReconciler) cleanUpOrphanedRplPolicies(
 
 		r.ReplicatedPolicyUpdates <- event.GenericEvent{Object: simpleObj}
 	}
-
-	return nil
 }
 
 // handleRootPolicy will properly replicate or clean up when a root policy is updated.
@@ -142,12 +140,7 @@ func (r *RootPolicyReconciler) handleRootPolicy(ctx context.Context, instance *p
 		r.ReplicatedPolicyUpdates <- event.GenericEvent{Object: simpleObj}
 	}
 
-	err = r.cleanUpOrphanedRplPolicies(instance, originalCPCS, decisions)
-	if err != nil {
-		log.Error(err, "Failed to delete orphaned replicated policies")
-
-		return err
-	}
+	r.cleanUpOrphanedRplPolicies(instance, originalCPCS, decisions)
 
 	return nil
 }
@@ -350,7 +343,9 @@ func (r *ReplicatedPolicyReconciler) processTemplates(
 				if policyTAnnotations == nil {
 					policyTAnnotations = make(map[string]string)
 				}
+
 				policyTAnnotations["policy.open-cluster-management.io/hub-templates-error"] = tplErr.Error()
+
 				policyTObjectUnstructured.SetAnnotations(policyTAnnotations)
 
 				updatedPolicyT, jsonErr := json.Marshal(policyTObjectUnstructured)

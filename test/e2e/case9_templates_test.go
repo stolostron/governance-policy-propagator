@@ -6,6 +6,7 @@ package e2e
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -155,7 +156,7 @@ var _ = Describe("Test policy templates", func() {
 
 	Describe("Test encrypted policy templates", Ordered, func() {
 		for i := 1; i <= 2; i++ {
-			managedCluster := "managed" + fmt.Sprint(i)
+			managedCluster := "managed" + strconv.Itoa(i)
 
 			It("should be created in user ns", func() {
 				By("Creating " + case9PolicyYamlEncrypted)
@@ -307,7 +308,7 @@ var _ = Describe("Test policy templates", func() {
 
 	Describe("Test encrypted policy templates with secret copy", Ordered, func() {
 		for i := 1; i <= 2; i++ {
-			managedCluster := "managed" + fmt.Sprint(i)
+			managedCluster := "managed" + strconv.Itoa(i)
 
 			It("should be created in user ns", func() {
 				By("Creating " + case9PolicyYamlCopy)

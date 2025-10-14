@@ -366,8 +366,8 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 						"standards":  []any{"stand-1"},
 					},
 					"policy": map[string]any{
+						"KeyID":     float64(1),
 						"apiGroup":  "policy.open-cluster-management.io",
-						"id":        float64(1),
 						"kind":      "ConfigurationPolicy",
 						"name":      "etcd-encryption1",
 						"namespace": "local-cluster",
@@ -385,7 +385,13 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 					},
 				}
 
-				Expect(respJSON).To(Equal(expected))
+				actualJSON, err := json.Marshal(respJSON["data"])
+				Expect(err).ToNot(HaveOccurred())
+				expectedJSON, err := json.Marshal(expected["data"])
+				Expect(err).ToNot(HaveOccurred())
+
+				Expect(string(actualJSON)).To(Equal(string(expectedJSON)))
+				Expect(respJSON["metadata"]).To(Equal(expected["metadata"]))
 
 				// Get just the single compliance event
 				req, err := http.NewRequestWithContext(ctx, http.MethodGet, eventsEndpoint+"/1", nil)
@@ -779,16 +785,6 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 				[]float64{1, 2, 3},
 			),
 			Entry(
-				"Sort descending by policy.id",
-				[]string{"sort=policy.id", "direction=desc"},
-				[]float64{3, 2, 1},
-			),
-			Entry(
-				"Sort ascending by policy.id",
-				[]string{"sort=policy.id", "direction=asc"},
-				[]float64{1, 2, 3},
-			),
-			Entry(
 				"Sort descending by policy.kind",
 				[]string{"sort=policy.kind", "direction=desc"},
 				[]float64{1, 2, 3},
@@ -826,11 +822,6 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 			Entry(
 				"Sort ascending by policy.severity",
 				[]string{"sort=policy.severity", "direction=asc"},
-				[]float64{1, 2, 3},
-			),
-			Entry(
-				"Sort descending by parent_policy.id and policy.id",
-				[]string{"sort=parent_policy.id,policy.id", "direction=asc"},
 				[]float64{1, 2, 3},
 			),
 			Entry(
@@ -904,7 +895,7 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 				expected := "an invalid sort option was provided, choose from: cluster.cluster_id, cluster.name, " +
 					"event.compliance, event.message, event.reported_by, event.timestamp, id, " +
 					"parent_policy.categories, parent_policy.controls, parent_policy.id, parent_policy.name, " +
-					"parent_policy.namespace, parent_policy.standards, policy.apiGroup, policy.id, policy.kind, " +
+					"parent_policy.namespace, parent_policy.standards, policy.apiGroup, policy.kind, " +
 					"policy.name, policy.namespace, policy.severity"
 				Expect(err).To(MatchError(ContainSubstring(expected)))
 			})
@@ -924,7 +915,7 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 					"event.reported_by, event.timestamp, event.timestamp_after, event.timestamp_before, id, " +
 					"include_spec, page, parent_policy.categories, parent_policy.controls, parent_policy.id, " +
 					"parent_policy.name, parent_policy.namespace, parent_policy.standards, per_page, " +
-					"policy.apiGroup, policy.id, policy.kind, policy.name, policy.namespace, policy.severity, sort"
+					"policy.apiGroup, policy.kind, policy.name, policy.namespace, policy.severity, sort"
 				Expect(err).To(HaveOccurred())
 				Expect(err).To(MatchError(ContainSubstring(expected)))
 			})
@@ -970,25 +961,6 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 				}
 			}`)
 
-			// payload2 just uses the ids for the policy and parent_policy.
-			payload2 := []byte(`{
-				"cluster": {
-					"name": "managed4",
-					"cluster_id": "test3-managed4-fake-uuid-4"
-				},
-				"parent_policy": {
-					"id": 2
-				},
-				"policy": {
-					"id": 4
-				},
-				"event": {
-					"compliance": "NonCompliant",
-					"message": "configmaps [common] not found in namespace default",
-					"timestamp": "2023-04-04T04:04:04.444Z"
-				}
-			}`)
-
 			// payload3 redefines most things, and should cause the cluster, parent, and policy to be reused from the
 			// cache.
 			payload3 := []byte(`{
@@ -1020,7 +992,6 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 			BeforeAll(func(ctx context.Context) {
 				By("POST the events")
 				Eventually(postEvent(ctx, payload1, clientToken), "5s", "1s").ShouldNot(HaveOccurred())
-				Eventually(postEvent(ctx, payload2, clientToken), "5s", "1s").ShouldNot(HaveOccurred())
 				Eventually(postEvent(ctx, payload3, clientToken), "5s", "1s").ShouldNot(HaveOccurred())
 			})
 
@@ -1134,7 +1105,6 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 
 				Expect(timestamps).To(ConsistOf(
 					"2023-03-03T03:03:03.333Z",
-					"2023-04-04T04:04:04.444Z",
 					"2023-05-05T05:05:05.555Z",
 				))
 			})
@@ -1570,7 +1540,7 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 						"timestamp": "2023-09-09T09:09:09.999Z"
 					}
 				}`), clientToken), "5s", "1s").Should(MatchError(ContainSubstring(
-					`invalid input: parent_policy.id not found\\ninvalid input: policy.id not found`,
+					`invalid input: parent_policy.id not found`,
 				)))
 			})
 		})
@@ -1594,22 +1564,22 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 			Entry(
 				"Filter by cluster.cluster_id",
 				[]string{"cluster.cluster_id=test1-managed1-fake-uuid-1,test6-managed6-fake-uuid-6"},
-				[]float64{11, 10, 1},
+				[]float64{10, 9, 1},
 			),
 			Entry(
 				"Filter by cluster.name",
 				[]string{"cluster.name=managed1,managed6"},
-				[]float64{11, 10, 1},
+				[]float64{10, 9, 1},
 			),
 			Entry(
 				"Filter by event.compliance",
 				[]string{"event.compliance=Compliant"},
-				[]float64{9, 8, 7, 3, 11, 10},
+				[]float64{8, 7, 6, 3, 10, 9},
 			),
 			Entry(
 				"Filter by event.message",
 				[]string{"event.message=configmaps%20%5Bcommon%5D%20not%20found%20in%20namespace%20default"},
-				[]float64{6, 5, 4},
+				[]float64{5, 4},
 			),
 			Entry(
 				"Filter by event.message_includes",
@@ -1624,7 +1594,7 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 			Entry(
 				"Filter by event.message_like",
 				[]string{"event.message_like=configmaps%20%5B%25common%25%5D%25"},
-				[]float64{9, 8, 6, 7, 5, 4, 11, 10},
+				[]float64{8, 7, 6, 5, 4, 10, 9},
 			),
 			Entry(
 				"Filter by event.timestamp",
@@ -1634,44 +1604,44 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 			Entry(
 				"Filter by event.timestamp_after",
 				[]string{"event.timestamp_after=2023-04-01T01:01:01.111Z"},
-				[]float64{9, 8, 7, 6, 5},
+				[]float64{8, 7, 6, 5},
 			),
 			Entry(
 				"Filter by event.timestamp_before",
 				[]string{"event.timestamp_before=2023-04-01T01:01:01.111Z"},
-				[]float64{4, 3, 2, 11, 10, 1},
+				[]float64{4, 3, 2, 10, 9, 1},
 			),
 			Entry(
 				"Filter by event.timestamp_after and event.timestamp_before",
 				[]string{
 					"event.timestamp_after=2023-01-01T01:01:01.111Z", "event.timestamp_before=2023-04-01T01:01:01.111Z",
 				},
-				[]float64{4, 3, 2, 11, 10},
+				[]float64{4, 3, 2, 10, 9},
 			),
 			Entry(
 				"Filter by parent_policy.categories",
 				[]string{"parent_policy.categories=cat-1,cat-3"},
-				[]float64{6, 5, 4, 1},
+				[]float64{5, 4, 1},
 			),
 			Entry(
 				"Filter by parent_policy.categories is null",
 				[]string{"parent_policy.categories"},
-				[]float64{9, 8, 7, 3, 2, 11, 10},
+				[]float64{8, 7, 6, 3, 2, 10, 9},
 			),
 			Entry(
 				"Filter by parent_policy.controls",
 				[]string{"parent_policy.controls=ctrl-2"},
-				[]float64{6, 5, 4},
+				[]float64{5, 4},
 			),
 			Entry(
 				"Filter by parent_policy.controls is null",
 				[]string{"parent_policy.controls"},
-				[]float64{9, 8, 7, 3, 2, 11, 10},
+				[]float64{8, 7, 6, 3, 2, 10, 9},
 			),
 			Entry(
 				"Filter by parent_policy.id",
 				[]string{"parent_policy.id=2"},
-				[]float64{6, 5, 4},
+				[]float64{5, 4},
 			),
 			Entry(
 				"Filter by parent_policy.name",
@@ -1681,22 +1651,22 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 			Entry(
 				"Filter by parent_policy.namespace",
 				[]string{"parent_policy.namespace=policies"},
-				[]float64{9, 8, 6, 7, 5, 4, 11, 10, 1},
+				[]float64{8, 7, 5, 6, 4, 10, 9, 1},
 			),
 			Entry(
 				"Filter by parent_policy.standards",
 				[]string{"parent_policy.standards=stand-2"},
-				[]float64{6, 5, 4},
+				[]float64{5, 4},
 			),
 			Entry(
 				"Filter by parent_policy.standards is null",
 				[]string{"parent_policy.standards"},
-				[]float64{9, 8, 3, 2, 11, 10},
+				[]float64{8, 7, 3, 2, 10, 9},
 			),
 			Entry(
 				"Filter by policy.apiGroup",
 				[]string{"policy.apiGroup=policy.open-cluster-management.io"},
-				[]float64{9, 8, 6, 7, 5, 4, 3, 2, 11, 10, 1},
+				[]float64{8, 7, 5, 6, 4, 3, 2, 10, 9, 1},
 			),
 			Entry(
 				"Filter by policy.apiGroup no results",
@@ -1704,14 +1674,9 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 				[]float64{},
 			),
 			Entry(
-				"Filter by policy.id",
-				[]string{"policy.id=4"},
-				[]float64{6, 5, 4},
-			),
-			Entry(
 				"Filter by policy.kind",
 				[]string{"policy.kind=ConfigurationPolicy"},
-				[]float64{9, 8, 6, 7, 5, 4, 3, 2, 11, 10, 1},
+				[]float64{8, 7, 5, 6, 4, 3, 2, 10, 9, 1},
 			),
 			Entry(
 				"Filter by policy.kind no results",
@@ -1721,22 +1686,22 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 			Entry(
 				"Filter by policy.name",
 				[]string{"policy.name=common-b"},
-				[]float64{11, 10},
+				[]float64{10, 9},
 			),
 			Entry(
 				"Filter by policy.namespace",
 				[]string{"policy.namespace=default"},
-				[]float64{10},
+				[]float64{9},
 			),
 			Entry(
 				"Filter by policy.namespace is null",
 				[]string{"policy.namespace"},
-				[]float64{9, 8, 6, 7, 5, 4, 3, 2, 11},
+				[]float64{8, 7, 5, 6, 4, 3, 2, 10},
 			),
 			Entry(
 				"Filter by policy.severity",
 				[]string{"policy.severity=low"},
-				[]float64{9, 8, 6, 7, 5, 4, 11, 10, 1},
+				[]float64{8, 7, 5, 6, 4, 10, 9, 1},
 			),
 			Entry(
 				"Filter by policy.severity is null",
@@ -1911,7 +1876,7 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 				Entry(
 					"Filter by event.message",
 					[]string{"event.message=configmaps%20%5Bcommon%5D%20not%20found%20in%20namespace%20default"},
-					4,
+					3,
 				),
 				Entry(
 					"Filter by event.message_includes",
@@ -1921,7 +1886,7 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 				Entry(
 					"Filter by event.message_like",
 					[]string{"event.message_like=configmaps%20%5B%25common%25%5D%25"},
-					9,
+					8,
 				),
 				Entry(
 					"Filter by event.timestamp",
@@ -1931,7 +1896,7 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 				Entry(
 					"Filter by event.timestamp_after",
 					[]string{"event.timestamp_after=2023-04-01T01:01:01.111Z"},
-					6,
+					5,
 				),
 				Entry(
 					"Filter by event.timestamp_before",
@@ -1949,17 +1914,17 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 				Entry(
 					"Filter by parent_policy.categories",
 					[]string{"parent_policy.categories=cat-1,cat-3"},
-					5,
+					4,
 				),
 				Entry(
 					"Filter by parent_policy.controls",
 					[]string{"parent_policy.controls=ctrl-2"},
-					4,
+					3,
 				),
 				Entry(
 					"Filter by parent_policy.id",
 					[]string{"parent_policy.id=2"},
-					4,
+					3,
 				),
 				Entry(
 					"Filter by parent_policy.name",
@@ -1969,17 +1934,17 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 				Entry(
 					"Filter by parent_policy.namespace",
 					[]string{"parent_policy.namespace=policies"},
-					10,
+					9,
 				),
 				Entry(
 					"Filter by parent_policy.standards",
 					[]string{"parent_policy.standards=stand-2"},
-					4,
+					3,
 				),
 				Entry(
 					"Filter by policy.apiGroup",
 					[]string{"policy.apiGroup=policy.open-cluster-management.io"},
-					12,
+					11,
 				),
 				Entry(
 					"Filter by policy.apiGroup no results",
@@ -1987,14 +1952,9 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 					1,
 				),
 				Entry(
-					"Filter by policy.id",
-					[]string{"policy.id=4"},
-					4,
-				),
-				Entry(
 					"Filter by policy.kind",
 					[]string{"policy.kind=ConfigurationPolicy"},
-					12,
+					11,
 				),
 				Entry(
 					"Filter by policy.kind no results",
@@ -2014,7 +1974,7 @@ var _ = Describe("Test the compliance events API", Label("compliance-events-api"
 				Entry(
 					"Filter by policy.severity",
 					[]string{"policy.severity=low"},
-					10,
+					9,
 				),
 				Entry(
 					"Filter by policy.severity is null",

@@ -1,3 +1,5 @@
+ARG ACM_VERSION=${ACM_VERSION}
+
 # Stage 1: Use image builder to build the target binaries
 # Copyright Contributors to the Open Cluster Management project
 
@@ -35,3 +37,4 @@ LABEL io.k8s.display-name="Governance policy propagator"
 LABEL io.k8s.description="Propagate Policies from user namespaces to managed cluster namespaces as defined by the PlacementBinding and bound Placement."
 LABEL com.redhat.component="acm-governance-policy-propagator-container"
 LABEL io.openshift.tags="data,images"
+LABEL cpe="cpe:/a:redhat:acm:${ACM_VERSION}::el9"

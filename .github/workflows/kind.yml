@@ -55,7 +55,7 @@ jobs:
         make test-coverage
     
     - name: Upload Unit Test Coverage
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: coverage_unit
         path: coverage_unit.out
@@ -100,7 +100,7 @@ jobs:
 
     - name: Upload E2E Test Coverage
       if: ${{ matrix.kind == 'latest'}}
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: coverage_e2e
         path: coverage_e2e.out
@@ -167,7 +167,7 @@ jobs:
 
     - name: Upload PolicyAutomation Test Coverage
       if: ${{ matrix.kind == 'latest'}}
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: coverage_e2e_policyautomation
         path: coverage_e2e_policyautomation.out
@@ -200,17 +200,17 @@ jobs:
         go-version: stable
 
     - name: Download Unit Coverage Result
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: coverage_unit
     
     - name: Download E2E Coverage Result
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: coverage_e2e
 
     - name: Download PolicyAutomation Coverage Result
-      uses: actions/download-artifact@v6
+      uses: actions/download-artifact@v7
       with:
         name: coverage_e2e_policyautomation
     
@@ -228,7 +228,7 @@ jobs:
     
     - name: Upload artifacts for the sonarcloud workflow
       if: github.repository_owner == 'stolostron'
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: artifacts
         path: |

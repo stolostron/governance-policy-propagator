@@ -116,7 +116,6 @@ spec:
                 type: string
             required:
             - automationDef
-            - eventHook
             - mode
             - policyRef
             type: object

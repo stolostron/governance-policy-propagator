@@ -7,13 +7,13 @@ metadata:
     build.appstudio.redhat.com/target_branch: '{{target_branch}}'
     pipelinesascode.tekton.dev/cancel-in-progress: "false"
     pipelinesascode.tekton.dev/max-keep-runs: "3"
-    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch == "release-2.16"
+    pipelinesascode.tekton.dev/on-cel-expression: event == "push" && target_branch == "release-2.17"
   creationTimestamp: null
   labels:
-    appstudio.openshift.io/application: release-acm-216
-    appstudio.openshift.io/component: governance-policy-propagator-acm-216
+    appstudio.openshift.io/application: release-acm-217
+    appstudio.openshift.io/component: governance-policy-propagator-acm-217
     pipelines.appstudio.openshift.io/type: build
-  name: governance-policy-propagator-acm-216-on-push
+  name: governance-policy-propagator-acm-217-on-push
   namespace: crt-redhat-acm-tenant
 spec:
   params:
@@ -22,7 +22,7 @@ spec:
     - name: revision
       value: '{{revision}}'
     - name: output-image
-      value: quay.io/redhat-user-workloads/crt-redhat-acm-tenant/governance-policy-propagator-acm-216:{{revision}}
+      value: quay.io/redhat-user-workloads/crt-redhat-acm-tenant/governance-policy-propagator-acm-217:{{revision}}
     - name: path-context
       value: .
     - name: dockerfile
@@ -55,7 +55,7 @@ spec:
       - name: pathInRepo
         value: pipelines/common.yaml
   taskRunTemplate:
-    serviceAccountName: build-pipeline-governance-policy-propagator-acm-216
+    serviceAccountName: build-pipeline-governance-policy-propagator-acm-217
   workspaces:
     - name: git-auth
       secret:

@@ -126,6 +126,6 @@ require (
 )
 
 replace (
-	open-cluster-management.io/managed-serviceaccount => github.com/stolostron/managed-serviceaccount v0.1.1-0.20251022030334-5bd729f13dab
-	open-cluster-management.io/multicloud-operators-subscription => github.com/stolostron/multicloud-operators-subscription v1.2.4-0-20211122-7277a37.0.20251020053110-ef7f22da1c0f
+	open-cluster-management.io/managed-serviceaccount => github.com/stolostron/managed-serviceaccount v0.1.1-0.20260206033608-b1572f14e8f7
+	open-cluster-management.io/multicloud-operators-subscription => github.com/stolostron/multicloud-operators-subscription v1.2.4-0-20211122-7277a37.0.20260205233344-4101247af412
 )

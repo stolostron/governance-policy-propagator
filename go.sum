@@ -179,8 +179,8 @@ github.com/stolostron/go-template-utils/v7 v7.2.0 h1:2D2ePu8ZvPBRrKtK9XsMnddMwIM
 github.com/stolostron/go-template-utils/v7 v7.2.0/go.mod h1:SZ0mElU3kTb2mXcy4Ll7Z+aoCpYNuOWCwDb1E6q5e3Q=
 github.com/stolostron/kubernetes-dependency-watches v0.10.2 h1:b8g3Wye6igeRrrSQwXGr4Ch4zTY4uouzHlDARw8/m7w=
 github.com/stolostron/kubernetes-dependency-watches v0.10.2/go.mod h1:pV1b/PwVNG4a5tzBcqxhUpMjjo5nY0gUb6ieu6sGH6o=
-github.com/stolostron/multicloud-operators-subscription v1.2.4-0-20211122-7277a37.0.20251020053110-ef7f22da1c0f h1:GFVN7mHA2EfLdziSfhyjv0Tb41NTmj+Xp4V192KZoFk=
-github.com/stolostron/multicloud-operators-subscription v1.2.4-0-20211122-7277a37.0.20251020053110-ef7f22da1c0f/go.mod h1:DyXDWeNlZvVTEFjgyyw387CFrivie2ad5ePxYz4T4e8=
+github.com/stolostron/multicloud-operators-subscription v1.2.4-0-20211122-7277a37.0.20260205233344-4101247af412 h1:vRnFxD9AOmVCxDHW5X5n7zt2fZQ9ZQoYE4PfglCuMsU=
+github.com/stolostron/multicloud-operators-subscription v1.2.4-0-20211122-7277a37.0.20260205233344-4101247af412/go.mod h1:Ug3OTpfRO+0hxLmOAOwx5MY94qqm5g0JBxSu5fW4CME=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.5.2 h1:xuMeJ0Sdp5ZMRXx/aWO6RZxdr3beISkG5/G/aIRr3pY=
 github.com/stretchr/objx v0.5.2/go.mod h1:FRsXN1f5AsAjCGJKqEizvkpNtU+EGNCLh3NxZ/8L+MA=

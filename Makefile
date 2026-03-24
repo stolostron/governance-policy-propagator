@@ -152,7 +152,7 @@ cert-manager:
 	kubectl wait --for=condition=Ready pod -l app.kubernetes.io/instance=cert-manager -n cert-manager --timeout=180s 
 
 webhook: cert-manager
-	-kubectl apply -f https://raw.githubusercontent.com/open-cluster-management-io/multicloud-operators-subscription/main/deploy/hub-common/apps.open-cluster-management.io_placementrules_crd.yaml
+	-kubectl apply -f https://raw.githubusercontent.com/stolostron/multicloud-operators-subscription/main/deploy/hub-common/apps.open-cluster-management.io_placementrules_crd.yaml
 	-kubectl create ns $(KIND_NAMESPACE)
 	sed -E 's,open-cluster-management(.svc|/|$$),$(KIND_NAMESPACE)\1,g' deploy/webhook.yaml | kubectl apply -f -
 

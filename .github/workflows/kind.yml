@@ -208,9 +208,23 @@ jobs:
           pattern: latest-*
       
       - name: Test Coverage Verification
+        env:
+          EVENT_JSON: ${{ toJSON(github.event) }}
         run: |
           make coverage-verify
           make gosec-scan
+          cat gosec.json
+          printf '%s' "${EVENT_JSON}" > event.json
+      
+      - name: Upload artifacts for the sonarcloud workflow
+        if: github.repository_owner == 'stolostron'
+        uses: actions/upload-artifact@v7
+        with:
+          name: artifacts
+          path: |
+            ./coverage*.out
+            ./event.json
+            ./gosec.json
 
       - name: Report unit coverage to Codecov
         uses: codecov/codecov-action@v5

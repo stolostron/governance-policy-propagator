@@ -23,10 +23,10 @@ jobs:
     name: Unit Tests
     steps:
     - name: Checkout Governance Policy Propagator
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
     
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: go.mod
 
@@ -55,7 +55,7 @@ jobs:
         make test-coverage
     
     - name: Upload Unit Test Coverage
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage_unit
         path: coverage_unit.out
@@ -76,10 +76,10 @@ jobs:
     name: KinD tests
     steps:
     - name: Checkout Governance Policy Propagator
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version-file: go.mod
 
@@ -100,7 +100,7 @@ jobs:
 
     - name: Upload E2E Test Coverage
       if: ${{ matrix.kind == 'latest'}}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage_e2e
         path: coverage_e2e.out
@@ -146,10 +146,10 @@ jobs:
     name: PolicyAutomation tests
     steps:
     - name: Checkout Governance Policy Propagator
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       id: go
       with:
         go-version-file: go.mod
@@ -167,7 +167,7 @@ jobs:
 
     - name: Upload PolicyAutomation Test Coverage
       if: ${{ matrix.kind == 'latest'}}
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: coverage_e2e_policyautomation
         path: coverage_e2e_policyautomation.out
@@ -192,25 +192,25 @@ jobs:
 
     steps:
     - name: Checkout Governance Policy Propagator
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     - name: Set up Go
-      uses: actions/setup-go@v5
+      uses: actions/setup-go@v6
       with:
         go-version: stable
 
     - name: Download Unit Coverage Result
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: coverage_unit
     
     - name: Download E2E Coverage Result
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: coverage_e2e
 
     - name: Download PolicyAutomation Coverage Result
-      uses: actions/download-artifact@v4
+      uses: actions/download-artifact@v8
       with:
         name: coverage_e2e_policyautomation
     
@@ -228,7 +228,7 @@ jobs:
     
     - name: Upload artifacts for the sonarcloud workflow
       if: github.repository_owner == 'stolostron'
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: artifacts
         path: |

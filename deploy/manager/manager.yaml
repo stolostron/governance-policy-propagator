@@ -1,0 +1,77 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    webhook-origin: governance-policy-propagator
+  name: governance-policy-propagator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: governance-policy-propagator
+      webhook-origin: governance-policy-propagator
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: governance-policy-propagator
+      labels:
+        name: governance-policy-propagator
+        webhook-origin: governance-policy-propagator
+    spec:
+      serviceAccountName: governance-policy-propagator
+      containers:
+        - name: governance-policy-propagator
+          image: quay.io/stolostron/governance-policy-propagator:latest
+          command:
+            - governance-policy-propagator
+          args:
+            - "--health-probe-bind-address=:8081"
+            - "--metrics-bind-address=:8383"
+            - "--leader-elect"
+            - "--compliance-history-api-host=0.0.0.0"
+          ports:
+            - containerPort: 8383
+              protocol: TCP
+              name: http
+            - containerPort: 8384
+              protocol: TCP
+              name: compliance-api
+            - containerPort: 9443
+              protocol: TCP
+              name: webhook-http
+          imagePullPolicy: Always
+          volumeMounts:
+          - mountPath: /tmp/k8s-webhook-server/serving-certs
+            name: cert
+            readOnly: true
+          env:
+            - name: WATCH_NAMESPACE
+              value: ""
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "governance-policy-propagator"
+            - name: WATCH_NAMESPACE_COMPLIANCE_EVENTS_STORE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+      volumes:
+      - name: cert
+        secret:
+          defaultMode: 420
+          secretName: propagator-webhook-server-cert
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: governance-compliance-api
+spec:
+  ports:
+  - port: 8384
+    protocol: TCP
+    targetPort: 8384
+  selector:
+    name: governance-policy-propagator

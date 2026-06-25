@@ -1,0 +1,252 @@
+name: KinD tests
+
+on:
+  push:
+    branches:
+      - main
+      - release-[0-9]+.[0-9]+
+  pull_request:
+    branches:
+      - main
+      - release-[0-9]+.[0-9]+
+
+env:
+  RELEASE_BRANCH: ${{ github.event.pull_request.base.ref || github.ref_name }}
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    name: Unit Tests
+    steps:
+    - name: Checkout Governance Policy Propagator
+      uses: actions/checkout@v6
+    
+    - name: Set up Go
+      uses: actions/setup-go@v5 # Remain at the older v5 for compatibility on this release
+      with:
+        go-version-file: go.mod
+
+    - name: Verify modules
+      run: |
+        go mod verify
+
+    - name: Verify format
+      run: |
+        make fmt
+        git diff --exit-code
+
+    - name: Verify deploy/operator.yaml
+      run: |
+        make generate
+        make generate-operator-yaml
+        git diff --exit-code
+
+    - name: Unit and Integration Tests
+      run: |
+        make test
+
+    - name: Unit Test Coverage
+      run: |
+        make test-coverage
+    
+    - name: Upload Unit Test Coverage
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage_unit
+        path: coverage_unit.out
+
+  kind-tests:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: localhost:5000
+    strategy:
+      fail-fast: false
+      matrix:
+        # Run tests on minimum and newest supported OCP Kubernetes
+        # The "minimum" tag is set in the Makefile
+        # KinD tags: https://hub.docker.com/r/kindest/node/tags
+        kind:
+          - 'minimum'
+          - 'latest'
+    name: KinD tests
+    steps:
+    - name: Checkout Governance Policy Propagator
+      uses: actions/checkout@v6
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version-file: go.mod
+
+    - name: Create K8s KinD Cluster - ${{ matrix.kind }}
+      env:
+        KIND_VERSION: ${{ matrix.kind }}
+      run: |
+        make kind-bootstrap-cluster-dev
+    
+    - name: Ensure Service Account kubeconfig
+      run: |
+        KUBECONFIG=${PWD}/kubeconfig_hub make kind-ensure-sa
+
+    - name: E2E Tests
+      run: |
+        export GOPATH=$(go env GOPATH)
+        KUBECONFIG=${PWD}/kubeconfig_hub make e2e-test-coverage
+
+    - name: Upload E2E Test Coverage
+      if: ${{ matrix.kind == 'latest'}}
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage_e2e
+        path: coverage_e2e.out
+
+    - name: E2E Tests for Compliance Events API
+      run: |
+        KUBECONFIG=${PWD}/kubeconfig_hub make e2e-test-coverage-compliance-events-api
+
+    - name: Upload Compliance Events API Test Coverage
+      if: ${{  matrix.kind == 'latest'}}
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage_e2e_compliance_events_api
+        path: coverage_e2e_compliance_events_api.out
+
+    - name: Verify Deployment Configuration
+      run: |
+        make webhook
+        make build-images
+        KUBECONFIG=${PWD}/kubeconfig_hub_e2e make kind-deploy-controller-dev
+    
+    - name: E2E Tests for Webhook
+      run: |
+        KUBECONFIG=${PWD}/kubeconfig_hub make e2e-test-webhook
+    
+    - name: Tests without PlacementRule
+      run: |
+        KUBECONFIG=${PWD}/kubeconfig_hub_e2e kubectl delete crd placementrules.apps.open-cluster-management.io
+        KUBECONFIG=${PWD}/kubeconfig_hub make e2e-test-non-placement-rule
+
+    - name: Debug
+      if: ${{ failure() }}
+      run: |
+        make e2e-debug
+
+    - name: Clean up cluster
+      if: ${{ always() }}
+      run: |
+        make kind-delete-cluster
+
+  policyautomation-tests:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: localhost:5000
+    strategy:
+      fail-fast: false
+      matrix:
+        # Run tests on minimum and newest supported OCP Kubernetes
+        # The "minimum" tag is set in the Makefile
+        # KinD tags: https://hub.docker.com/r/kindest/node/tags
+        kind:
+          - 'minimum'
+          - 'latest'
+    name: PolicyAutomation tests
+    steps:
+    - name: Checkout Governance Policy Propagator
+      uses: actions/checkout@v6
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      id: go
+      with:
+        go-version-file: go.mod
+
+    - name: Create K8s KinD Cluster - ${{ matrix.kind }}
+      env:
+        KIND_VERSION: ${{ matrix.kind }}
+      run: |
+        make kind-bootstrap-cluster-dev
+
+    - name: PolicyAutomation E2E Tests
+      run: |
+        export GOPATH=$(go env GOPATH)
+        KUBECONFIG=${PWD}/kubeconfig_hub make e2e-test-coverage-policyautomation
+
+    - name: Upload PolicyAutomation Test Coverage
+      if: ${{ matrix.kind == 'latest'}}
+      uses: actions/upload-artifact@v7
+      with:
+        name: coverage_e2e_policyautomation
+        path: coverage_e2e_policyautomation.out
+
+    - name: Debug
+      if: ${{ failure() }}
+      run: |
+        make e2e-debug
+
+    - name: Clean up cluster
+      if: ${{ always() }}
+      run: |
+        make kind-delete-cluster
+
+  coverage-verification:
+    defaults:
+      run:
+        working-directory: '.'
+    runs-on: ubuntu-latest
+    name: Test Coverage Verification
+    needs: [unit-tests, kind-tests, policyautomation-tests]
+
+    steps:
+    - name: Checkout Governance Policy Propagator
+      uses: actions/checkout@v6
+
+    - name: Set up Go
+      uses: actions/setup-go@v6
+      with:
+        go-version-file: go.mod
+
+    - name: Download Unit Coverage Result
+      uses: actions/download-artifact@v8
+      with:
+        name: coverage_unit
+    
+    - name: Download E2E Coverage Result
+      uses: actions/download-artifact@v8
+      with:
+        name: coverage_e2e
+
+    - name: Download Compliance Events Coverage Result
+      uses: actions/download-artifact@v8
+      with:
+        name: coverage_e2e_compliance_events_api
+
+    - name: Download PolicyAutomation Coverage Result
+      uses: actions/download-artifact@v8
+      with:
+        name: coverage_e2e_policyautomation
+    
+    - name: Test Coverage Verification
+      run: |
+        make coverage-verify
+
+    - name: Prepare additional artifacts for the sonarcloud workflow
+      run: |
+        make gosec-scan
+        cat gosec.json
+        cat <<EOF > event.json
+        ${{ toJSON(github.event) }}
+        EOF
+    
+    - name: Upload artifacts for the sonarcloud workflow
+      if: github.repository_owner == 'stolostron'
+      uses: actions/upload-artifact@v7
+      with:
+        name: artifacts
+        path: |
+          ./coverage*.out
+          ./event.json
+          ./gosec.json

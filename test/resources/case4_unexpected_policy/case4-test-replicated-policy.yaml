@@ -1,0 +1,27 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  labels:
+    policy.open-cluster-management.io/cluster-name: managed1
+    policy.open-cluster-management.io/cluster-namespace: managed1
+    policy.open-cluster-management.io/root-policy: policy-propagator-test.case4-test-policy
+  name: policy-propagator-test.case4-test-policy
+  namespace: managed1
+spec:
+  disabled: false
+  policy-templates:
+  - objectDefinition:
+      apiVersion: policies.open-cluster-management.io/v1alpha1
+      kind: FakePolicy
+      metadata:
+        name: case4-test-policy-fakepolicy
+      spec:
+        imageRegistry: quay.io
+        namespaceSelector:
+          exclude:
+          - kube-system
+          include:
+          - default
+        remediationAction: inform
+        severity: low
+  remediationAction: inform

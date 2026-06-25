@@ -1,0 +1,20 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: Policy
+metadata:
+  name: case4-test-policy
+spec:
+  remediationAction: inform
+  disabled: false
+  policy-templates:
+    - objectDefinition:
+        apiVersion: policies.open-cluster-management.io/v1alpha1
+        kind: FakePolicy
+        metadata:
+          name: case4-test-policy-fakepolicy
+        spec:
+          severity: low
+          namespaceSelector:
+            include: ["default"]
+            exclude: ["kube-system"]
+          remediationAction: inform
+          imageRegistry: quay.io

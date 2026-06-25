@@ -1,0 +1,54 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: ansiblejobs.tower.ansible.com
+spec:
+  group: tower.ansible.com
+  names:
+    kind: AnsibleJob
+    listKind: AnsibleJobList
+    plural: ansiblejobs
+    singular: ansiblejob
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: AnsibleJob is the Schema for the ansiblejobs API
+          properties:
+            apiVersion:
+              type: string
+            kind:
+              type: string
+            metadata:
+              type: object
+            spec:
+              properties:
+                extra_vars:
+                  type: object
+                  x-kubernetes-preserve-unknown-fields: true
+                inventory:
+                  type: string
+                job_template_name:
+                  type: string
+                job_ttl:
+                  description: Time to live for k8s job object after the playbook run has finished
+                  type: integer
+                runner_image:
+                  description: Runner image used when running jobs
+                  type: string
+                runner_version:
+                  description: Runner image version used when running jobs
+                  type: string
+                tower_auth_secret:
+                  type: string
+              required:
+                - tower_auth_secret
+                - job_template_name
+              type: object
+          type: object
+          x-kubernetes-preserve-unknown-fields: true
+      served: true
+      storage: true
+      subresources:
+        status: {}

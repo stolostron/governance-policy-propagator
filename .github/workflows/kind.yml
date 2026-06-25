@@ -40,6 +40,10 @@ jobs:
           git diff --exit-code
           make lint
 
+      - name: Verify Helm chart
+        run: |
+          make validate-helm
+
       - name: Verify deploy/operator.yaml
         run: |
           make generate
@@ -206,7 +210,7 @@ jobs:
         with:
           merge-multiple: true
           pattern: latest-*
-      
+
       - name: Test Coverage Verification
         env:
           EVENT_JSON: ${{ toJSON(github.event) }}
@@ -215,7 +219,7 @@ jobs:
           make gosec-scan
           cat gosec.json
           printf '%s' "${EVENT_JSON}" > event.json
-      
+
       - name: Upload artifacts for the sonarcloud workflow
         if: github.repository_owner == 'stolostron'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7

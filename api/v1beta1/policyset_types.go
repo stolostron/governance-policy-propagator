@@ -9,6 +9,8 @@ import (
 	policyv1 "open-cluster-management.io/governance-policy-propagator/api/v1"
 )
 
+// NonEmptyString is a string with a minimum length of one character.
+//
 // +kubebuilder:validation:MinLength=1
 type NonEmptyString string
 

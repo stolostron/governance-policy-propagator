@@ -31,6 +31,7 @@ var _ = Describe("Test metrics appear locally", func() {
 		)
 		Expect(plc).NotTo(BeNil())
 		By("Patching test-policy-plr with decision of cluster managed1 and managed2")
+
 		plr := utils.GetWithTimeout(
 			clientHubDynamic, gvrPlacementRule, case8PolicyName+"-plr", testNamespace, true, defaultTimeoutSeconds,
 		)
@@ -39,12 +40,16 @@ var _ = Describe("Test metrics appear locally", func() {
 			context.TODO(), plr, metav1.UpdateOptions{},
 		)
 		Expect(err).ToNot(HaveOccurred())
+
 		plc = utils.GetWithTimeout(
 			clientHubDynamic, gvrPolicy, testNamespace+"."+case8PolicyName, "managed2", true, defaultTimeoutSeconds,
 		)
 		Expect(plc).ToNot(BeNil())
+
 		opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case8PolicyName}
+
 		By("Patching both replicated policy status to compliant")
+
 		replicatedPlcList := utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 		for _, replicatedPlc := range replicatedPlcList.Items {
 			replicatedPlc.Object["status"] = &policiesv1.PolicyStatus{
@@ -55,9 +60,11 @@ var _ = Describe("Test metrics appear locally", func() {
 			)
 			Expect(err).ToNot(HaveOccurred())
 		}
+
 		By("Checking the status of root policy")
+
 		yamlPlc := utils.ParseYaml("../resources/case8_metrics/managed-both-status-compliant.yaml")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			rootPlc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, case8PolicyName, testNamespace, true, defaultTimeoutSeconds,
 			)
@@ -65,17 +72,17 @@ var _ = Describe("Test metrics appear locally", func() {
 			return rootPlc.Object["status"]
 		}, defaultTimeoutSeconds, 1).Should(utils.SemanticEqual(yamlPlc.Object["status"]))
 		By("Checking metric endpoint for root policy status")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetMetrics("policy_governance_info", `policy=\"case8-test-policy\"`, `type=\"root\"`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{"0"}))
 		By("Checking metric endpoint for managed1 replicated policy status")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetMetrics(
 				"policy_governance_info", `policy=\"case8-test-policy\"`, `cluster_namespace=\"managed1\",`,
 			)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{"0"}))
 		By("Checking metric endpoint for managed2 replicated policy status")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetMetrics(
 				"policy_governance_info", `policy=\"case8-test-policy\"`, `cluster_namespace=\"managed2\",`,
 			)
@@ -83,7 +90,9 @@ var _ = Describe("Test metrics appear locally", func() {
 	})
 	It("should report 1 for noncompliant root policy and replicated policies", func() {
 		By("Patching both replicated policy status to noncompliant")
+
 		opt := metav1.ListOptions{LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case8PolicyName}
+
 		replicatedPlcList := utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 		for _, replicatedPlc := range replicatedPlcList.Items {
 			replicatedPlc.Object["status"] = &policiesv1.PolicyStatus{
@@ -94,9 +103,11 @@ var _ = Describe("Test metrics appear locally", func() {
 			)
 			Expect(err).ToNot(HaveOccurred())
 		}
+
 		By("Checking the status of root policy")
+
 		yamlPlc := utils.ParseYaml("../resources/case8_metrics/managed-both-status-noncompliant.yaml")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			rootPlc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, case8PolicyName, testNamespace, true, defaultTimeoutSeconds,
 			)
@@ -104,17 +115,17 @@ var _ = Describe("Test metrics appear locally", func() {
 			return rootPlc.Object["status"]
 		}, defaultTimeoutSeconds, 1).Should(utils.SemanticEqual(yamlPlc.Object["status"]))
 		By("Checking metric endpoint for root policy status")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetMetrics("policy_governance_info", `policy=\"case8-test-policy\"`, `type=\"root\"`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{"1"}))
 		By("Checking metric endpoint for managed1 replicated policy status")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetMetrics(
 				"policy_governance_info", `policy=\"case8-test-policy\"`, `cluster_namespace=\"managed1\",`,
 			)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{"1"}))
 		By("Checking metric endpoint for managed2 replicated policy status")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetMetrics(
 				"policy_governance_info", `policy=\"case8-test-policy\"`, `cluster_namespace=\"managed2\",`,
 			)
@@ -126,20 +137,21 @@ var _ = Describe("Test metrics appear locally", func() {
 			"-f", case8PolicyYaml,
 			"-n", testNamespace,
 			"--kubeconfig="+kubeconfigHub)
+
 		opt := metav1.ListOptions{}
 		utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, false, 10)
 		By("Checking metric endpoint for root policy status")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetMetrics("policy_governance_info", `policy=\"case8-test-policy\"`, `type=\"root\"`)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{}))
 		By("Checking metric endpoint for managed1 replicated policy status")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetMetrics(
 				"policy_governance_info", `policy=\"case8-test-policy\"`, `cluster_namespace=\"managed1\",`,
 			)
 		}, defaultTimeoutSeconds, 1).Should(Equal([]string{}))
 		By("Checking metric endpoint for managed2 replicated policy status")
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetMetrics(
 				"policy_governance_info", `policy=\"case8-test-policy\"`, `cluster_namespace=\"managed2\",`,
 			)

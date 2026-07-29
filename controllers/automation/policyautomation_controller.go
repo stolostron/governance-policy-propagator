@@ -66,6 +66,8 @@ type PolicyAutomationReconciler struct {
 
 // setOwnerReferences will set the input policy as the sole owner of the input policyAutomation and make the update
 // with the API. In practice, this will cause the input policyAutomation to be deleted when the policy is deleted.
+//
+//nolint:funcorder // helper methods are grouped for readability
 func (r *PolicyAutomationReconciler) setOwnerReferences(
 	ctx context.Context,
 	policyAutomation *policyv1beta1.PolicyAutomation,
@@ -104,6 +106,8 @@ func getTargetListMap(targetList []string) map[string]bool {
 }
 
 // getClusterDNSName will get the Hub cluster DNS name if the Hub is an OpenShift cluster.
+//
+//nolint:funcorder // helper methods are grouped for readability
 func (r *PolicyAutomationReconciler) getClusterDNSName(ctx context.Context) (string, error) {
 	dnsCluster, err := r.DynamicClient.Resource(dnsGVR).Get(ctx, "cluster", metav1.GetOptions{})
 	if err != nil {
@@ -128,8 +132,10 @@ func (r *PolicyAutomationReconciler) getClusterDNSName(ctx context.Context) (str
 	return dnsName, nil
 }
 
-// getViolationContext will put the root policy information into violationContext
-// It also puts the status of the non-compliant replicated policies into violationContext
+// getViolationContext will put the root policy information into violationContext.
+// It also puts the status of the non-compliant replicated policies into violationContext.
+//
+//nolint:funcorder // helper methods are grouped for readability
 func (r *PolicyAutomationReconciler) getViolationContext(
 	ctx context.Context,
 	policy *policyv1.Policy,
@@ -177,7 +183,7 @@ func (r *PolicyAutomationReconciler) getViolationContext(
 	replicatedPlcList := &policyv1.PolicyList{}
 
 	err = r.List(
-		context.TODO(),
+		ctx,
 		replicatedPlcList,
 		client.MatchingLabels(common.LabelsForRootPolicy(policy)),
 	)
@@ -303,7 +309,7 @@ func (r *PolicyAutomationReconciler) Reconcile(
 	switch {
 	case policyAutomation.Annotations["policy.open-cluster-management.io/rerun"] == "true":
 		// Rerun logic
-		AjExist, err := MatchPAResouceV(policyAutomation, r.DynamicClient, policyAutomation.GetResourceVersion())
+		AjExist, err := MatchPAResouceV(ctx, policyAutomation, r.DynamicClient, policyAutomation.GetResourceVersion())
 		if err != nil {
 			log.Error(err, "Failed to compare Ansible job's resourceVersion")
 
@@ -321,7 +327,7 @@ func (r *PolicyAutomationReconciler) Reconcile(
 
 		violationContext, _ := r.getViolationContext(ctx, policy, targetList, policyAutomation)
 
-		err = CreateAnsibleJob(policyAutomation, r.DynamicClient, "manual", violationContext)
+		err = CreateAnsibleJob(ctx, policyAutomation, r.DynamicClient, "manual", violationContext)
 		if err != nil {
 			log.Error(err, "Failed to create the Ansible job", "mode", "manual")
 
@@ -366,7 +372,7 @@ func (r *PolicyAutomationReconciler) Reconcile(
 				log.Info("Creating An Ansible job", "targetList", targetList)
 				violationContext, _ := r.getViolationContext(ctx, policy, targetList, policyAutomation)
 
-				err = CreateAnsibleJob(policyAutomation, r.DynamicClient, "scan", violationContext)
+				err = CreateAnsibleJob(ctx, policyAutomation, r.DynamicClient, "scan", violationContext)
 				if err != nil {
 					return reconcile.Result{RequeueAfter: requeueAfter}, err
 				}
@@ -387,7 +393,9 @@ func (r *PolicyAutomationReconciler) Reconcile(
 			if len(targetList) > 0 {
 				log.Info("Creating an Ansible job", "targetList", targetList)
 
-				AjExist, err := MatchPAGeneration(policyAutomation, r.DynamicClient, policyAutomation.GetGeneration())
+				AjExist, err := MatchPAGeneration(
+					ctx, policyAutomation, r.DynamicClient, policyAutomation.GetGeneration(),
+				)
 				if err != nil {
 					log.Error(err, "Failed to get Ansible job's generation")
 
@@ -400,7 +408,9 @@ func (r *PolicyAutomationReconciler) Reconcile(
 
 				violationContext, _ := r.getViolationContext(ctx, policy, targetList, policyAutomation)
 
-				err = CreateAnsibleJob(policyAutomation, r.DynamicClient, string(policyv1beta1.Once), violationContext)
+				err = CreateAnsibleJob(
+					ctx, policyAutomation, r.DynamicClient, string(policyv1beta1.Once), violationContext,
+				)
 				if err != nil {
 					log.Error(err, "Failed to create the Ansible job")
 
@@ -509,7 +519,7 @@ func (r *PolicyAutomationReconciler) Reconcile(
 				log.Info("Creating An Ansible job", "trimmedTargetList", trimmedTargetList)
 				violationContext, _ := r.getViolationContext(ctx, policy, trimmedTargetList, policyAutomation)
 
-				err = CreateAnsibleJob(policyAutomation, r.DynamicClient,
+				err = CreateAnsibleJob(ctx, policyAutomation, r.DynamicClient,
 					string(policyv1beta1.EveryEvent), violationContext)
 				if err != nil {
 					log.Error(err, "Failed to create the Ansible job")

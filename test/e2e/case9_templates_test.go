@@ -61,6 +61,7 @@ var _ = Describe("Test policy templates", func() {
 		})
 		It("should resolve templates and propagate to cluster ns managed1", func() {
 			By("Patching test-policy-plr with decision of cluster managed1")
+
 			plr := utils.GetWithTimeout(
 				clientHubDynamic, gvrPlacementRule, case9PolicyName+"-plr", testNamespace,
 				true, defaultTimeoutSeconds,
@@ -70,6 +71,7 @@ var _ = Describe("Test policy templates", func() {
 				context.TODO(), plr, metav1.UpdateOptions{},
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case9PolicyName, "managed1",
 				true, defaultTimeoutSeconds,
@@ -77,7 +79,7 @@ var _ = Describe("Test policy templates", func() {
 			Expect(plc).ToNot(BeNil())
 
 			yamlPlc := utils.ParseYaml(case9ReplicatedPolicyYamlM1)
-			Eventually(func() interface{} {
+			Eventually(func() any {
 				replicatedPlc := utils.GetWithTimeout(
 					clientHubDynamic,
 					gvrPolicy,
@@ -96,8 +98,9 @@ var _ = Describe("Test policy templates", func() {
 				"vendor=Fake", "--overwrite", "--kubeconfig="+kubeconfigHub)
 
 			By("Verifying the policy is updated")
+
 			yamlPlc := utils.ParseYaml(case9ReplicatedPolicyYamlM1Update)
-			Eventually(func() interface{} {
+			Eventually(func() any {
 				replicatedPlc := utils.GetWithTimeout(
 					clientHubDynamic,
 					gvrPolicy,
@@ -112,6 +115,7 @@ var _ = Describe("Test policy templates", func() {
 		})
 		It("should resolve templates and propagate to cluster ns managed2", func() {
 			By("Patching test-policy-plr with decision of cluster managed2")
+
 			plr := utils.GetWithTimeout(
 				clientHubDynamic, gvrPlacementRule, case9PolicyName+"-plr", testNamespace,
 				true, defaultTimeoutSeconds,
@@ -121,6 +125,7 @@ var _ = Describe("Test policy templates", func() {
 				context.TODO(), plr, metav1.UpdateOptions{},
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case9PolicyName, "managed2",
 				true, defaultTimeoutSeconds,
@@ -128,7 +133,7 @@ var _ = Describe("Test policy templates", func() {
 			Expect(plc).ToNot(BeNil())
 
 			yamlPlc := utils.ParseYaml(case9ReplicatedPolicyYamlM2)
-			Eventually(func() interface{} {
+			Eventually(func() any {
 				replicatedPlc := utils.GetWithTimeout(
 					clientHubDynamic,
 					gvrPolicy,
@@ -149,6 +154,7 @@ var _ = Describe("Test policy templates", func() {
 				"--ignore-not-found")
 			utils.Kubectl("label", "managedcluster", "managed1",
 				"vendor=auto-detect", "--overwrite", "--kubeconfig="+kubeconfigHub)
+
 			opt := metav1.ListOptions{}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, false, defaultTimeoutSeconds)
 		})
@@ -173,6 +179,7 @@ var _ = Describe("Test policy templates", func() {
 
 			It("should resolve templates and propagate to cluster ns "+managedCluster, func() {
 				By("Initializing AES Encryption Secret")
+
 				_, err := utils.KubectlWithOutput("apply",
 					"-f", case9EncryptionSecret,
 					"-n", managedCluster,
@@ -180,6 +187,7 @@ var _ = Describe("Test policy templates", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Patching test-policy-plr with decision of cluster " + managedCluster)
+
 				plr := utils.GetWithTimeout(
 					clientHubDynamic, gvrPlacementRule, case9PolicyNameEncrypted+"-plr", testNamespace,
 					true, defaultTimeoutSeconds,
@@ -191,8 +199,9 @@ var _ = Describe("Test policy templates", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				var replicatedPlc *unstructured.Unstructured
+
 				By("Waiting for encrypted values")
-				Eventually(func() interface{} {
+				Eventually(func() any {
 					replicatedPlc = utils.GetWithTimeout(
 						clientHubDynamic,
 						gvrPolicy,
@@ -217,8 +226,9 @@ var _ = Describe("Test policy templates", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Verifying the replicated policy against a snapshot")
+
 				yamlPlc := utils.ParseYaml(case9PolicyYamlEncryptedRepl + managedCluster + ".yaml")
-				Eventually(func() interface{} {
+				Eventually(func() any {
 					replicatedPlc = utils.GetWithTimeout(
 						clientHubDynamic,
 						gvrPolicy,
@@ -234,6 +244,7 @@ var _ = Describe("Test policy templates", func() {
 
 			It("should reconcile when the secret referenced in the template is updated", func() {
 				By("Updating the secret " + case9SecretName)
+
 				newToken := "THVrZS4gSSBhbSB5b3VyIGZhdGhlci4="
 				patch := []byte(`{"data": {"token": "` + newToken + `"}}`)
 				_, err := clientHub.CoreV1().Secrets(testNamespace).Patch(
@@ -242,6 +253,7 @@ var _ = Describe("Test policy templates", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Verifying the replicated policy was updated")
+
 				expected := "$ocm_encrypted:dbHPzG98PxV7RXcAx25mMGPBAUbfjJTEMyFc7kE2W7U3FW5+X31LkidHu/25ic4m"
 				Eventually(func() string {
 					replicatedPlc := utils.GetWithTimeout(
@@ -258,7 +270,7 @@ var _ = Describe("Test policy templates", func() {
 						return ""
 					}
 
-					template, ok := templates[0].(map[string]interface{})
+					template, ok := templates[0].(map[string]any)
 					if !ok {
 						return ""
 					}
@@ -270,7 +282,7 @@ var _ = Describe("Test policy templates", func() {
 						return ""
 					}
 
-					objectTemplate, ok := objectTemplates[0].(map[string]interface{})
+					objectTemplate, ok := objectTemplates[0].(map[string]any)
 					if !ok {
 						return ""
 					}
@@ -297,6 +309,7 @@ var _ = Describe("Test policy templates", func() {
 			It("should clean up", func() {
 				utils.Kubectl("delete", "-f", case9PolicyYamlEncrypted,
 					"-n", testNamespace, "--kubeconfig="+kubeconfigHub)
+
 				opt := metav1.ListOptions{}
 				utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, false, defaultTimeoutSeconds)
 			})
@@ -322,6 +335,7 @@ var _ = Describe("Test policy templates", func() {
 
 			It("should resolve templates and propagate to cluster ns "+managedCluster, func() {
 				By("Initializing AES Encryption Secret")
+
 				_, err := utils.KubectlWithOutput("apply",
 					"-f", case9EncryptionSecret,
 					"-n", managedCluster,
@@ -329,6 +343,7 @@ var _ = Describe("Test policy templates", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Patching test-policy-plr with decision of cluster " + managedCluster)
+
 				plr := utils.GetWithTimeout(
 					clientHubDynamic, gvrPlacementRule, case9PolicyNameCopy+"-plr", testNamespace,
 					true, defaultTimeoutSeconds,
@@ -340,8 +355,9 @@ var _ = Describe("Test policy templates", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				var replicatedPlc *unstructured.Unstructured
+
 				By("Waiting for encrypted values")
-				Eventually(func() interface{} {
+				Eventually(func() any {
 					replicatedPlc = utils.GetWithTimeout(
 						clientHubDynamic,
 						gvrPolicy,
@@ -366,8 +382,9 @@ var _ = Describe("Test policy templates", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Verifying the replicated policy against a snapshot")
+
 				yamlPlc := utils.ParseYaml(case9PolicyYamlCopiedRepl + managedCluster + ".yaml")
-				Eventually(func() interface{} {
+				Eventually(func() any {
 					replicatedPlc = utils.GetWithTimeout(
 						clientHubDynamic,
 						gvrPolicy,
@@ -383,6 +400,7 @@ var _ = Describe("Test policy templates", func() {
 
 			It("should reconcile when the secret referenced in the template is updated", func() {
 				By("Updating the secret " + case9SecretName)
+
 				newToken := "THVrZS4gSSBhbSB5b3VyIGZhdGhlci4="
 				patch := []byte(`{"data": {"token": "` + newToken + `"}}`)
 				_, err := clientHub.CoreV1().Secrets(testNamespace).Patch(
@@ -391,6 +409,7 @@ var _ = Describe("Test policy templates", func() {
 				Expect(err).ToNot(HaveOccurred())
 
 				By("Verifying the replicated policy was updated")
+
 				expected := "$ocm_encrypted:dbHPzG98PxV7RXcAx25mMGPBAUbfjJTEMyFc7kE2W7U3FW5+X31LkidHu/25ic4m"
 				Eventually(func() string {
 					replicatedPlc := utils.GetWithTimeout(
@@ -407,7 +426,7 @@ var _ = Describe("Test policy templates", func() {
 						return ""
 					}
 
-					template, ok := templates[0].(map[string]interface{})
+					template, ok := templates[0].(map[string]any)
 					if !ok {
 						return ""
 					}
@@ -419,7 +438,7 @@ var _ = Describe("Test policy templates", func() {
 						return ""
 					}
 
-					objectTemplate, ok := objectTemplates[0].(map[string]interface{})
+					objectTemplate, ok := objectTemplates[0].(map[string]any)
 					if !ok {
 						return ""
 					}
@@ -447,6 +466,7 @@ var _ = Describe("Test policy templates", func() {
 				utils.Kubectl("delete", "-f", case9PolicyYamlCopy,
 					"-n", testNamespace,
 					"--kubeconfig="+kubeconfigHub)
+
 				opt := metav1.ListOptions{}
 				utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, false, defaultTimeoutSeconds)
 			})
@@ -478,6 +498,7 @@ var _ = Describe("Test policy templates", func() {
 		})
 		It("should resolve templates and propagate to cluster ns managed1", func() {
 			By("Patching test-policy-plr with decision of cluster managed1")
+
 			plr := utils.GetWithTimeout(
 				clientHubDynamic, gvrPlacementRule, case9PolicyWithCSLookupName+"-plr", testNamespace,
 				true, defaultTimeoutSeconds,
@@ -487,6 +508,7 @@ var _ = Describe("Test policy templates", func() {
 				context.TODO(), plr, metav1.UpdateOptions{},
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case9PolicyWithCSLookupName, "managed1",
 				true, defaultTimeoutSeconds,
@@ -494,10 +516,11 @@ var _ = Describe("Test policy templates", func() {
 			Expect(plc).NotTo(BeNil())
 
 			By("Verifying the replicated policy was created with the correct error annotation in the template")
+
 			tmpls, _, _ := unstructured.NestedSlice(plc.Object, "spec", "policy-templates")
 			Expect(tmpls).To(HaveLen(1))
 
-			tmplAnnotations, _, _ := unstructured.NestedStringMap(tmpls[0].(map[string]interface{}),
+			tmplAnnotations, _, _ := unstructured.NestedStringMap(tmpls[0].(map[string]any),
 				"objectDefinition", "metadata", "annotations")
 			Expect(tmplAnnotations).ToNot(BeEmpty())
 
@@ -510,6 +533,7 @@ var _ = Describe("Test policy templates", func() {
 				"-n", testNamespace,
 				"--kubeconfig="+kubeconfigHub,
 				"--ignore-not-found")
+
 			opt := metav1.ListOptions{}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, false, defaultTimeoutSeconds)
 		})
@@ -557,6 +581,7 @@ var _ = Describe("Test policy templates", func() {
 			Expect(err).ToNot(HaveOccurred())
 
 			By("Verifying the replicated policy has the correct values")
+
 			for i := range 3 {
 				cluster := fmt.Sprintf("managed%d", i+1)
 
@@ -577,7 +602,7 @@ var _ = Describe("Test policy templates", func() {
 					g.Expect(tmpls).To(HaveLen(1))
 
 					tmplLabels, _, _ := unstructured.NestedStringMap(
-						tmpls[0].(map[string]interface{}), "objectDefinition", "metadata", "labels",
+						tmpls[0].(map[string]any), "objectDefinition", "metadata", "labels",
 					)
 					g.Expect(tmplLabels).ToNot(BeEmpty())
 					g.Expect(tmplLabels["configmap"]).To(Equal("Raleigh"))
@@ -591,6 +616,7 @@ var _ = Describe("Test policy templates", func() {
 			utils.Kubectl("-n", testNamespace, "apply", "-f", case9SAPolicyNoPermYaml, "--kubeconfig="+kubeconfigHub)
 
 			By("Verifying the replicated policy has an error")
+
 			for i := range 3 {
 				cluster := fmt.Sprintf("managed%d", i+1)
 
@@ -607,10 +633,11 @@ var _ = Describe("Test policy templates", func() {
 					g.Expect(plc).NotTo(BeNil())
 
 					By("Verifying the replicated policy was created with the correct error annotation in the template")
+
 					tmpls, _, _ := unstructured.NestedSlice(plc.Object, "spec", "policy-templates")
 					g.Expect(tmpls).To(HaveLen(1))
 
-					tmplAnnotations, _, _ := unstructured.NestedStringMap(tmpls[0].(map[string]interface{}),
+					tmplAnnotations, _, _ := unstructured.NestedStringMap(tmpls[0].(map[string]any),
 						"objectDefinition", "metadata", "annotations")
 					g.Expect(tmplAnnotations).ToNot(BeEmpty())
 
@@ -628,6 +655,7 @@ var _ = Describe("Test policy templates", func() {
 			utils.Kubectl("-n", testNamespace, "apply", "-f", case9SAPolicyYaml, "--kubeconfig="+kubeconfigHub)
 
 			By("Verifying the replicated policy has no error")
+
 			for i := range 3 {
 				cluster := fmt.Sprintf("managed%d", i+1)
 
@@ -646,7 +674,7 @@ var _ = Describe("Test policy templates", func() {
 					tmpls, _, _ := unstructured.NestedSlice(plc.Object, "spec", "policy-templates")
 					g.Expect(tmpls).To(HaveLen(1))
 
-					tmplAnnotations, _, _ := unstructured.NestedStringMap(tmpls[0].(map[string]interface{}),
+					tmplAnnotations, _, _ := unstructured.NestedStringMap(tmpls[0].(map[string]any),
 						"objectDefinition", "metadata", "annotations")
 					hubTmplErrAnnotation := tmplAnnotations["policy.open-cluster-management.io/hub-templates-error"]
 					g.Expect(hubTmplErrAnnotation).To(BeEmpty())
@@ -659,6 +687,7 @@ var _ = Describe("Test policy templates", func() {
 			utils.Kubectl("-n", testNamespace, "apply", "-f", case9SAPolicyMissingSAYaml, "--kubeconfig="+kubeconfigHub)
 
 			By("Verifying the replicated policy has an error")
+
 			for i := range 3 {
 				cluster := fmt.Sprintf("managed%d", i+1)
 
@@ -675,10 +704,11 @@ var _ = Describe("Test policy templates", func() {
 					g.Expect(plc).NotTo(BeNil())
 
 					By("Verifying the replicated policy was created with the correct error annotation in the template")
+
 					tmpls, _, _ := unstructured.NestedSlice(plc.Object, "spec", "policy-templates")
 					g.Expect(tmpls).To(HaveLen(1))
 
-					tmplAnnotations, _, _ := unstructured.NestedStringMap(tmpls[0].(map[string]interface{}),
+					tmplAnnotations, _, _ := unstructured.NestedStringMap(tmpls[0].(map[string]any),
 						"objectDefinition", "metadata", "annotations")
 					g.Expect(tmplAnnotations).ToNot(BeEmpty())
 
@@ -694,6 +724,7 @@ var _ = Describe("Test policy templates", func() {
 			utils.Kubectl("-n", testNamespace, "create", "sa", "case9-sa-does-not-exist", "--kubeconfig="+kubeconfigHub)
 
 			By("Verifying the replicated policy has the correct values")
+
 			for i := range 3 {
 				cluster := fmt.Sprintf("managed%d", i+1)
 
@@ -713,13 +744,13 @@ var _ = Describe("Test policy templates", func() {
 					tmpls, _, _ := unstructured.NestedSlice(plc.Object, "spec", "policy-templates")
 					g.Expect(tmpls).To(HaveLen(1))
 
-					tmplAnnotations, _, _ := unstructured.NestedStringMap(tmpls[0].(map[string]interface{}),
+					tmplAnnotations, _, _ := unstructured.NestedStringMap(tmpls[0].(map[string]any),
 						"objectDefinition", "metadata", "annotations")
 					hubTmplErrAnnotation := tmplAnnotations["policy.open-cluster-management.io/hub-templates-error"]
 					g.Expect(hubTmplErrAnnotation).To(BeEmpty())
 
 					tmplLabels, _, _ := unstructured.NestedStringMap(
-						tmpls[0].(map[string]interface{}), "objectDefinition", "metadata", "labels",
+						tmpls[0].(map[string]any), "objectDefinition", "metadata", "labels",
 					)
 					g.Expect(tmplLabels).ToNot(BeEmpty())
 					g.Expect(tmplLabels["configmap"]).To(Equal("Raleigh"))
@@ -781,6 +812,7 @@ var _ = Describe("Test policy templates", func() {
 
 		It("The template resolver should be cleaned up when the service account gets deleted", func(ctx SpecContext) {
 			By("Getting a token for the service account")
+
 			tokenCtx, tokenCtxCancel := context.WithCancel(ctx)
 
 			defer tokenCtxCancel()

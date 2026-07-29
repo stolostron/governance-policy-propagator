@@ -259,7 +259,7 @@ func main() {
 					Field: fields.SelectorFromSet(fields.Set{"metadata.name": propagatorctrl.EncryptionKeySecret}),
 				},
 				&clusterv1.ManagedCluster{}: {
-					Transform: func(obj interface{}) (interface{}, error) {
+					Transform: func(obj any) (any, error) {
 						cluster := obj.(*clusterv1.ManagedCluster)
 						// All that ManagedCluster objects are used for is to check their existence to see if a
 						// namespace is a cluster namespace.
@@ -270,7 +270,7 @@ func main() {
 					},
 				},
 				&policyv1.Policy{}: {
-					Transform: func(obj interface{}) (interface{}, error) {
+					Transform: func(obj any) (any, error) {
 						policy := obj.(*policyv1.Policy)
 						// Remove unused large fields
 						delete(policy.Annotations, "kubectl.kubernetes.io/last-applied-configuration")
@@ -284,7 +284,7 @@ func main() {
 	}
 
 	if strings.Contains(namespace, ",") {
-		for _, ns := range strings.Split(namespace, ",") {
+		for ns := range strings.SplitSeq(namespace, ",") {
 			options.Cache.DefaultNamespaces[ns] = cache.Config{}
 		}
 	}
@@ -468,13 +468,9 @@ func main() {
 		controllerCtx, mgr.GetConfig(), mgr.GetClient(), templateResolver, replicatedPolicyUpdates,
 	)
 
-	wg.Add(1)
-
-	go func() {
+	wg.Go(func() {
 		resolvers.WaitForShutdown()
-
-		wg.Done()
-	}()
+	})
 
 	replicatedPolicyCtrler := &propagatorctrl.ReplicatedPolicyReconciler{
 		Propagator:        propagator,
@@ -492,16 +488,12 @@ func main() {
 
 	log.Info("Starting manager")
 
-	wg.Add(1)
-
-	go func() {
+	wg.Go(func() {
 		if err := mgr.Start(controllerCtx); err != nil {
 			log.Error(err, "Problem running manager")
 			os.Exit(1)
 		}
-
-		wg.Done()
-	}()
+	})
 
 	wg.Wait()
 }

@@ -22,7 +22,7 @@ import (
 const (
 	PolicyAutomationLabel      string = "policy.open-cluster-management.io/policyautomation-name"
 	PolicyAutomationGeneration string = "policy.open-cluster-management.io/policyautomation-generation"
-	// policyautomation-ResouceVersion
+	// PolicyAutomationResouceV is the annotation key for the policy automation resource version.
 	PolicyAutomationResouceV string = "policy.open-cluster-management.io/policyautomation-resource-version"
 )
 
@@ -31,13 +31,13 @@ var ansibleJobRes = schema.GroupVersionResource{
 	Resource: "ansiblejobs",
 }
 
-// Check any ansiblejob is made by input genteration number
-// Returning "true" means the policy automation already created ansiblejob with the generation
-func MatchPAGeneration(policyAutomation *policyv1beta1.PolicyAutomation,
+// MatchPAGeneration checks whether an ansiblejob was made by the input generation number.
+// Returning true means the policy automation already created an ansiblejob with the generation.
+func MatchPAGeneration(ctx context.Context, policyAutomation *policyv1beta1.PolicyAutomation,
 	dynamicClient dynamic.Interface, generation int64,
 ) (bool, error) {
 	ansiblejobList, err := dynamicClient.Resource(ansibleJobRes).Namespace(policyAutomation.GetNamespace()).List(
-		context.TODO(), metav1.ListOptions{
+		ctx, metav1.ListOptions{
 			LabelSelector: fmt.Sprintf("%s=%s", PolicyAutomationLabel, policyAutomation.GetName()),
 		},
 	)
@@ -59,13 +59,13 @@ func MatchPAGeneration(policyAutomation *policyv1beta1.PolicyAutomation,
 	return false, nil
 }
 
-// Check any ansiblejob is made by current resourceVersion number
-// Returning "true" means the policy automation already created ansiblejob with this resourceVersion
-func MatchPAResouceV(policyAutomation *policyv1beta1.PolicyAutomation,
+// MatchPAResouceV checks whether an ansiblejob was made by the current resourceVersion number.
+// Returning true means the policy automation already created an ansiblejob with this resourceVersion.
+func MatchPAResouceV(ctx context.Context, policyAutomation *policyv1beta1.PolicyAutomation,
 	dynamicClient dynamic.Interface, resourceVersion string,
 ) (bool, error) {
 	ansiblejobList, err := dynamicClient.Resource(ansibleJobRes).Namespace(policyAutomation.GetNamespace()).List(
-		context.TODO(), metav1.ListOptions{
+		ctx, metav1.ListOptions{
 			LabelSelector: fmt.Sprintf("%s=%s", PolicyAutomationLabel, policyAutomation.GetName()),
 		},
 	)
@@ -85,31 +85,31 @@ func MatchPAResouceV(policyAutomation *policyv1beta1.PolicyAutomation,
 	return false, nil
 }
 
-// CreateAnsibleJob creates ansiblejob with given PolicyAutomation
-func CreateAnsibleJob(policyAutomation *policyv1beta1.PolicyAutomation,
+// CreateAnsibleJob creates ansiblejob with given PolicyAutomation.
+func CreateAnsibleJob(ctx context.Context, policyAutomation *policyv1beta1.PolicyAutomation,
 	dynamicClient dynamic.Interface, mode string, violationContext policyv1beta1.ViolationContext,
 ) error {
 	ansibleJob := &unstructured.Unstructured{
-		Object: map[string]interface{}{
+		Object: map[string]any{
 			"apiVersion": "tower.ansible.com/v1alpha1",
 			"kind":       "AnsibleJob",
-			"metadata": map[string]interface{}{
-				"annotations": map[string]interface{}{
+			"metadata": map[string]any{
+				"annotations": map[string]any{
 					PolicyAutomationGeneration: strconv.
 						FormatInt(policyAutomation.GetGeneration(), 10),
 					PolicyAutomationResouceV: policyAutomation.GetResourceVersion(),
 				},
 			},
-			"spec": map[string]interface{}{
+			"spec": map[string]any{
 				"job_template_name": policyAutomation.Spec.Automation.Name,
 				"tower_auth_secret": policyAutomation.Spec.Automation.TowerSecret,
-				"extra_vars":        map[string]interface{}{},
+				"extra_vars":        map[string]any{},
 				"job_ttl":           86400, // default TTL is 24 hours
 			},
 		},
 	}
 
-	mapExtraVars := map[string]interface{}{}
+	mapExtraVars := map[string]any{}
 	if policyAutomation.Spec.Automation.ExtraVars != nil {
 		// This is to translate the runtime.RawExtension to a map[string]interface{}
 		err := json.Unmarshal(policyAutomation.Spec.Automation.ExtraVars.Raw, &mapExtraVars)
@@ -145,10 +145,10 @@ func CreateAnsibleJob(policyAutomation *policyv1beta1.PolicyAutomation,
 	}
 	ansibleJob.SetLabels(label)
 
-	ansibleJob.Object["spec"].(map[string]interface{})["extra_vars"] = mapExtraVars
+	ansibleJob.Object["spec"].(map[string]any)["extra_vars"] = mapExtraVars
 
 	if policyAutomation.Spec.Automation.JobTTL != nil {
-		ansibleJob.Object["spec"].(map[string]interface{})["job_ttl"] = *policyAutomation.Spec.Automation.JobTTL
+		ansibleJob.Object["spec"].(map[string]any)["job_ttl"] = *policyAutomation.Spec.Automation.JobTTL
 	}
 
 	ansibleJobRes := schema.GroupVersionResource{
@@ -167,7 +167,7 @@ func CreateAnsibleJob(policyAutomation *policyv1beta1.PolicyAutomation,
 	})
 
 	_, err := dynamicClient.Resource(ansibleJobRes).Namespace(policyAutomation.GetNamespace()).
-		Create(context.TODO(), ansibleJob, metav1.CreateOptions{})
+		Create(ctx, ansibleJob, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}

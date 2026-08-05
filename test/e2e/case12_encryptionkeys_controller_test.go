@@ -49,6 +49,7 @@ var _ = Describe("Test policy encryption key rotation", func() {
 		Expect(rootTwo).NotTo(BeNil())
 
 		By("Patching in the decision for policy-one")
+
 		plrOne := utils.GetWithTimeout(
 			clientHubDynamic, gvrPlacementRule, policyOneName+"-plr", testNamespace, true, defaultTimeoutSeconds,
 		)
@@ -57,16 +58,19 @@ var _ = Describe("Test policy encryption key rotation", func() {
 			context.TODO(), plrOne, metav1.UpdateOptions{},
 		)
 		Expect(err).ToNot(HaveOccurred())
+
 		replicatedOne := utils.GetWithTimeout(
 			clientHubDynamic, gvrPolicy, testNamespace+"."+policyOneName, "managed1", true, defaultTimeoutSeconds,
 		)
 		Expect(replicatedOne).ToNot(BeNil())
+
 		opt := metav1.ListOptions{
 			LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + policyOneName,
 		}
 		utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 1, true, defaultTimeoutSeconds)
 
 		By("Patching in the decision for policy-two")
+
 		plrTwo := utils.GetWithTimeout(
 			clientHubDynamic, gvrPlacementRule, policyTwoName+"-plr", testNamespace, true, defaultTimeoutSeconds,
 		)
@@ -75,10 +79,12 @@ var _ = Describe("Test policy encryption key rotation", func() {
 			context.TODO(), plrTwo, metav1.UpdateOptions{},
 		)
 		Expect(err).ToNot(HaveOccurred())
+
 		replicatedTwo := utils.GetWithTimeout(
 			clientHubDynamic, gvrPolicy, testNamespace+"."+policyTwoName, "managed1", true, defaultTimeoutSeconds,
 		)
 		Expect(replicatedTwo).ToNot(BeNil())
+
 		opt = metav1.ListOptions{
 			LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + policyTwoName,
 		}
@@ -88,7 +94,7 @@ var _ = Describe("Test policy encryption key rotation", func() {
 		utils.Kubectl("apply", "-n", "managed1",
 			"-f", replicatedPolicyOneYaml, "--kubeconfig="+kubeconfigHub)
 
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			replicatedPolicy := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, replicatedPolicyOneName, "managed1", true, defaultTimeoutSeconds,
 			)
@@ -112,7 +118,8 @@ var _ = Describe("Test policy encryption key rotation", func() {
 
 	It("should have rotated the key in the "+EncryptionKeySecret+" secret", func() {
 		var secret *unstructured.Unstructured
-		Eventually(func() interface{} {
+
+		Eventually(func() any {
 			secret = utils.GetWithTimeout(
 				clientHubDynamic,
 				gvrSecret,
@@ -122,7 +129,7 @@ var _ = Describe("Test policy encryption key rotation", func() {
 				defaultTimeoutSeconds,
 			)
 
-			data, ok := secret.Object["data"].(map[string]interface{})
+			data, ok := secret.Object["data"].(map[string]any)
 			if !ok {
 				return ""
 			}
@@ -135,13 +142,13 @@ var _ = Describe("Test policy encryption key rotation", func() {
 			return currentKey
 		}, defaultTimeoutSeconds, 1).ShouldNot(Equal(keyB64))
 
-		currentPrevKey, ok := secret.Object["data"].(map[string]interface{})["previousKey"].(string)
+		currentPrevKey, ok := secret.Object["data"].(map[string]any)["previousKey"].(string)
 		Expect(ok).Should(BeTrue())
 		Expect(currentPrevKey).Should(Equal(keyB64))
 	})
 
 	It("should have triggered policies to be reprocessed", func() {
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			policy := utils.GetWithTimeout(
 				clientHubDynamic,
 				gvrPolicy,

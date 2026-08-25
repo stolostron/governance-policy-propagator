@@ -11,6 +11,7 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	corev1 "k8s.io/api/core/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
@@ -18,7 +19,7 @@ import (
 	"open-cluster-management.io/governance-policy-propagator/test/utils"
 )
 
-var _ = Describe("Test policy encryption key rotation", func() {
+var _ = Describe("Test policy encryption key rotation", Ordered, func() {
 	key := bytes.Repeat([]byte{byte('A')}, 256/8)
 	keyB64 := base64.StdEncoding.EncodeToString(key)
 	previousKey := bytes.Repeat([]byte{byte('B')}, 256/8)
@@ -167,17 +168,47 @@ var _ = Describe("Test policy encryption key rotation", func() {
 		Expect(policy.GetAnnotations()[TriggerUpdateAnnotation]).Should(Equal(""))
 	})
 
-	It("clean up", func(ctx SpecContext) {
-		err := clientHub.CoreV1().Secrets("managed1").Delete(
-			ctx, EncryptionKeySecret, metav1.DeleteOptions{},
-		)
+	It("should not rotate a secret in a non-cluster namespace", func(ctx SpecContext) {
+		secret := &corev1.Secret{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      EncryptionKeySecret,
+				Namespace: "default",
+			},
+			Data: map[string][]byte{"key": key},
+		}
+		_, err := clientHub.CoreV1().Secrets("default").Create(ctx, secret, metav1.CreateOptions{})
 		Expect(err).ShouldNot(HaveOccurred())
+
+		Consistently(func() any {
+			secret := utils.GetWithTimeout(clientHubDynamic, gvrSecret, EncryptionKeySecret,
+				"default", true, defaultTimeoutSeconds)
+
+			data, ok := secret.Object["data"].(map[string]any)
+			if !ok {
+				return ""
+			}
+
+			return data["key"].(string)
+		}, "10s", 1).Should(Equal(keyB64))
+	})
+
+	AfterAll(func(ctx SpecContext) {
+		err := clientHub.CoreV1().Secrets("managed1").Delete(ctx, EncryptionKeySecret, metav1.DeleteOptions{})
+		if !k8serrors.IsNotFound(err) {
+			Expect(err).ShouldNot(HaveOccurred())
+		}
+
+		err = clientHub.CoreV1().Secrets("default").Delete(ctx, EncryptionKeySecret, metav1.DeleteOptions{})
+		if !k8serrors.IsNotFound(err) {
+			Expect(err).ShouldNot(HaveOccurred())
+		}
 
 		for _, policyName := range []string{"policy-one", "policy-two"} {
 			err = clientHubDynamic.Resource(gvrPolicy).Namespace(testNamespace).Delete(
-				ctx, policyName, metav1.DeleteOptions{},
-			)
-			Expect(err).ShouldNot(HaveOccurred())
+				ctx, policyName, metav1.DeleteOptions{})
+			if !k8serrors.IsNotFound(err) {
+				Expect(err).ShouldNot(HaveOccurred())
+			}
 		}
 	})
 })

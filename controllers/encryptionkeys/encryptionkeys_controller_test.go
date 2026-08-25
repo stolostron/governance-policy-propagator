@@ -20,6 +20,7 @@ import (
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
+	clusterv1 "open-cluster-management.io/api/cluster/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
@@ -195,8 +196,14 @@ func getReconciler(encryptionSecret *corev1.Secret) *EncryptionKeysReconciler {
 	Expect(err).ToNot(HaveOccurred())
 	err = v1.AddToScheme(scheme)
 	Expect(err).ToNot(HaveOccurred())
+	err = clusterv1.Install(scheme)
+	Expect(err).ToNot(HaveOccurred())
 
 	builder := fake.NewClientBuilder().WithObjects(policies...).WithScheme(scheme)
+
+	builder = builder.WithObjects(&clusterv1.ManagedCluster{
+		ObjectMeta: metav1.ObjectMeta{Name: clusterName},
+	})
 
 	if encryptionSecret != nil {
 		builder = builder.WithObjects(encryptionSecret)

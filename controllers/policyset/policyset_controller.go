@@ -6,6 +6,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -94,6 +95,38 @@ func (r *PolicySetReconciler) Reconcile(ctx context.Context, request ctrl.Reques
 	return reconcile.Result{}, nil
 }
 
+// SetupWithManager sets up the controller with the Manager.
+func (r *PolicySetReconciler) SetupWithManager(mgr ctrl.Manager, plrsEnabled bool) error {
+	log := ctrl.Log.WithName(ControllerName)
+
+	ctrlBldr := ctrl.NewControllerManagedBy(mgr).
+		Named(ControllerName).
+		For(
+			&policyv1beta1.PolicySet{},
+			builder.WithPredicates(policySetPredicateFuncs)).
+		Watches(
+			&policyv1.Policy{},
+			handler.EnqueueRequestsFromMapFunc(policyMapper(log, mgr.GetClient())),
+			builder.WithPredicates(policyPredicateFuncs)).
+		Watches(
+			&policyv1.PlacementBinding{},
+			handler.EnqueueRequestsFromMapFunc(placementBindingMapper(log, mgr.GetClient())),
+			builder.WithPredicates(pbPredicateFuncs)).
+		Watches(
+			&clusterv1beta1.PlacementDecision{},
+			handler.EnqueueRequestsFromMapFunc(placementDecisionMapper(log, mgr.GetClient()))).
+		WithLogConstructor(func(req *reconcile.Request) logr.Logger {
+			return common.LogConstructor(ControllerName, "PolicySet", req)
+		})
+
+	if plrsEnabled {
+		ctrlBldr = ctrlBldr.Watches(&appsv1.PlacementRule{},
+			handler.EnqueueRequestsFromMapFunc(placementRuleMapper(log, mgr.GetClient())))
+	}
+
+	return ctrlBldr.Complete(r)
+}
+
 // processPolicySet compares the status of a policyset to its desired state and determines whether an update is needed
 func (r *PolicySetReconciler) processPolicySet(
 	ctx context.Context, log logr.Logger, plcSet *policyv1beta1.PolicySet,
@@ -133,7 +166,7 @@ func (r *PolicySetReconciler) processPolicySet(
 
 		childPlc := &policyv1.Policy{}
 
-		err := r.Client.Get(ctx, childNamespacedName, childPlc)
+		err := r.Get(ctx, childNamespacedName, childPlc)
 		if err != nil {
 			// policy does not exist, log error message and generate event
 			var errMessage string
@@ -186,7 +219,7 @@ func (r *PolicySetReconciler) processPolicySet(
 
 				pb := &policyv1.PlacementBinding{}
 
-				err := r.Client.Get(ctx, pbNamespacedName, pb)
+				err := r.Get(ctx, pbNamespacedName, pb)
 				if err != nil {
 					if errors.IsNotFound(err) {
 						log.V(1).Info("The placement binding was not found", "placementBinding", pbName)
@@ -309,38 +342,6 @@ func showCompliance(compliancesFound []string, unknown []string, pending []strin
 	return false
 }
 
-// SetupWithManager sets up the controller with the Manager.
-func (r *PolicySetReconciler) SetupWithManager(mgr ctrl.Manager, plrsEnabled bool) error {
-	log := ctrl.Log.WithName(ControllerName)
-
-	ctrlBldr := ctrl.NewControllerManagedBy(mgr).
-		Named(ControllerName).
-		For(
-			&policyv1beta1.PolicySet{},
-			builder.WithPredicates(policySetPredicateFuncs)).
-		Watches(
-			&policyv1.Policy{},
-			handler.EnqueueRequestsFromMapFunc(policyMapper(log, mgr.GetClient())),
-			builder.WithPredicates(policyPredicateFuncs)).
-		Watches(
-			&policyv1.PlacementBinding{},
-			handler.EnqueueRequestsFromMapFunc(placementBindingMapper(log, mgr.GetClient())),
-			builder.WithPredicates(pbPredicateFuncs)).
-		Watches(
-			&clusterv1beta1.PlacementDecision{},
-			handler.EnqueueRequestsFromMapFunc(placementDecisionMapper(log, mgr.GetClient()))).
-		WithLogConstructor(func(req *reconcile.Request) logr.Logger {
-			return common.LogConstructor(ControllerName, "PolicySet", req)
-		})
-
-	if plrsEnabled {
-		ctrlBldr = ctrlBldr.Watches(&appsv1.PlacementRule{},
-			handler.EnqueueRequestsFromMapFunc(placementRuleMapper(log, mgr.GetClient())))
-	}
-
-	return ctrlBldr.Complete(r)
-}
-
 // Helper function to filter out compliance statuses that are not in scope
 func complianceInRelevantClusters(
 	status []*policyv1.CompliancePerClusterStatus,
@@ -378,13 +379,7 @@ func complianceInRelevantClusters(
 
 // helper function to check whether a cluster is in a list of clusters
 func clusterInList(list []string, cluster string) bool {
-	for _, item := range list {
-		if item == cluster {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(list, cluster)
 }
 
 // Helper function to convert policy placement to policyset placement

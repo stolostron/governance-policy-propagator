@@ -22,7 +22,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/json"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 
@@ -44,7 +44,7 @@ var (
 type Propagator struct {
 	client.Client
 	Scheme                  *runtime.Scheme
-	Recorder                record.EventRecorder
+	Recorder                events.EventRecorder
 	RootPolicyLocks         *sync.Map
 	ReplicatedPolicyUpdates chan event.GenericEvent
 	TemplateFuncDenylist    []string
@@ -96,6 +96,7 @@ func (r *RootPolicyReconciler) handleRootPolicy(
 ) error {
 	// Generate a metric for elapsed handling time for each policy
 	entryTS := time.Now()
+
 	defer func() {
 		now := time.Now()
 		elapsed := now.Sub(entryTS).Seconds()
@@ -114,7 +115,7 @@ func (r *RootPolicyReconciler) handleRootPolicy(
 		// Checks if replicated policies exist in the event that
 		// a double reconcile to prevent emitting the same event twice
 		if updateCount > 0 {
-			r.Recorder.Event(instance, "Normal", "PolicyPropagation",
+			r.Recorder.Eventf(instance, nil, "Normal", "PolicyPropagation", "PolicyPropagation",
 				fmt.Sprintf("Policy %s/%s was disabled", instance.GetNamespace(), instance.GetName()))
 		}
 	}
@@ -155,7 +156,7 @@ func (r *RootPolicyReconciler) handleRootPolicy(
 type templateCtx struct {
 	ManagedClusterName   string
 	ManagedClusterLabels map[string]string
-	PolicyMetadata       map[string]interface{}
+	PolicyMetadata       map[string]any
 }
 
 // getTemplateResolverOpts builds the service account namespace name and template resolver options
@@ -198,8 +199,8 @@ func (r *ReplicatedPolicyReconciler) getTemplateResolverOpts(
 	return saNSName, templateResolverOptions
 }
 
-func addManagedClusterLabels(clusterName string) func(templates.CachingQueryAPI, interface{}) (interface{}, error) {
-	return func(api templates.CachingQueryAPI, ctx interface{}) (interface{}, error) {
+func addManagedClusterLabels(clusterName string) func(templates.CachingQueryAPI, any) (any, error) {
+	return func(api templates.CachingQueryAPI, ctx any) (any, error) {
 		typedCtx, ok := ctx.(templateCtx)
 		if !ok {
 			return ctx, nil
@@ -329,7 +330,7 @@ func (r *ReplicatedPolicyReconciler) processTemplates(
 
 		templateContext := templateCtx{
 			ManagedClusterName: clusterName,
-			PolicyMetadata: map[string]interface{}{
+			PolicyMetadata: map[string]any{
 				"annotations": rootPlc.Annotations,
 				"labels":      rootPlc.Labels,
 				"name":        rootPlc.Name,
@@ -383,9 +384,11 @@ func (r *ReplicatedPolicyReconciler) processTemplates(
 		if tplErr != nil {
 			log.Error(tplErr, "Failed to resolve templates")
 
-			r.Recorder.Event(
+			r.Recorder.Eventf(
 				rootPlc,
+				nil,
 				"Warning",
+				"PolicyPropagation",
 				"PolicyPropagation",
 				fmt.Sprintf(
 					"Failed to resolve templates for cluster %s: %s",

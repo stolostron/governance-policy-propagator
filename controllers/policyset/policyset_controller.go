@@ -43,6 +43,38 @@ var _ reconcile.Reconciler = &PolicySetReconciler{}
 //+kubebuilder:rbac:groups=policy.open-cluster-management.io,resources=policysets/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=policy.open-cluster-management.io,resources=policysets/finalizers,verbs=update
 
+// SetupWithManager sets up the controller with the Manager.
+func (r *PolicySetReconciler) SetupWithManager(mgr ctrl.Manager, plrsEnabled bool) error {
+	log := ctrl.Log.WithName(ControllerName)
+
+	ctrlBldr := ctrl.NewControllerManagedBy(mgr).
+		Named(ControllerName).
+		For(
+			&policyv1beta1.PolicySet{},
+			builder.WithPredicates(policySetPredicateFuncs)).
+		Watches(
+			&policyv1.Policy{},
+			handler.EnqueueRequestsFromMapFunc(policyMapper(log, mgr.GetClient())),
+			builder.WithPredicates(policyPredicateFuncs)).
+		Watches(
+			&policyv1.PlacementBinding{},
+			handler.EnqueueRequestsFromMapFunc(placementBindingMapper(log, mgr.GetClient())),
+			builder.WithPredicates(pbPredicateFuncs)).
+		Watches(
+			&clusterv1beta1.PlacementDecision{},
+			handler.EnqueueRequestsFromMapFunc(placementDecisionMapper(log, mgr.GetClient()))).
+		WithLogConstructor(func(req *reconcile.Request) logr.Logger {
+			return common.LogConstructor(ControllerName, "PolicySet", req)
+		})
+
+	if plrsEnabled {
+		ctrlBldr = ctrlBldr.Watches(&appsv1.PlacementRule{},
+			handler.EnqueueRequestsFromMapFunc(placementRuleMapper(log, mgr.GetClient())))
+	}
+
+	return ctrlBldr.Complete(r)
+}
+
 func (r *PolicySetReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	log := ctrl.LoggerFrom(ctx)
 	log.Info("Reconciling policy sets...")

@@ -261,7 +261,7 @@ func main() {
 					Field: fields.SelectorFromSet(fields.Set{"metadata.name": propagatorctrl.EncryptionKeySecret}),
 				},
 				&clusterv1.ManagedCluster{}: {
-					Transform: func(obj interface{}) (interface{}, error) {
+					Transform: func(obj any) (any, error) {
 						cluster := obj.(*clusterv1.ManagedCluster)
 						// All that ManagedCluster objects are used for is to check their existence to see if a
 						// namespace is a cluster namespace.
@@ -272,7 +272,7 @@ func main() {
 					},
 				},
 				&policyv1.Policy{}: {
-					Transform: func(obj interface{}) (interface{}, error) {
+					Transform: func(obj any) (any, error) {
 						policy := obj.(*policyv1.Policy)
 						// Remove unused large fields
 						delete(policy.Annotations, "kubectl.kubernetes.io/last-applied-configuration")
@@ -286,7 +286,7 @@ func main() {
 	}
 
 	if strings.Contains(namespace, ",") {
-		for _, ns := range strings.Split(namespace, ",") {
+		for ns := range strings.SplitSeq(namespace, ",") {
 			options.Cache.DefaultNamespaces[ns] = cache.Config{}
 		}
 	}
@@ -329,7 +329,7 @@ func main() {
 	propagator := propagatorctrl.Propagator{
 		Client:                  mgr.GetClient(),
 		Scheme:                  mgr.GetScheme(),
-		Recorder:                mgr.GetEventRecorderFor(propagatorctrl.ControllerName),
+		Recorder:                mgr.GetEventRecorder(propagatorctrl.ControllerName),
 		RootPolicyLocks:         policiesLock,
 		ReplicatedPolicyUpdates: replicatedPolicyUpdates,
 		TemplateFuncDenylist:    templateFunctionDenyList,
@@ -397,7 +397,7 @@ func main() {
 		Client:        mgr.GetClient(),
 		DynamicClient: dynamicClient,
 		Scheme:        mgr.GetScheme(),
-		Recorder:      mgr.GetEventRecorderFor(automationctrl.ControllerName),
+		Recorder:      mgr.GetEventRecorder(automationctrl.ControllerName),
 	}).SetupWithManager(mgr); err != nil {
 		log.Error(err, "Unable to create the controller", "controller", automationctrl.ControllerName)
 		os.Exit(1)
@@ -406,7 +406,7 @@ func main() {
 	if err = (&policysetctrl.PolicySetReconciler{
 		Client:   mgr.GetClient(),
 		Scheme:   mgr.GetScheme(),
-		Recorder: mgr.GetEventRecorderFor(policysetctrl.ControllerName),
+		Recorder: mgr.GetEventRecorder(policysetctrl.ControllerName),
 	}).SetupWithManager(mgr, !disablePlacementRule); err != nil {
 		log.Error(err, "Unable to create controller", "controller", policysetctrl.ControllerName)
 		os.Exit(1)
@@ -475,13 +475,9 @@ func main() {
 		controllerCtx, mgr.GetConfig(), mgr.GetClient(), templateResolver, replicatedPolicyUpdates,
 	)
 
-	wg.Add(1)
-
-	go func() {
+	wg.Go(func() {
 		resolvers.WaitForShutdown()
-
-		wg.Done()
-	}()
+	})
 
 	replicatedPolicyCtrler := &propagatorctrl.ReplicatedPolicyReconciler{
 		Propagator:        propagator,
@@ -499,16 +495,12 @@ func main() {
 
 	log.Info("Starting manager")
 
-	wg.Add(1)
-
-	go func() {
+	wg.Go(func() {
 		if err := mgr.Start(controllerCtx); err != nil {
 			log.Error(err, "Problem running manager")
 			os.Exit(1)
 		}
-
-		wg.Done()
-	}()
+	})
 
 	wg.Wait()
 }

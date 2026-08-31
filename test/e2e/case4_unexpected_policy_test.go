@@ -17,30 +17,30 @@ var _ = Describe("Test unexpect policy handling", Label("non-placement-rule"), f
 		case4PolicyYaml string = "../resources/case4_unexpected_policy/case4-test-policy.yaml"
 	)
 
-	It("Unexpected root policy in cluster namespace should be deleted", func() {
+	It("Unexpected root policy in cluster namespace should be deleted", func(ctx SpecContext) {
 		By("Creating " + case4PolicyYaml + "in cluster namespace: managed1")
-		out, err := utils.KubectlWithOutput("apply",
+		out, err := utils.KubectlWithOutput(ctx, "apply",
 			"-f", case4PolicyYaml,
 			"-n", "managed1",
 			"--kubeconfig="+kubeconfigHub)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).Should(ContainSubstring(case4PolicyName + " created"))
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, case4PolicyName, "managed1", false, defaultTimeoutSeconds,
 			)
 		}, defaultTimeoutSeconds, 1).Should(BeNil())
 	})
-	It("Unexpected replicated policy in cluster namespace should be deleted", func() {
+	It("Unexpected replicated policy in cluster namespace should be deleted", func(ctx SpecContext) {
 		const plcYaml string = "../resources/case4_unexpected_policy/case4-test-replicated-policy.yaml"
 		By("Creating " + plcYaml + " in cluster namespace: managed1")
-		out, err := utils.KubectlWithOutput("apply",
+		out, err := utils.KubectlWithOutput(ctx, "apply",
 			"-f", plcYaml,
 			"-n", "managed1",
 			"--kubeconfig="+kubeconfigHub)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).Should(ContainSubstring("policy-propagator-test.case4-test-policy created"))
-		Eventually(func() interface{} {
+		Eventually(func() any {
 			return utils.GetWithTimeout(
 				clientHubDynamic,
 				gvrPolicy,
@@ -51,24 +51,25 @@ var _ = Describe("Test unexpect policy handling", Label("non-placement-rule"), f
 			)
 		}, defaultTimeoutSeconds, 1).Should(BeNil())
 	})
-	It("Unexpected replicated policy in non-cluster namespace should be skipped", func() {
+	It("Unexpected replicated policy in non-cluster namespace should be skipped", func(ctx SpecContext) {
 		const plcYaml string = "../resources/case4_unexpected_policy/case4-test-replicated-policy-out-of-cluster.yaml"
 		By("Creating " + plcYaml + " in non-cluster namespace: leaf-hub1")
-		out, err := utils.KubectlWithOutput("apply",
+		out, err := utils.KubectlWithOutput(ctx, "apply",
 			"-f", plcYaml,
 			"-n", "leaf-hub1",
 			"--kubeconfig="+kubeconfigHub)
 		Expect(err).ShouldNot(HaveOccurred())
 		Expect(out).Should(ContainSubstring("policy-propagator-test.case4-test-policy created"))
 		utils.Pause(2)
+
 		plc := utils.GetWithTimeout(
 			clientHubDynamic, gvrPolicy, "policy-propagator-test.case4-test-policy",
 			"leaf-hub1", true, defaultTimeoutSeconds,
 		)
 		Expect(plc).NotTo(BeNil())
 	})
-	It("should clean up the non-cluster policy", func() {
-		utils.Kubectl("delete",
+	It("should clean up the non-cluster policy", func(ctx SpecContext) {
+		utils.Kubectl(ctx, "delete",
 			"-f", "../resources/case4_unexpected_policy/case4-test-replicated-policy-out-of-cluster.yaml",
 			"-n", "leaf-hub1", "--kubeconfig="+kubeconfigHub)
 		utils.ListWithTimeout(clientHubDynamic, gvrPolicy, metav1.ListOptions{}, 0, false, 10)

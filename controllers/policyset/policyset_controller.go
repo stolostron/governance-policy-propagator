@@ -6,6 +6,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/go-logr/logr"
@@ -13,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/tools/record"
+	"k8s.io/client-go/tools/events"
 	clusterv1beta1 "open-cluster-management.io/api/cluster/v1beta1"
 	appsv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -27,13 +28,45 @@ import (
 	"open-cluster-management.io/governance-policy-propagator/controllers/common"
 )
 
+// SetupWithManager sets up the controller with the Manager.
+func (r *PolicySetReconciler) SetupWithManager(mgr ctrl.Manager, plrsEnabled bool) error {
+	log := ctrl.Log.WithName(ControllerName)
+
+	ctrlBldr := ctrl.NewControllerManagedBy(mgr).
+		Named(ControllerName).
+		For(
+			&policyv1beta1.PolicySet{},
+			builder.WithPredicates(policySetPredicateFuncs)).
+		Watches(
+			&policyv1.Policy{},
+			handler.EnqueueRequestsFromMapFunc(policyMapper(log, mgr.GetClient())),
+			builder.WithPredicates(policyPredicateFuncs)).
+		Watches(
+			&policyv1.PlacementBinding{},
+			handler.EnqueueRequestsFromMapFunc(placementBindingMapper(log, mgr.GetClient())),
+			builder.WithPredicates(pbPredicateFuncs)).
+		Watches(
+			&clusterv1beta1.PlacementDecision{},
+			handler.EnqueueRequestsFromMapFunc(placementDecisionMapper(log, mgr.GetClient()))).
+		WithLogConstructor(func(req *reconcile.Request) logr.Logger {
+			return common.LogConstructor(ControllerName, "PolicySet", req)
+		})
+
+	if plrsEnabled {
+		ctrlBldr = ctrlBldr.Watches(&appsv1.PlacementRule{},
+			handler.EnqueueRequestsFromMapFunc(placementRuleMapper(log, mgr.GetClient())))
+	}
+
+	return ctrlBldr.Complete(r)
+}
+
 const ControllerName string = "policy-set"
 
 // PolicySetReconciler reconciles a PolicySet object
 type PolicySetReconciler struct {
 	client.Client
 	Scheme   *runtime.Scheme
-	Recorder record.EventRecorder
+	Recorder events.EventRecorder
 }
 
 // blank assignment to verify that PolicySetReconciler implements reconcile.Reconciler
@@ -42,6 +75,38 @@ var _ reconcile.Reconciler = &PolicySetReconciler{}
 //+kubebuilder:rbac:groups=policy.open-cluster-management.io,resources=policysets,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=policy.open-cluster-management.io,resources=policysets/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=policy.open-cluster-management.io,resources=policysets/finalizers,verbs=update
+
+// SetupWithManager sets up the controller with the Manager.
+func (r *PolicySetReconciler) SetupWithManager(mgr ctrl.Manager, plrsEnabled bool) error {
+	log := ctrl.Log.WithName(ControllerName)
+
+	ctrlBldr := ctrl.NewControllerManagedBy(mgr).
+		Named(ControllerName).
+		For(
+			&policyv1beta1.PolicySet{},
+			builder.WithPredicates(policySetPredicateFuncs)).
+		Watches(
+			&policyv1.Policy{},
+			handler.EnqueueRequestsFromMapFunc(policyMapper(log, mgr.GetClient())),
+			builder.WithPredicates(policyPredicateFuncs)).
+		Watches(
+			&policyv1.PlacementBinding{},
+			handler.EnqueueRequestsFromMapFunc(placementBindingMapper(log, mgr.GetClient())),
+			builder.WithPredicates(pbPredicateFuncs)).
+		Watches(
+			&clusterv1beta1.PlacementDecision{},
+			handler.EnqueueRequestsFromMapFunc(placementDecisionMapper(log, mgr.GetClient()))).
+		WithLogConstructor(func(req *reconcile.Request) logr.Logger {
+			return common.LogConstructor(ControllerName, "PolicySet", req)
+		})
+
+	if plrsEnabled {
+		ctrlBldr = ctrlBldr.Watches(&appsv1.PlacementRule{},
+			handler.EnqueueRequestsFromMapFunc(placementRuleMapper(log, mgr.GetClient())))
+	}
+
+	return ctrlBldr.Complete(r)
+}
 
 func (r *PolicySetReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	log := ctrl.LoggerFrom(ctx)
@@ -83,10 +148,12 @@ func (r *PolicySetReconciler) Reconcile(ctx context.Context, request ctrl.Reques
 
 	log.Info("Policy set successfully processed, reconcile complete.")
 
-	r.Recorder.Event(
+	r.Recorder.Eventf(
 		instance,
+		nil,
 		"Normal",
-		"policySet: "+instance.GetName(),
+		"PolicySetStatusUpdate",
+		"PolicySetStatusUpdate",
 		fmt.Sprintf("Status successfully updated for policySet %s in namespace %s", instance.GetName(),
 			instance.GetNamespace()),
 	)
@@ -133,7 +200,7 @@ func (r *PolicySetReconciler) processPolicySet(
 
 		childPlc := &policyv1.Policy{}
 
-		err := r.Client.Get(ctx, childNamespacedName, childPlc)
+		err := r.Get(ctx, childNamespacedName, childPlc)
 		if err != nil {
 			// policy does not exist, log error message and generate event
 			var errMessage string
@@ -150,7 +217,7 @@ func (r *PolicySetReconciler) processPolicySet(
 
 			log.V(2).Info(errMessage)
 
-			r.Recorder.Event(plcSet, "Warning", "PolicyNotFound",
+			r.Recorder.Eventf(plcSet, nil, "Warning", "PolicyNotFound", "PolicyNotFound",
 				fmt.Sprintf(
 					"Policy %s is in PolicySet %s but could not be found in namespace %s",
 					childPlcName,
@@ -186,7 +253,7 @@ func (r *PolicySetReconciler) processPolicySet(
 
 				pb := &policyv1.PlacementBinding{}
 
-				err := r.Client.Get(ctx, pbNamespacedName, pb)
+				err := r.Get(ctx, pbNamespacedName, pb)
 				if err != nil {
 					if errors.IsNotFound(err) {
 						log.V(1).Info("The placement binding was not found", "placementBinding", pbName)
@@ -309,38 +376,6 @@ func showCompliance(compliancesFound []string, unknown []string, pending []strin
 	return false
 }
 
-// SetupWithManager sets up the controller with the Manager.
-func (r *PolicySetReconciler) SetupWithManager(mgr ctrl.Manager, plrsEnabled bool) error {
-	log := ctrl.Log.WithName(ControllerName)
-
-	ctrlBldr := ctrl.NewControllerManagedBy(mgr).
-		Named(ControllerName).
-		For(
-			&policyv1beta1.PolicySet{},
-			builder.WithPredicates(policySetPredicateFuncs)).
-		Watches(
-			&policyv1.Policy{},
-			handler.EnqueueRequestsFromMapFunc(policyMapper(log, mgr.GetClient())),
-			builder.WithPredicates(policyPredicateFuncs)).
-		Watches(
-			&policyv1.PlacementBinding{},
-			handler.EnqueueRequestsFromMapFunc(placementBindingMapper(log, mgr.GetClient())),
-			builder.WithPredicates(pbPredicateFuncs)).
-		Watches(
-			&clusterv1beta1.PlacementDecision{},
-			handler.EnqueueRequestsFromMapFunc(placementDecisionMapper(log, mgr.GetClient()))).
-		WithLogConstructor(func(req *reconcile.Request) logr.Logger {
-			return common.LogConstructor(ControllerName, "PolicySet", req)
-		})
-
-	if plrsEnabled {
-		ctrlBldr = ctrlBldr.Watches(&appsv1.PlacementRule{},
-			handler.EnqueueRequestsFromMapFunc(placementRuleMapper(log, mgr.GetClient())))
-	}
-
-	return ctrlBldr.Complete(r)
-}
-
 // Helper function to filter out compliance statuses that are not in scope
 func complianceInRelevantClusters(
 	status []*policyv1.CompliancePerClusterStatus,
@@ -378,13 +413,7 @@ func complianceInRelevantClusters(
 
 // helper function to check whether a cluster is in a list of clusters
 func clusterInList(list []string, cluster string) bool {
-	for _, item := range list {
-		if item == cluster {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(list, cluster)
 }
 
 // Helper function to convert policy placement to policyset placement

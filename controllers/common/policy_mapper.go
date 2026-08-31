@@ -13,8 +13,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
-// PolicyMapper looks at object and returns a slice of reconcile.Request to reconcile
-// owners of object from label: policy.open-cluster-management.io/root-policy
+// MapToRootPolicy looks at an object and returns a slice of reconcile.Request to reconcile
+// owners of the object from label: policy.open-cluster-management.io/root-policy.
 func MapToRootPolicy(c client.Client) handler.MapFunc {
 	return func(ctx context.Context, object client.Object) []reconcile.Request {
 		log := ctrl.Log.WithValues("name", object.GetName(), "namespace", object.GetNamespace())

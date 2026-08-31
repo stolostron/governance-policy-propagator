@@ -145,6 +145,8 @@ func (t *TemplateResolvers) WaitForShutdown() {
 
 // initResolver will instantiate a DynamicWatcher with a token from the input service account and then instantiate a
 // TemplateResolver with that DynamicWatcher. Tokens will be automatically refreshed.
+//
+//nolint:funcorder // helper methods are grouped for readability
 func (t *TemplateResolvers) initResolver(
 	ctx context.Context,
 	serviceAccount types.NamespacedName,
@@ -200,9 +202,7 @@ func (t *TemplateResolvers) initResolver(
 		referenceCount: &atomic.Uint32{},
 	}
 
-	t.wg.Add(1)
-
-	go func() {
+	t.wg.Go(func() {
 		err := dynamicWatcher.Start(resolverCtx)
 
 		// Start is blocking so regardless of the reason it stopped, canceled must be set to true.
@@ -217,8 +217,7 @@ func (t *TemplateResolvers) initResolver(
 		}
 
 		resolverCtxCancel()
-		t.wg.Done()
-	}()
+	})
 
 	<-dynamicWatcher.Started()
 
@@ -244,6 +243,8 @@ func (t *TemplateResolvers) initResolver(
 
 // onBackgroundError is called when a goroutine encounters an unrecoverable error. This will clean up the template
 // resolver and trigger reconciles on all replicated policies that leverage this template resolver.
+//
+//nolint:funcorder // helper methods are grouped for readability
 func (t *TemplateResolvers) onBackgroundError(ctx context.Context, serviceAccount types.NamespacedName) error {
 	replicatedPolicies := policiesv1.PolicyList{}
 
@@ -498,19 +499,19 @@ func GetToken(
 	}()
 
 	if _, writeErr = tokenFile.WriteString(tokenReq.Status.Token); writeErr != nil {
-		log.Error(err, "Failed to write the service account token file")
+		log.Error(writeErr, "Failed to write the service account token file")
 
 		return "", writeErr
 	}
 
 	if writeErr = tokenFile.Close(); writeErr != nil {
-		log.Error(err, "Failed to close the service account token file")
+		log.Error(writeErr, "Failed to close the service account token file")
 
 		if removeErr := os.Remove(tokenFilePath); removeErr != nil {
 			log.Error(removeErr, "Failed to clean up the service account token file")
 		}
 
-		return "", err
+		return "", writeErr
 	}
 
 	expirationTimestamp := tokenReq.Status.ExpirationTimestamp
@@ -600,10 +601,10 @@ func getUserKubeConfig(config *rest.Config, tokenFile string) *rest.Config {
 		Host:    config.Host,
 		APIPath: config.APIPath,
 		TLSClientConfig: rest.TLSClientConfig{
-			CAFile:     config.TLSClientConfig.CAFile,
-			CAData:     config.TLSClientConfig.CAData,
-			ServerName: config.TLSClientConfig.ServerName,
-			Insecure:   config.TLSClientConfig.Insecure,
+			CAFile:     config.CAFile,
+			CAData:     config.CAData,
+			ServerName: config.ServerName,
+			Insecure:   config.Insecure,
 		},
 	}
 

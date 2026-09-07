@@ -9,6 +9,6 @@ on:
 jobs:
   fw-kind-tests:
     name: KinD
-    uses: stolostron/governance-policy-framework/.github/workflows/kind.yml@main
+    uses: stolostron/governance-policy-framework/.github/workflows/kind.yml@415c30b70aaa22762674202dc7ad953ac92f539d # main
     with:
       hub_only_component: 'true'

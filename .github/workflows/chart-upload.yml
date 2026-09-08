@@ -20,7 +20,7 @@ jobs:
           echo "REPO_NAME=${GITHUB_REPOSITORY#*/}" | tee -a ${GITHUB_ENV}
 
       - name: Upload Helm chart to OCM chart repo
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           github-token: ${{ secrets.OCM_BOT_PAT }}
           script: |

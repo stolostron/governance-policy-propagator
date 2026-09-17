@@ -24,9 +24,9 @@ var _ = Describe("Test policy propagation", func() {
 	)
 
 	Describe("Create policy/pb/plc in ns:"+testNamespace, Ordered, func() {
-		BeforeAll(func() {
+		BeforeAll(func(ctx SpecContext) {
 			By("Creating " + case7PolicyYaml)
-			utils.Kubectl("apply",
+			utils.Kubectl(ctx, "apply",
 				"-f", case7PolicyYaml,
 				"-n", testNamespace,
 				"--kubeconfig="+kubeconfigHub)
@@ -35,7 +35,7 @@ var _ = Describe("Test policy propagation", func() {
 			)
 			Expect(plc).NotTo(BeNil())
 			By("Creating " + case7BindingYaml1)
-			utils.Kubectl("apply",
+			utils.Kubectl(ctx, "apply",
 				"-f", case7BindingYaml1,
 				"-n", testNamespace,
 				"--kubeconfig="+kubeconfigHub)
@@ -49,7 +49,7 @@ var _ = Describe("Test policy propagation", func() {
 			)
 			Expect(binding).NotTo(BeNil())
 			By("Creating " + case7BindingYaml2)
-			utils.Kubectl("apply",
+			utils.Kubectl(ctx, "apply",
 				"-f", case7BindingYaml2,
 				"-n", testNamespace,
 				"--kubeconfig="+kubeconfigHub)
@@ -63,7 +63,7 @@ var _ = Describe("Test policy propagation", func() {
 			)
 			Expect(binding).NotTo(BeNil())
 			By("Creating " + case7BindingYaml3)
-			utils.Kubectl("apply",
+			utils.Kubectl(ctx, "apply",
 				"-f", case7BindingYaml3,
 				"-n", testNamespace,
 				"--kubeconfig="+kubeconfigHub)
@@ -77,7 +77,7 @@ var _ = Describe("Test policy propagation", func() {
 			)
 			Expect(binding).NotTo(BeNil())
 			By("Creating " + case7BindingYaml4)
-			utils.Kubectl("apply",
+			utils.Kubectl(ctx, "apply",
 				"-f", case7BindingYaml4,
 				"-n", testNamespace,
 				"--kubeconfig="+kubeconfigHub)
@@ -93,6 +93,7 @@ var _ = Describe("Test policy propagation", func() {
 		})
 		It("should propagate to cluster ns managed1", func(ctx SpecContext) {
 			By("Patching test-policy-plr with decision of cluster managed1")
+
 			plr := utils.GetWithTimeout(
 				clientHubDynamic,
 				gvrPlacementDecision,
@@ -106,10 +107,12 @@ var _ = Describe("Test policy propagation", func() {
 				ctx, plr, metav1.UpdateOptions{},
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case7PolicyName, "managed1", true, defaultTimeoutSeconds,
 			)
 			Expect(plc).ToNot(BeNil())
+
 			opt := metav1.ListOptions{
 				LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case7PolicyName,
 			}
@@ -117,6 +120,7 @@ var _ = Describe("Test policy propagation", func() {
 		})
 		It("placement bindings propagate to cluster ns managed1 and managed2", func(ctx SpecContext) {
 			By("Patching test-policy-plr with decision of cluster managed2")
+
 			plr := utils.GetWithTimeout(
 				clientHubDynamic,
 				gvrPlacementDecision,
@@ -130,10 +134,12 @@ var _ = Describe("Test policy propagation", func() {
 				ctx, plr, metav1.UpdateOptions{},
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+case7PolicyName, "managed2", true, defaultTimeoutSeconds,
 			)
 			Expect(plc).ToNot(BeNil())
+
 			opt := metav1.ListOptions{
 				LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case7PolicyName,
 			}
@@ -141,6 +147,7 @@ var _ = Describe("Test policy propagation", func() {
 		})
 		It("should remove policy from ns managed2", func(ctx SpecContext) {
 			By("Patching test-policy-pb with a non existing plr")
+
 			pb := utils.GetWithTimeout(
 				clientHubDynamic,
 				gvrPlacementBinding,
@@ -158,6 +165,7 @@ var _ = Describe("Test policy propagation", func() {
 				ctx, pb, metav1.UpdateOptions{},
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			opt := metav1.ListOptions{
 				LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case7PolicyName,
 			}
@@ -165,6 +173,7 @@ var _ = Describe("Test policy propagation", func() {
 		})
 		It("mixed placement propagate to cluster ns managed1 and managed2", func(ctx SpecContext) {
 			By("Patching test-policy-plr with decision of both managed1 and managed2")
+
 			plr := utils.GetWithTimeout(
 				clientHubDynamic, gvrPlacementRule, case7PolicyName+"-plr3", testNamespace, true, defaultTimeoutSeconds,
 			)
@@ -173,6 +182,7 @@ var _ = Describe("Test policy propagation", func() {
 				ctx, plr, metav1.UpdateOptions{},
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			opt := metav1.ListOptions{
 				LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case7PolicyName,
 			}
@@ -180,6 +190,7 @@ var _ = Describe("Test policy propagation", func() {
 		})
 		It("should remove policy from ns managed2", func(ctx SpecContext) {
 			By("Patching test-policy-pb with a non existing plr")
+
 			pb := utils.GetWithTimeout(
 				clientHubDynamic,
 				gvrPlacementBinding,
@@ -197,6 +208,7 @@ var _ = Describe("Test policy propagation", func() {
 				ctx, pb, metav1.UpdateOptions{},
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			opt := metav1.ListOptions{
 				LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case7PolicyName,
 			}
@@ -204,6 +216,7 @@ var _ = Describe("Test policy propagation", func() {
 		})
 		It("app placement propagate to cluster ns managed1 and managed2", func(ctx SpecContext) {
 			By("Patching test-policy-plr with decision of both managed1 and managed2")
+
 			plr := utils.GetWithTimeout(
 				clientHubDynamic, gvrPlacementRule, case7PolicyName+"-plr4", testNamespace, true, defaultTimeoutSeconds,
 			)
@@ -212,36 +225,38 @@ var _ = Describe("Test policy propagation", func() {
 				ctx, plr, metav1.UpdateOptions{},
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			opt := metav1.ListOptions{
 				LabelSelector: common.RootPolicyLabel + "=" + testNamespace + "." + case7PolicyName,
 			}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 2, true, defaultTimeoutSeconds)
 		})
-		AfterAll(func() {
+		AfterAll(func(ctx SpecContext) {
 			By("Clean up")
-			utils.Kubectl("delete",
+			utils.Kubectl(ctx, "delete",
 				"-f", case7PolicyYaml,
 				"-n", testNamespace,
 				"--ignore-not-found",
 				"--kubeconfig="+kubeconfigHub)
+
 			opt := metav1.ListOptions{}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, false, 10)
-			utils.Kubectl("delete",
+			utils.Kubectl(ctx, "delete",
 				"-f", case7BindingYaml1,
 				"-n", testNamespace,
 				"--ignore-not-found",
 				"--kubeconfig="+kubeconfigHub)
-			utils.Kubectl("delete",
+			utils.Kubectl(ctx, "delete",
 				"-f", case7BindingYaml2,
 				"-n", testNamespace,
 				"--ignore-not-found",
 				"--kubeconfig="+kubeconfigHub)
-			utils.Kubectl("delete",
+			utils.Kubectl(ctx, "delete",
 				"-f", case7BindingYaml3,
 				"-n", testNamespace,
 				"--ignore-not-found",
 				"--kubeconfig="+kubeconfigHub)
-			utils.Kubectl("delete",
+			utils.Kubectl(ctx, "delete",
 				"-f", case7BindingYaml4,
 				"-n", testNamespace,
 				"--ignore-not-found",

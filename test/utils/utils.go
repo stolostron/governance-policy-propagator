@@ -185,6 +185,7 @@ func ListWithTimeout(
 
 	Eventually(func() error {
 		var err error
+
 		list, err = clientHubDynamic.Resource(gvr).List(context.TODO(), opts)
 		if err != nil {
 			return err
@@ -225,6 +226,7 @@ func ListWithTimeoutByNamespace(
 
 	Eventually(func() error {
 		var err error
+
 		list, err = clientHubDynamic.Resource(gvr).Namespace(ns).List(context.TODO(), opts)
 		if err != nil {
 			return err
@@ -245,10 +247,10 @@ func ListWithTimeoutByNamespace(
 }
 
 // Kubectl execute kubectl cli
-func Kubectl(args ...string) {
+func Kubectl(ctx context.Context, args ...string) {
 	GinkgoHelper()
 
-	cmd := exec.Command("kubectl", args...)
+	cmd := exec.CommandContext(ctx, "kubectl", args...)
 
 	var stderr bytes.Buffer
 
@@ -266,8 +268,8 @@ func Kubectl(args ...string) {
 }
 
 // KubectlWithOutput execute kubectl cli and return output and error
-func KubectlWithOutput(args ...string) (string, error) {
-	kubectlCmd := exec.Command("kubectl", args...)
+func KubectlWithOutput(ctx context.Context, args ...string) (string, error) {
+	kubectlCmd := exec.CommandContext(ctx, "kubectl", args...)
 
 	output, err := kubectlCmd.CombinedOutput()
 	if err != nil {
@@ -286,8 +288,8 @@ func KubectlWithOutput(args ...string) (string, error) {
 // GetMetrics execs into the propagator pod and curls the metrics endpoint, filters
 // the response with the given patterns, and returns the value(s) for the matching
 // metric(s).
-func GetMetrics(metricPatterns ...string) []string {
-	propPodInfo, err := KubectlWithOutput("get", "pod", "-n=open-cluster-management",
+func GetMetrics(ctx context.Context, metricPatterns ...string) []string {
+	propPodInfo, err := KubectlWithOutput(ctx, "get", "pod", "-n=open-cluster-management",
 		"-l=name=governance-policy-propagator", "--no-headers")
 	if err != nil {
 		return []string{err.Error()}
@@ -302,9 +304,9 @@ func GetMetrics(metricPatterns ...string) []string {
 	propPodName := strings.Split(propPodInfo, " ")[0]
 	if propPodName == "No" {
 		// A missing pod could mean the controller is running locally
-		cmd = exec.Command("bash", "-c", metricsCmd)
+		cmd = exec.CommandContext(ctx, "bash", "-c", metricsCmd)
 	} else {
-		cmd = exec.Command("kubectl", "exec", "-n=open-cluster-management", propPodName, "-c",
+		cmd = exec.CommandContext(ctx, "kubectl", "exec", "-n=open-cluster-management", propPodName, "-c",
 			"governance-policy-propagator", "--", "bash", "-c", metricsCmd)
 	}
 
@@ -360,8 +362,8 @@ func GetMatchingEvents(
 
 // MetricsLines execs into the propagator pod and curls the metrics endpoint, and returns lines
 // that match the pattern.
-func MetricsLines(pattern string) (string, error) {
-	propPodInfo, err := KubectlWithOutput("get", "pod", "-n=open-cluster-management",
+func MetricsLines(ctx context.Context, pattern string) (string, error) {
+	propPodInfo, err := KubectlWithOutput(ctx, "get", "pod", "-n=open-cluster-management",
 		"-l=name=governance-policy-propagator", "--no-headers")
 	if err != nil {
 		return "", err
@@ -375,9 +377,9 @@ func MetricsLines(pattern string) (string, error) {
 	propPodName := strings.Split(propPodInfo, " ")[0]
 	if propPodName == "No" {
 		// A missing pod could mean the controller is running locally
-		cmd = exec.Command("bash", "-c", metricsCmd)
+		cmd = exec.CommandContext(ctx, "bash", "-c", metricsCmd)
 	} else {
-		cmd = exec.Command("kubectl", "exec", "-n=open-cluster-management", propPodName, "-c",
+		cmd = exec.CommandContext(ctx, "kubectl", "exec", "-n=open-cluster-management", propPodName, "-c",
 			"governance-policy-propagator", "--", "bash", "-c", metricsCmd)
 	}
 

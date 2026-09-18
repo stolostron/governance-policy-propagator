@@ -28,6 +28,8 @@ import (
 	appsv1 "open-cluster-management.io/multicloud-operators-subscription/pkg/apis/apps/placementrule/v1"
 )
 
+var testCtx = context.Background()
+
 // GeneratePlrStatus generate plr status with given clusters
 func GeneratePlrStatus(clusters ...string) *appsv1.PlacementRuleStatus {
 	plrDecision := []appsv1.PlacementDecision{}
@@ -185,6 +187,7 @@ func ListWithTimeout(
 
 	Eventually(func() error {
 		var err error
+
 		list, err = clientHubDynamic.Resource(gvr).List(context.TODO(), opts)
 		if err != nil {
 			return err
@@ -225,6 +228,7 @@ func ListWithTimeoutByNamespace(
 
 	Eventually(func() error {
 		var err error
+
 		list, err = clientHubDynamic.Resource(gvr).Namespace(ns).List(context.TODO(), opts)
 		if err != nil {
 			return err
@@ -248,7 +252,7 @@ func ListWithTimeoutByNamespace(
 func Kubectl(args ...string) {
 	GinkgoHelper()
 
-	cmd := exec.Command("kubectl", args...)
+	cmd := exec.CommandContext(testCtx, "kubectl", args...)
 
 	var stderr bytes.Buffer
 
@@ -267,7 +271,7 @@ func Kubectl(args ...string) {
 
 // KubectlWithOutput execute kubectl cli and return output and error
 func KubectlWithOutput(args ...string) (string, error) {
-	kubectlCmd := exec.Command("kubectl", args...)
+	kubectlCmd := exec.CommandContext(testCtx, "kubectl", args...)
 
 	output, err := kubectlCmd.CombinedOutput()
 	if err != nil {
@@ -302,9 +306,9 @@ func GetMetrics(metricPatterns ...string) []string {
 	propPodName := strings.Split(propPodInfo, " ")[0]
 	if propPodName == "No" {
 		// A missing pod could mean the controller is running locally
-		cmd = exec.Command("bash", "-c", metricsCmd)
+		cmd = exec.CommandContext(testCtx, "bash", "-c", metricsCmd)
 	} else {
-		cmd = exec.Command("kubectl", "exec", "-n=open-cluster-management", propPodName, "-c",
+		cmd = exec.CommandContext(testCtx, "kubectl", "exec", "-n=open-cluster-management", propPodName, "-c",
 			"governance-policy-propagator", "--", "bash", "-c", metricsCmd)
 	}
 
@@ -375,9 +379,9 @@ func MetricsLines(pattern string) (string, error) {
 	propPodName := strings.Split(propPodInfo, " ")[0]
 	if propPodName == "No" {
 		// A missing pod could mean the controller is running locally
-		cmd = exec.Command("bash", "-c", metricsCmd)
+		cmd = exec.CommandContext(testCtx, "bash", "-c", metricsCmd)
 	} else {
-		cmd = exec.Command("kubectl", "exec", "-n=open-cluster-management", propPodName, "-c",
+		cmd = exec.CommandContext(testCtx, "kubectl", "exec", "-n=open-cluster-management", propPodName, "-c",
 			"governance-policy-propagator", "--", "bash", "-c", metricsCmd)
 	}
 

@@ -51,6 +51,7 @@ var _ = Describe("Test root policy metrics", Ordered, func() {
 
 		It("should resolve templates and propagate to cluster ns managed1", func() {
 			By("Patching test-policy-plr with decision of cluster managed1")
+
 			plr := utils.GetWithTimeout(
 				clientHubDynamic, gvrPlacementRule, policyName+"-plr", testNamespace,
 				true, defaultTimeoutSeconds,
@@ -60,6 +61,7 @@ var _ = Describe("Test root policy metrics", Ordered, func() {
 				context.TODO(), plr, metav1.UpdateOptions{},
 			)
 			Expect(err).ToNot(HaveOccurred())
+
 			plc := utils.GetWithTimeout(
 				clientHubDynamic, gvrPolicy, testNamespace+"."+policyName, "managed1",
 				true, defaultTimeoutSeconds,
@@ -67,7 +69,7 @@ var _ = Describe("Test root policy metrics", Ordered, func() {
 			Expect(plc).ToNot(BeNil())
 
 			yamlPlc := utils.ParseYaml(replicatedPolicyYaml)
-			Eventually(func() interface{} {
+			Eventually(func() any {
 				replicatedPlc := utils.GetWithTimeout(
 					clientHubDynamic,
 					gvrPolicy,
@@ -83,12 +85,13 @@ var _ = Describe("Test root policy metrics", Ordered, func() {
 
 		It("should update root policy duration after the policy is created", func() {
 			By("Checking metric bucket for root policy duration (10 seconds or less)")
-			Eventually(func() interface{} {
+			Eventually(func() any {
 				metric := utils.GetMetrics(
 					"ocm_handle_root_policy_duration_seconds_bucket_bucket", fmt.Sprintf(`le=\"%d\"`, 10))
 				if len(metric) == 0 {
 					return false
 				}
+
 				numEvals, err := strconv.Atoi(metric[0])
 				if err != nil {
 					return false
@@ -100,7 +103,7 @@ var _ = Describe("Test root policy metrics", Ordered, func() {
 
 		It("should correctly report root policy hub template watches when propagated", func() {
 			By("Checking metric endpoint for root policy hub template watches")
-			Eventually(func() interface{} {
+			Eventually(func() any {
 				return utils.GetMetrics("hub_templates_active_watches", "\"[0-9]\"")
 			}, defaultTimeoutSeconds, 1).Should(Equal([]string{"3"}))
 		})
@@ -111,6 +114,7 @@ var _ = Describe("Test root policy metrics", Ordered, func() {
 				"-n", testNamespace,
 				"--ignore-not-found",
 				"--kubeconfig="+kubeconfigHub)
+
 			opt := metav1.ListOptions{}
 			utils.ListWithTimeout(clientHubDynamic, gvrPolicy, opt, 0, false, defaultTimeoutSeconds)
 		}
@@ -119,7 +123,7 @@ var _ = Describe("Test root policy metrics", Ordered, func() {
 
 		It("should report root policy 0 hub template watches after clean up", func() {
 			By("Checking metric endpoint for root policy hub template watches")
-			Eventually(func() interface{} {
+			Eventually(func() any {
 				return utils.GetMetrics("hub_templates_active_watches", "\"[0-9]\"")
 			}, defaultTimeoutSeconds, 1).Should(Equal([]string{"0"}))
 		})

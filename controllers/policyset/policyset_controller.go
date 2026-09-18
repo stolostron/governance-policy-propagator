@@ -6,6 +6,7 @@ package controllers
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"k8s.io/apimachinery/pkg/api/equality"
@@ -95,7 +96,9 @@ func (r *PolicySetReconciler) Reconcile(ctx context.Context, request ctrl.Reques
 	return reconcile.Result{}, nil
 }
 
-// processPolicySet compares the status of a policyset to its desired state and determines whether an update is needed
+// processPolicySet compares the status of a policyset to its desired state and determines whether an update is needed.
+//
+//nolint:funcorder // helper methods are grouped for readability
 func (r *PolicySetReconciler) processPolicySet(ctx context.Context, plcSet *policyv1beta1.PolicySet) bool {
 	log.V(1).Info("Processing policy sets")
 
@@ -132,7 +135,7 @@ func (r *PolicySetReconciler) processPolicySet(ctx context.Context, plcSet *poli
 
 		childPlc := &policyv1.Policy{}
 
-		err := r.Client.Get(ctx, childNamespacedName, childPlc)
+		err := r.Get(ctx, childNamespacedName, childPlc)
 		if err != nil {
 			// policy does not exist, log error message and generate event
 			var errMessage string
@@ -185,7 +188,7 @@ func (r *PolicySetReconciler) processPolicySet(ctx context.Context, plcSet *poli
 
 				pb := &policyv1.PlacementBinding{}
 
-				err := r.Client.Get(ctx, pbNamespacedName, pb)
+				err := r.Get(ctx, pbNamespacedName, pb)
 				if err != nil {
 					if errors.IsNotFound(err) {
 						log.V(1).Info("The placement binding was not found", "placementBinding", pbName)
@@ -372,13 +375,7 @@ func complianceInRelevantClusters(
 
 // helper function to check whether a cluster is in a list of clusters
 func clusterInList(list []string, cluster string) bool {
-	for _, item := range list {
-		if item == cluster {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(list, cluster)
 }
 
 // Helper function to convert policy placement to policyset placement

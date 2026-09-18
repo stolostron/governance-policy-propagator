@@ -152,11 +152,11 @@ func (r *RootPolicyReconciler) handleRootPolicy(ctx context.Context, instance *p
 type templateCtx struct {
 	ManagedClusterName   string
 	ManagedClusterLabels map[string]string
-	PolicyMetadata       map[string]interface{}
+	PolicyMetadata       map[string]any
 }
 
-func addManagedClusterLabels(clusterName string) func(templates.CachingQueryAPI, interface{}) (interface{}, error) {
-	return func(api templates.CachingQueryAPI, ctx interface{}) (interface{}, error) {
+func addManagedClusterLabels(clusterName string) func(templates.CachingQueryAPI, any) (any, error) {
+	return func(api templates.CachingQueryAPI, ctx any) (any, error) {
 		typedCtx, ok := ctx.(templateCtx)
 		if !ok {
 			return ctx, nil
@@ -317,7 +317,7 @@ func (r *ReplicatedPolicyReconciler) processTemplates(
 
 		templateContext := templateCtx{
 			ManagedClusterName: clusterName,
-			PolicyMetadata: map[string]interface{}{
+			PolicyMetadata: map[string]any{
 				"annotations": rootPlc.Annotations,
 				"labels":      rootPlc.Labels,
 				"name":        rootPlc.Name,

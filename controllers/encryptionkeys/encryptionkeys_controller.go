@@ -78,9 +78,22 @@ func (r *EncryptionKeysReconciler) Reconcile(ctx context.Context, request ctrl.R
 		return reconcile.Result{}, nil
 	}
 
+	inClusterNamespace, err := common.IsInClusterNamespace(ctx, r.Client, request.Namespace)
+	if err != nil {
+		log.Error(err, "Unable to determine if this secret should be reconciled, re-queueing")
+
+		return reconcile.Result{}, err
+	}
+
+	if !inClusterNamespace {
+		log.Info("Got a reconciliation request for a Secret not in a managed cluster namespace - ignoring.")
+
+		return reconcile.Result{}, nil
+	}
+
 	secret := &corev1.Secret{}
 
-	err := r.Get(ctx, request.NamespacedName, secret)
+	err = r.Get(ctx, request.NamespacedName, secret)
 	if err != nil {
 		if k8serrors.IsNotFound(err) {
 			log.Info("The Secret was not found on the server. Doing nothing.")

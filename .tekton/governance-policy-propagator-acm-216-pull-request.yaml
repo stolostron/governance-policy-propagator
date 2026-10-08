@@ -33,7 +33,7 @@ spec:
     - name: prefetch-input
       value: '[{"type": "gomod", "path": "."}]'
     - name: image-expires-after
-      value: 5d
+      value: 60d
     - name: build-source-image
       value: 'true'
     - name: build-platforms
